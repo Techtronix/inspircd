@@ -89,10 +89,12 @@ class IdentRequestSocket : public EventHandler
 	std::string result;		/* Holds the ident string if done */
 	time_t age;
 	bool done;			/* True if lookup is finished */
+	unsigned int changes;
 
 	IdentRequestSocket(LocalUser* u) : user(u)
 	{
 		age = ServerInstance->Time();
+		changes = 0;
 
 		SetFd(socket(user->server_sa.sa.sa_family, SOCK_STREAM, 0));
 
@@ -267,6 +269,12 @@ class IdentRequestSocket : public EventHandler
 			}
 		}
 	}
+
+	bool ShouldApply() const
+	{
+		/* I expect 1 change for the initial USER */
+		return changes <= 1;
+	}
 };
 
 class ModuleIdent : public Module
@@ -284,7 +292,8 @@ class ModuleIdent : public Module
 		OnRehash(NULL);
 		Implementation eventlist[] = {
 			I_OnRehash, I_OnUserInit, I_OnCheckReady,
-			I_OnUserDisconnect, I_OnSetConnectClass
+			I_OnUserDisconnect, I_OnSetConnectClass,
+			I_OnChangeIdent
 		};
 		ServerInstance->Modules->Attach(eventlist, this, sizeof(eventlist)/sizeof(Implementation));
 	}
@@ -360,15 +369,20 @@ class ModuleIdent : public Module
 		ServerInstance->Logs->Log("m_ident",DEBUG, "Yay, result!");
 
 		/* wooo, got a result (it will be good, or bad) */
+
 		if (isock->result.empty())
 		{
-			user->ident.insert(user->ident.begin(), 1, '~');
+			if (isock->ShouldApply())
+				user->ident.insert(user->ident.begin(), 1, '~');
+
 			user->WriteServ("NOTICE Auth :*** Could not find your ident, using %s instead.", user->ident.c_str());
 		}
 		else
 		{
-			user->ident = isock->result;
-			user->WriteServ("NOTICE Auth :*** Found your ident, '%s'", user->ident.c_str());
+			if (isock->ShouldApply())
+				user->ident = isock->result;
+
+			user->WriteServ("NOTICE Auth :*** Found your ident, '%s'", isock->result.c_str());
 		}
 
 		user->InvalidateCache();
@@ -382,6 +396,15 @@ class ModuleIdent : public Module
 		if (myclass->config->getBool("requireident") && user->ident[0] == '~')
 			return MOD_RES_DENY;
 		return MOD_RES_PASSTHRU;
+	}
+
+	void OnChangeIdent(User* user, const std::string &ident)
+	{
+		IdentRequestSocket *isock = ext.get(user);
+		if (isock)
+		{
+			++isock->changes;
+		}
 	}
 
 	virtual void OnCleanup(int target_type, void *item)

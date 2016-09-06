@@ -33,7 +33,6 @@ class CommandUser : public SplitCommand
 	CommandUser ( Module* parent) : SplitCommand(parent,"USER",4,4) { works_before_reg = true; Penalty = 0; syntax = "<username> <localhost> <remotehost> <GECOS>"; }
 	/** Handle command.
 	 * @param parameters The parameters to the comamnd
-	 * @param pcnt The number of parameters passed to teh command
 	 * @param user The user issuing the command
 	 * @return A value from CmdResult to indicate command success or failure.
 	 */
@@ -61,7 +60,8 @@ CmdResult CommandUser::HandleLocal(const std::vector<std::string>& parameters, L
 			 * ~ character, and +1 for null termination, therefore we can safely use up to
 			 * IDENTMAX here.
 			 */
-			user->ChangeIdent(parameters[0].c_str());
+			if (user->ident == "unknown") /* this could be set by services already */
+				user->ChangeIdent(parameters[0].c_str());
 			user->fullname.assign(parameters[3].empty() ? "No info" : parameters[3], 0, ServerInstance->Config->Limits.MaxGecos);
 			user->registered = (user->registered | REG_USER);
 		}
