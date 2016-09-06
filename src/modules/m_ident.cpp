@@ -89,10 +89,12 @@ class IdentRequestSocket : public EventHandler
 	std::string result;		/* Holds the ident string if done */
 	time_t age;
 	bool done;			/* True if lookup is finished */
+	std::string original_ident;
 
 	IdentRequestSocket(LocalUser* u) : user(u)
 	{
 		age = ServerInstance->Time();
+		original_ident = u->ident;
 
 		SetFd(socket(user->server_sa.sa.sa_family, SOCK_STREAM, 0));
 
@@ -360,15 +362,22 @@ class ModuleIdent : public Module
 		ServerInstance->Logs->Log("m_ident",DEBUG, "Yay, result!");
 
 		/* wooo, got a result (it will be good, or bad) */
+
 		if (isock->result.empty())
 		{
-			user->ident.insert(user->ident.begin(), 1, '~');
+			/* if original username changed during lookup, assume it was services and is more correct */
+			if (user->ident == isock->original_ident)
+				user->ident.insert(user->ident.begin(), 1, '~');
+
 			user->WriteServ("NOTICE Auth :*** Could not find your ident, using %s instead.", user->ident.c_str());
 		}
 		else
 		{
-			user->ident = isock->result;
-			user->WriteServ("NOTICE Auth :*** Found your ident, '%s'", user->ident.c_str());
+			/* if original username changed during lookup, assume it was services and is more correct */
+			if (user->ident == isock->original_ident)
+				user->ident = isock->result;
+
+			user->WriteServ("NOTICE Auth :*** Found your ident, '%s'", isock->result.c_str());
 		}
 
 		user->InvalidateCache();
