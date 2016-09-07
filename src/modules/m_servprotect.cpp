@@ -1,6 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
+ *   Copyright (c) 2016 Techtronix Development Team <info@techtronix.net
  *   Copyright (C) 2009 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2008 Craig Edwards <craigedwards@brainbox.cc>
  *   Copyright (C) 2007 Robin Burchell <robin+git@viroteck.net>
@@ -74,7 +75,7 @@ class ModuleServProtectMode : public Module
 	{
 		if (dst->IsModeSet('k'))
 		{
-			ServerInstance->SendWhoisLine(src, dst, 310, src->nick+" "+dst->nick+" :is an "+ServerInstance->Config->Network+" Service");
+			ServerInstance->SendWhoisLine(src, dst, 310, src->nick+" "+dst->nick+" :is a Network Service");
 		}
 	}
 
