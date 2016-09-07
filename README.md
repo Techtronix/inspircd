@@ -14,8 +14,11 @@ keeping core functionality to a minimum we hope to increase the stability,
 security and speed of InspIRCd while also making it customisable to the needs of
 many different users.
 
+This is a fork of the main InspIRCd project, modified and maintained to fit the
+needs of Techtronix.
+
 ### Links
 
-* [Website](http://inspircd.org)
-* [GitHub](https://github.com/inspircd)
-* IRC: \#inspircd on irc.inspircd.org
+* [Website](http://techtronix.net)
+* [GitHub](https://github.com/TechtronixIRC/inspircd)
+* IRC: \#techtronix-dev on irc.techtronix.net
