@@ -1,6 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
+ *   Copyright (C) 2016 Techtronix Deveopment Team <info@techtronix.net>
  *   Copyright (C) 2004, 2008 Craig Edwards <craigedwards@brainbox.cc>
  *   Copyright (C) 2007 Dennis Friis <peavey@inspircd.org>
  *   Copyright (C) 2007 Robin Burchell <robin+git@viroteck.net>
@@ -60,7 +61,7 @@ class ModuleBotMode : public Module
 	{
 		if (dst->IsModeSet('B'))
 		{
-			ServerInstance->SendWhoisLine(src, dst, 335, src->nick+" "+dst->nick+" :is a bot on "+ServerInstance->Config->Network);
+			ServerInstance->SendWhoisLine(src, dst, 335, src->nick+" "+dst->nick+" :is marked as a bot");
 		}
 	}
 
