@@ -61,6 +61,15 @@
 #<module name="m_abbreviation.so">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# Account host module: Allows setting hosts on users based on their
+# account name on login.
+#
+# IMPORTANT:
+# This module will set vhosts on connect, and vhosts from services such
+# as HostServ may conflict with this.
+#<accounthost prefix="foo" suffix="bar" changereal="false">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # Alias module: Allows you to define server-side command aliases.
 #<module name="m_alias.so">
 #
@@ -189,6 +198,37 @@
 #<module name="m_alltime.so">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] Anti-bear module: Request CTCP TIME from users on connect to
+# help detect if they are malicious. This was used to help detect "bear
+# bots" in previous years, but it also sends warnings to users that spam
+# bots aren't welcome on the network.
+#<module name="m_antibear.so">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] Anti-bottler module: Changes the ident of connecting bottler 
+# clients to "bottler"
+#<module name="m_antibottler.so">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRA] Anti-random module: Prevent against bots using random patterns
+#<module name="m_antirandom.so">
+#<antirandom
+#        showfailedconnects="1" #(Defaults to 1 )
+#        debugmode="0" #(Defaults to 0)
+#        threshold="10" #(Defaults to 10 Valid values between 1 and 100)
+#        banaction="ZLINE" #(Defaults to "" Valid values: GLINE,ZLINE,KILL,"")
+#        banduration="86400" #(Defaults to 86400 (1 day). Time in seconds)
+#        banreason="You look like a bot. Change your nick/ident/gecos and try reconnecting.">
+#   <antirandomexempt type="host" pattern="*.tld">
+#   <antirandomexempt type="ident" pattern="*lightirc">
+#   <antirandomexempt type="fullname" pattern="Mibbit">
+#   Notes:
+#    showfailedconnects - Show failed connection
+#        This module uses a scoring system that will react based
+#        on the threshold set above. If the threshold is set too low many
+#        clients will be tagged a bot.
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # Auditorium module: Adds channel mode +u which makes everyone else
 # except you in the channel invisible, used for large meetings etc.
 #<module name="m_auditorium.so">
@@ -206,6 +246,24 @@
 #
 # Exemptchanops can be used to adjust the level at which users become visible or
 # the level at which they can see the full member list of the channel.
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] Authy module: Enables two factor authentication for oper
+# blocks using Authy
+#<module name="m_authy.so">
+# ssl: select gnutls or openssl
+# graceful: allow opers to log in anyways in case of an API failure
+#<authy apikey="" ssl="" graceful="false">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] Autodrop module: Automatically drop clients if they send
+# certain commands
+#<module name="m_autodrop.so">
+#<autodrop commands="CONNECT DELETE GET HEAD OPTIONS PATCH POST PUT TRACE">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] Autokick module: Automatically kick users when banned
+#<module name="m_autokick.so">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # Autoop module: Adds basic channel access controls via the +w listmode.
@@ -300,6 +358,10 @@
 #<module name="m_cap.so">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] CAP notify module: Provides the cap-notify IRCv3 extension
+#<module name="m_capnotify.so">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # CBAN module: Lets you disallow channels from being used at runtime.
 # This module is oper-only and provides /CBAN.
 # To use, CBAN must be in one of your oper class blocks.
@@ -356,6 +418,11 @@
 # real IP is then checked. You may set this class to a lower value, so that
 # the real IP of the client can still be restricted to, for example, 3
 # sessions maximum.
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] Change cap module: Change the capitalization on channels
+# via the /changecap command.
+#<module name="m_changecap.so">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # Channel create module: Adds snomask +j, which will notify opers of
