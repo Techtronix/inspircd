@@ -1,6 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
+ *   Copyright (C) 2017 Techtronix Deveopment Team <info@techtronix.net>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2006-2008 Robin Burchell <robin+git@viroteck.net>
  *   Copyright (C) 2007 Craig Edwards <craigedwards@brainbox.cc>
@@ -136,7 +137,7 @@ class DNSBLResolver : public Resolver
 							if (ServerInstance->XLines->AddLine(kl,NULL))
 							{
 								std::string timestr = ServerInstance->TimeString(kl->expiry);
-								ServerInstance->SNO->WriteGlobalSno('x',"K:line added due to DNSBL match on *@%s to expire on %s: %s",
+								ServerInstance->SNO->WriteGlobalSno('x',"K-Line added due to DNSBL match on *@%s to expire on %s: %s",
 									them->GetIPString(), timestr.c_str(), reason.c_str());
 								ServerInstance->XLines->ApplyLines();
 							}
@@ -154,7 +155,7 @@ class DNSBLResolver : public Resolver
 							if (ServerInstance->XLines->AddLine(gl,NULL))
 							{
 								std::string timestr = ServerInstance->TimeString(gl->expiry);
-								ServerInstance->SNO->WriteGlobalSno('x',"G:line added due to DNSBL match on *@%s to expire on %s: %s",
+								ServerInstance->SNO->WriteGlobalSno('x',"G-Line added due to DNSBL match on *@%s to expire on %s: %s",
 									them->GetIPString(), timestr.c_str(), reason.c_str());
 								ServerInstance->XLines->ApplyLines();
 							}
@@ -172,7 +173,7 @@ class DNSBLResolver : public Resolver
 							if (ServerInstance->XLines->AddLine(zl,NULL))
 							{
 								std::string timestr = ServerInstance->TimeString(zl->expiry);
-								ServerInstance->SNO->WriteGlobalSno('x',"Z:line added due to DNSBL match on *@%s to expire on %s: %s",
+								ServerInstance->SNO->WriteGlobalSno('x',"Z-Line added due to DNSBL match on %s to expire on %s: %s",
 									them->GetIPString(), timestr.c_str(), reason.c_str());
 								ServerInstance->XLines->ApplyLines();
 							}

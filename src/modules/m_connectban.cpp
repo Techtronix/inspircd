@@ -1,6 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
+ *   Copyright (C) 2017 Techtronix Development Team <info@techtronix.net>
  *   Copyright (C) 2008 Robin Burchell <robin+git@viroteck.net>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
@@ -105,7 +106,7 @@ class ModuleConnectBan : public Module
 				ServerInstance->XLines->ApplyLines();
 				std::string maskstr = mask.str();
 				std::string timestr = ServerInstance->TimeString(zl->expiry);
-				ServerInstance->SNO->WriteGlobalSno('x',"Module m_connectban added Z:line on *@%s to expire on %s: Connect flooding",
+				ServerInstance->SNO->WriteGlobalSno('x',"Module m_connectban added Z-Line on %s to expire on %s: Connect flooding",
 					maskstr.c_str(), timestr.c_str());
 				ServerInstance->SNO->WriteGlobalSno('a', "Connect flooding from IP range %s (%d)", maskstr.c_str(), threshold);
 				connects.erase(i);
