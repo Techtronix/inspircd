@@ -790,7 +790,7 @@ void LocalUser::FullConnect()
 	std::string umlist = ServerInstance->Modes->UserModeList();
 	std::string cmlist = ServerInstance->Modes->ChannelModeList();
 	std::string pmlist = ServerInstance->Modes->ParaModeList();
-	this->WriteNumeric(RPL_SERVERVERSION, "%s %s %s %s %s %s", this->nick.c_str(), ServerInstance->Config->ServerName.c_str(), BRANCH, umlist.c_str(), cmlist.c_str(), pmlist.c_str());
+	this->WriteNumeric(RPL_SERVERVERSION, "%s %s InspIRCd-2.0-techtronix %s %s %s", this->nick.c_str(), ServerInstance->Config->ServerName.c_str(), umlist.c_str(), cmlist.c_str(), pmlist.c_str());
 
 	ServerInstance->Config->Send005(this);
 	this->WriteNumeric(RPL_YOURUUID, "%s %s :your unique ID", this->nick.c_str(), this->uuid.c_str());
