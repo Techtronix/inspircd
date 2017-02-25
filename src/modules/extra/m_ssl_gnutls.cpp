@@ -36,6 +36,9 @@
 /* $LinkerFlags: rpath("pkg-config --libs gnutls") pkgconflibs("gnutls","/libgnutls.so","-lgnutls") iflt("pkg-config --modversion gnutls","2.12") exec("libgcrypt-config --libs") */
 /* $NoPedantic */
 
+/* Enable SHA256 FP Support */
+#define INSPIRCD_GNUTLS_ENABLE_SHA256_FINGERPRINT
+
 #ifndef GNUTLS_VERSION_MAJOR
 #define GNUTLS_VERSION_MAJOR LIBGNUTLS_VERSION_MAJOR
 #define GNUTLS_VERSION_MINOR LIBGNUTLS_VERSION_MINOR
