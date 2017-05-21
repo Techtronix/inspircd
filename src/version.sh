@@ -1,2 +1,2 @@
 #!/bin/sh
-echo "InspIRCd-2.0.23-techtronix"
+echo "InspIRCd-2.0.24-techtronix"

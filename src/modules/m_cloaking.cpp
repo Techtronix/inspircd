@@ -96,7 +96,7 @@ class CloakUser : public ModeHandler
 
 		if (adding)
 		{
-			/* assume this is more correct */
+			// assume this is more correct
 			if (user->registered != REG_ALL && user->host != user->dhost)
 				return MODEACTION_DENY;
 

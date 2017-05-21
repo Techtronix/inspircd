@@ -1076,7 +1076,8 @@
 #           binddn="cn=Manager,dc=brainbox,dc=cc"                     #
 #           bindauth="mysecretpass"                                   #
 #           verbose="yes"                                             #
-#           host="$uid.$ou.inspircd.org">                             #
+#           host="$uid.$ou.inspircd.org"                              #
+#           useusername="no">                                         #
 #                                                                     #
 # <ldapwhitelist cidr="10.42.0.0/16">                                 #
 #                                                                     #
@@ -1087,6 +1088,10 @@
 #                                                                     #
 # The attribute value indicates the attribute which is used to locate #
 # a user account by name. On POSIX systems this is usually 'uid'.     #
+#                                                                     #
+# The useusername setting chooses whether the user's username or      #
+# nickname is used when locating a user account, if a username isn't  #
+# provided in PASS.                                                   #
 #                                                                     #
 # The server parameter indicates the LDAP server to connect to. The   #
 # ldap:// style scheme before the hostname proper is MANDATORY.       #
@@ -1661,13 +1666,12 @@
 #
 #-#-#-#-#-#-#-#-#-# SECURELIST CONFIGURATION -#-#-#-#-#-#-#-#-#-#-#-#-#
 #                                                                     #
-# Securelist can be harmful to some IRC search engines such as        #
-# netsplit.de and searchirc.com. To prevent securelist blocking these #
-# sites from listing, define exception tags as shown below:           #
-#<securehost exception="*@*.searchirc.org">
+# Securelist can be harmful to some IRC search engines. To prevent    #
+# securelist blocking these sites from listing, define exception tags #
+# as shown below:                                                     #
 #<securehost exception="*@*.netsplit.de">
-#<securehost exception="*@echo940.server4you.de">
 #<securehost exception="*@*.ircdriven.com">
+#<securehost exception="*@*.irc-source.com">
 #                                                                     #
 # Define the following variable to change how long a user must wait   #
 # before issuing a LIST. If not defined, defaults to 60 seconds.      #
@@ -1764,7 +1768,8 @@
 # SSL channel mode module: Adds support for SSL-only channels via
 # channel mode +z and the 'z' extban which matches SSL client
 # certificate fingerprints.
-# Does not do anything useful without a working SSL module (see below).
+# Does not do anything useful without a working SSL module and the
+# m_sslinfo module (see below).
 #<module name="m_sslmodes.so">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
