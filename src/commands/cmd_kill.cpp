@@ -112,7 +112,7 @@ CmdResult CommandKill::Handle (const std::vector<std::string>& parameters, User 
 		{
 			// remote kill
 			if (!ServerInstance->Config->HideULineKills || !ServerInstance->ULine(user->server))
-				ServerInstance->SNO->WriteToSnoMask('K', "Remote kill by %s: %s (%s)", user->nick.c_str(), u->GetFullRealHost().c_str(), parameters[1].c_str());
+				ServerInstance->SNO->WriteToSnoMask('K', "Remote Kill by %s: %s (%s)", user->nick.c_str(), u->GetFullRealHost().c_str(), parameters[1].c_str());
 			FOREACH_MOD(I_OnRemoteKill, OnRemoteKill(user, u, killreason, killreason));
 		}
 		else

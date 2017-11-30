@@ -79,13 +79,13 @@ CmdResult CommandZline::Handle (const std::vector<std::string>& parameters, User
 		{
 			if (!duration)
 			{
-				ServerInstance->SNO->WriteToSnoMask('x',"%s added permanent Z-line for %s: %s", user->nick.c_str(), ipaddr, parameters[2].c_str());
+				ServerInstance->SNO->WriteToSnoMask('x',"%s added permanent Z-Line for %s: %s", user->nick.c_str(), ipaddr, parameters[2].c_str());
 			}
 			else
 			{
 				time_t c_requires_crap = duration + ServerInstance->Time();
 				std::string timestr = ServerInstance->TimeString(c_requires_crap);
-				ServerInstance->SNO->WriteToSnoMask('x',"%s added timed Z-line for %s, expires on %s: %s",user->nick.c_str(),ipaddr,
+				ServerInstance->SNO->WriteToSnoMask('x',"%s added timed Z-Line for %s, expires on %s: %s",user->nick.c_str(),ipaddr,
 						timestr.c_str(), parameters[2].c_str());
 			}
 			ServerInstance->XLines->ApplyLines();
@@ -100,7 +100,7 @@ CmdResult CommandZline::Handle (const std::vector<std::string>& parameters, User
 	{
 		if (ServerInstance->XLines->DelLine(target.c_str(),"Z",user))
 		{
-			ServerInstance->SNO->WriteToSnoMask('x',"%s removed Z-line on %s",user->nick.c_str(),target.c_str());
+			ServerInstance->SNO->WriteToSnoMask('x',"%s removed Z-Line on %s",user->nick.c_str(),target.c_str());
 		}
 		else
 		{
