@@ -1,6 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
+ *   Copyright (C) 2017 Techtronix Development Team <info@techtronix.net>
  *   Copyright (C) 2009 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2004, 2008 Craig Edwards <craigedwards@brainbox.cc>
  *   Copyright (C) 2007 Dennis Friis <peavey@inspircd.org>
@@ -39,6 +40,7 @@ enum FilterFlags
 enum FilterAction
 {
 	FA_GLINE,
+	FA_ZLINE,
 	FA_BLOCK,
 	FA_SILENT,
 	FA_KILL,
@@ -144,7 +146,7 @@ class CommandFilter : public Command
 		: Command(f, "FILTER", 1, 5)
 	{
 		flags_needed = 'o';
-		this->syntax = "<filter-definition> <action> <flags> [<gline-duration>] :<reason>";
+		this->syntax = "<filter-definition> <action> <flags> [<xline-duration>] :<reason>";
 	}
 	CmdResult Handle(const std::vector<std::string>&, User*);
 
@@ -232,11 +234,11 @@ CmdResult CommandFilter::Handle(const std::vector<std::string> &parameters, User
 
 			if (!ModuleFilter::StringToFilterAction(parameters[1], type))
 			{
-				user->WriteServ("NOTICE %s :*** Invalid filter type '%s'. Supported types are 'gline', 'none', 'block', 'silent' and 'kill'.", user->nick.c_str(), parameters[1].c_str());
+				user->WriteServ("NOTICE %s :*** Invalid filter type '%s'. Supported types are 'gline', 'zline', 'none', 'block', 'silent' and 'kill'.", user->nick.c_str(), parameters[1].c_str());
 				return CMD_FAILURE;
 			}
 
-			if (type == FA_GLINE)
+			if (type == FA_GLINE || type == FA_ZLINE)
 			{
 				if (parameters.size() >= 5)
 				{
@@ -245,7 +247,7 @@ CmdResult CommandFilter::Handle(const std::vector<std::string> &parameters, User
 				}
 				else
 				{
-					user->WriteServ("NOTICE %s :*** Not enough parameters: When setting a gline type filter, a gline duration must be specified as the third parameter.", user->nick.c_str());
+					user->WriteServ("NOTICE %s :*** Not enough parameters: When setting a [GZ]-Line type filter, a [GZ]-Line duration must be specified as the third parameter.", user->nick.c_str());
 					return CMD_FAILURE;
 				}
 			}
@@ -375,18 +377,38 @@ ModResult ModuleFilter::OnUserPreNotice(User* user,void* dest,int target_type, s
 		}
 		else if (f->action == FA_KILL)
 		{
+			ServerInstance->SNO->WriteGlobalSno('a', "FILTER: " + user->nick + " had their message filtered and was killed, target was " + target + ": " + f->reason);
 			ServerInstance->Users->QuitUser(user, "Filtered: " + f->reason);
 		}
 		else if (f->action == FA_GLINE)
 		{
 			GLine* gl = new GLine(ServerInstance->Time(), f->gline_time, ServerInstance->Config->ServerName.c_str(), f->reason.c_str(), "*", user->GetIPString());
+			ServerInstance->SNO->WriteGlobalSno('a', "FILTER: " + user->nick + " had their message filtered and was G-Lined, target was " + target + ": " + f->reason);
 			if (ServerInstance->XLines->AddLine(gl,NULL))
 			{
+				std::string timestr = ServerInstance->TimeString(gl->expiry);
+				ServerInstance->SNO->WriteGlobalSno('x',"G-Line added due to FILTER match on *@%s to expire on %s: %s",
+					user->GetIPString(), timestr.c_str(), f->reason.c_str());
 				ServerInstance->XLines->ApplyLines();
 			}
 			else
 				delete gl;
 		}
+		else if (f->action == FA_ZLINE)
+		{
+			ZLine* zl = new ZLine(ServerInstance->Time(), f->gline_time, ServerInstance->Config->ServerName.c_str(), f->reason.c_str(), user->GetIPString());
+			ServerInstance->SNO->WriteGlobalSno('a', "FILTER: " + user->nick + " had their message filtered and was Z-Lined, target was " + target + ": " + f->reason);
+			if (ServerInstance->XLines->AddLine(zl,NULL))
+			{
+				std::string timestr = ServerInstance->TimeString(zl->expiry);
+				ServerInstance->SNO->WriteGlobalSno('x',"Z-Line added due to FILTER match on %s to expire on %s: %s",
+					user->GetIPString(), timestr.c_str(), f->reason.c_str());
+				ServerInstance->XLines->ApplyLines();
+			}
+			else
+				delete zl;
+		}
+
 
 		ServerInstance->Logs->Log("FILTER",DEFAULT,"FILTER: "+ user->nick + " had their message filtered, target was " + target + ": " + f->reason + " Action: " + ModuleFilter::FilterActionToString(f->action));
 		return MOD_RES_DENY;
@@ -453,12 +475,30 @@ ModResult ModuleFilter::OnPreCommand(std::string &command, std::vector<std::stri
 			{
 				/* Note: We gline *@IP so that if their host doesnt resolve the gline still applies. */
 				GLine* gl = new GLine(ServerInstance->Time(), f->gline_time, ServerInstance->Config->ServerName.c_str(), f->reason.c_str(), "*", user->GetIPString());
+				ServerInstance->SNO->WriteGlobalSno('a', "FILTER: " + user->nick + " had their " + command + " message filtered and was G-Lined: " + f->reason);
 				if (ServerInstance->XLines->AddLine(gl,NULL))
 				{
+					std::string timestr = ServerInstance->TimeString(gl->expiry);
+					ServerInstance->SNO->WriteGlobalSno('x',"G-Line added due to FILTER match on *@%s to expire on %s: %s",
+						user->GetIPString(), timestr.c_str(), f->reason.c_str());
 					ServerInstance->XLines->ApplyLines();
 				}
 				else
 					delete gl;
+			}
+			if (f->action == FA_ZLINE)
+			{
+				ZLine* zl = new ZLine(ServerInstance->Time(), f->gline_time, ServerInstance->Config->ServerName.c_str(), f->reason.c_str(), user->GetIPString());
+				ServerInstance->SNO->WriteGlobalSno('a', "FILTER: " + user->nick + " had their " + command + " message filtered and was Z-Lined: " + f->reason);
+				if (ServerInstance->XLines->AddLine(zl,NULL))
+				{
+					std::string timestr = ServerInstance->TimeString(zl->expiry);
+					ServerInstance->SNO->WriteGlobalSno('x',"Z-Line added due to FILTER match on %s to expire on %s: %s",
+						user->GetIPString(), timestr.c_str(), f->reason.c_str());
+					ServerInstance->XLines->ApplyLines();
+				}
+				else
+					delete zl;
 			}
 			return MOD_RES_DENY;
 		}
@@ -658,6 +698,8 @@ bool ModuleFilter::StringToFilterAction(const std::string& str, FilterAction& fa
 
 	if (s == "gline")
 		fa = FA_GLINE;
+	else if (s == "zline")
+		fa = FA_ZLINE;
 	else if (s == "block")
 		fa = FA_BLOCK;
 	else if (s == "silent")
@@ -677,6 +719,7 @@ std::string ModuleFilter::FilterActionToString(FilterAction fa)
 	switch (fa)
 	{
 		case FA_GLINE:  return "gline";
+		case FA_ZLINE:  return "zline";
 		case FA_BLOCK:  return "block";
 		case FA_SILENT: return "silent";
 		case FA_KILL:   return "kill";
