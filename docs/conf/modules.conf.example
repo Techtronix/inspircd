@@ -37,6 +37,14 @@
 #<module name="m_md5.so">
 #
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] SHA1 module: Allows other modules to generate SHA1 hashes,
+# usually for cryptographic uses and security.
+#
+# IMPORTANT:
+# Other modules may rely on this module being loaded to function.
+#<module name="m_sha1.so">
+#
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # SHA256 module: Allows other modules to generate SHA256 hashes,
 # usually for cryptographic uses and security.
 #
@@ -54,6 +62,15 @@
 # IMPORTANT:
 # Other modules may rely on this module being loaded to function.
 #<module name="m_ripemd160.so">
+#
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] GnuTLS hashing module: Adds various hash functions using the
+# GnuTLS API. It adds: sha1, sha256, sha512, and ripemd160. This module
+# CANNOT be loaded with m_sha1.so (extras), m_sha256, or m_ripemd160.
+# m_md5 is not replaced by this module as it has special uses for other
+# modules such as m_cloaking. This module also requires the gnutls
+# libraries to be installed.
+#<module name="m_gnutls_hash.so">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # Abbreviation module: Provides the ability to abbreviate commands a-la
@@ -61,12 +78,13 @@
 #<module name="m_abbreviation.so">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
-# Account host module: Allows setting hosts on users based on their
+# [EXTRAS] Account host module: Allows setting hosts on users based on their
 # account name on login.
 #
 # IMPORTANT:
 # This module will set vhosts on connect, and vhosts from services such
 # as HostServ may conflict with this.
+#<module name="m_accounthost.so">
 #<accounthost prefix="foo" suffix="bar" changereal="false">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
@@ -198,19 +216,7 @@
 #<module name="m_alltime.so">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
-# [EXTRAS] Anti-bear module: Request CTCP TIME from users on connect to
-# help detect if they are malicious. This was used to help detect "bear
-# bots" in previous years, but it also sends warnings to users that spam
-# bots aren't welcome on the network.
-#<module name="m_antibear.so">
-
-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
-# [EXTRAS] Anti-bottler module: Changes the ident of connecting bottler 
-# clients to "bottler"
-#<module name="m_antibottler.so">
-
-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
-# [EXTRA] Anti-random module: Prevent against bots using random patterns
+# [EXTRAS] Anti-random module: Prevent against bots using random patterns
 #<module name="m_antirandom.so">
 #<antirandom
 #        showfailedconnects="1" #(Defaults to 1 )
@@ -421,7 +427,7 @@
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # [EXTRAS] Change cap module: Change the capitalization on channels
-# via the /changecap command.
+# via the /changecap command. Must be opped on the channel to use.
 #<module name="m_changecap.so">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
@@ -555,6 +561,12 @@
 #<module name="m_chgname.so">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] CipersuiteJoin Module: Adds channel list mode +Z, which only lets
+# clients join who use a ciphersuite on the list. You MUST load
+# m_sslstatus_gnutls to use this module.
+#<module name="m_ciphersuitejoin.so">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # Cloaking module: Adds usermode +x and cloaking support.
 # Relies on the module m_md5.so being loaded.
 # To cloak users when they connect, load m_conn_umodes and set
@@ -618,6 +630,23 @@
 # that users must share a common channel with you to PRIVMSG or NOTICE
 # you.
 #<module name="m_commonchans.so">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] Connection banner module: Displays a static text to every
+# connecting user before registration. Similar to "*** Looking up your
+# hostname" messages.
+#<module name="m_conn_banner.so">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] Auto delayed join on connect module: Allows you to force
+# users to join one or more channels automatically AFTER a specified
+# delay on connect. If you use this module, do not use m_conn_join.so
+#<module name="m_conn_delayed_join.so">
+#
+# This module also allows for setting autojoin and autojoindelay per
+# connect class. Use <connect autojoin="" autojoindelay=""> to enable
+# this functionality. Otherwise, the module will use the config below
+#<autojoin channel="#one,#two,#three" delay="30">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # Auto join on connect module: Allows you to force users to join one
@@ -698,6 +727,13 @@
 #   quitmsg="Throttled" bootwait="10">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] Custom penalty module: Allows the customization of command
+# penalty levels.
+#<module name="m_custompenalty.so">
+# The below example sets the penalty for using INVITE to 60:
+#<penalty name="INVITE" value="60">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # Custom prefixes: Allows for channel prefixes to be added.
 # This replaces m_chanprotect and m_halfop.
 #<module name="m_customprefix.so">
@@ -759,9 +795,23 @@
 #<banfile pattern="*.txt" action="allow">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] DCC blocking module: Provides support for blocking DCC
+# transfers explicitly, without any configuration. If you wish to block
+# DCC completely on your network, load this module and comment out
+# m_dccallow above.
+#<module name="m_dccblock.so">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # Deaf module: Adds support for the usermode +d - deaf to channel
 # messages and channel notices.
 #<module name="m_deaf.so">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] TCP DEFER-ACCEPT module: enables TCP_DEFER_ACCEPT on
+# sockets. This module will only work on operating systems that support
+# TCP_DEFER_ACCEPT, such as *nix. Add defer="" to your bind tags to
+# enable in the format <bind defer="0">
+#<module name="m_deferaccept.so">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # Delay join module: Adds the channel mode +D which delays all JOIN
@@ -808,6 +858,12 @@
 #<module name="m_devoice.so">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] Disable modes module: Allows for disabling modes for users
+# in specific connect blocks. To achieve this, add disablecmodes="" and
+# disableumodes="" to your <connect> blocks.
+#<module name="m_disablemodes.so">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # DNS blacklist module: Provides support for looking up IPs on one or #
 # more blacklists.                                                    #
 #<module name="m_dnsbl.so">                                           #
@@ -821,6 +877,15 @@
 # modes are blockcaps, noctcp, blockcolor, nickflood, flood, censor,  #
 # filter, regmoderated, nonick, nonotice, and stripcolor.             #
 #<module name="m_exemptchanops.so">                                   #
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] Extended ban redirect module: Allows redirection to another
+# channel using a configured extended ban character. This module can be
+# used alongside m_banredirect, although it is not required. Format is
+# /mode #chan +b <extbanchar>:<chan>:<mask>, for example
+# /mode #chan +b d:#comcast-lounge:*!*@*.comcast.net if using defaults
+#<module name="m_extbanredirect.so">
+#<extbanredirect char="d">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # Filter module: Provides message filtering, similar to SPAMFILTER.   #
@@ -856,6 +921,42 @@
 #<include file="conf/examples/filter.conf.example">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] FINDXLINE module: Provides the FINDXLINE command which lets
+# opers search XLines
+# Syntax: /findline {<xline type>|*} <wildcard string>
+# You may specify a specific type (such as 'g') or use * to search all
+# lines.
+#
+# It is HIGHLY recommended that this module be used if you manage a lot
+# of bans on your network.
+#<module name="m_findxline.so">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] Flash policy module: adds a built-in flash policy daemon.
+# Allows flash IRC clients to connect. A policy file can be specified;
+# otherwise the module will automatically allow all client ports.
+#
+#<module name="m_flashpolicyd.so">
+#
+# Configuration:
+# You must assign a port to this module, like:
+#<bind address="" port="8430" type="flashpolicyd">
+# and optionally a policy file:
+#<flashpolicyd timeout="5" file="conf/flashpolicy.xml">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] Force ident module: Allows forcing idents on users based on
+# their connect class.
+# Example: <connect forceident="example">
+#<module name="m_forceident.so">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] FULLVERSION module: Displays the full version of a server to
+# an operator. 'FULLVERSION' needs to be added to the opertype in order
+# for an operator to use it.
+#<module name="m_fullversion.so">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # Gecos ban: Implements extended ban 'r', which stops anyone matching
 # a mask like +b r:*realname?here* from joining a channel.
 #<module name="m_gecosban.so">
@@ -881,6 +982,13 @@
 # will be assigned the country code "UNK". Since connect classes are
 # matched from top down, your deny classes must be above your allow
 # classes for them to match.
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] GeoIP Ban module: Implements extban G - GeoIP Country Code.
+# This module also adds country name and country code to WHOIS.
+# This module requires the GeoIP libraries to be installed, as with
+# m_geoip.
+#<module name="m_geoipban.so">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # Globops module: Provides the /GLOBOPS command and snomask +g.
@@ -923,6 +1031,11 @@
 # user, for more privacy if set to true.
 # This setting is not recommended for most mainstream networks.
 #<hidechans affectsopers="false">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] Hide idle module: Provides the +a usermode that hides idle
+# and signon time in WHOIS from non-opers.
+#<module name="m_hideidle.so">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # Hide oper module: Allows opers to hide their oper status from non-
@@ -1002,11 +1115,22 @@
 #<ident timeout="5">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] Ident metadata module: Stores the ident given in USER as
+# metadata. This module has no use on production networks unless
+# another module is loaded to use this information.
+#<module name="m_identmeta.so">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # Invite exception module: Adds support for channel invite exceptions
 # (+I).
 #<module name="m_inviteexception.so">
 # bypasskey: If this is enabled, exceptions will bypass +k as well as +i
 #<inviteexception bypasskey="yes">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] Invite Notify module: Adds the IRCv3 extension
+# invite-notify.
+#<module name="m_invitenotify.so">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # IRCv3 module: Provides the following IRCv3 extensions:
@@ -1026,9 +1150,25 @@
 #<ircv3 accountnotify="on" awaynotify="on" extendedjoin="on">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] JOIN 0 module: Implements /join 0, which makes a user part
+# all channels. RFC2812.
+#<module name="m_join0.so">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # Join flood module: Adds support for join flood protection +j X:Y.
 # Closes the channel for 60 seconds if X users join in Y seconds.
 #<module name="m_joinflood.so">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] Join-on-invite module: Forces a user to join a channel on
+# invite. Be careful when using this module, as it is draconian in
+# nature.
+#<module name="m_joinoninvite.so">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] Join/Part SNotice module: adds the 'e' and 'p' snomask, for
+# logging JOINs and PARTs. Compatible with m_chanlog, etc.
+#<module name="m_joinpartsno.so">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # Jump server module: Adds support for the RPL_REDIR numeric.
@@ -1170,6 +1310,12 @@
 #<module name="m_lockserv.so">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] LUSERS without services module: Adds an extra line to LUSERS
+# output to show global user count without clients from U-Lined
+# servers.
+#<module name="m_lusersnoservices.so">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # Map hiding module: replaces /MAP and /LINKS output to users with a  #
 # message to see a website, set by maphide="http://test.org/map" in   #
 # the <security> tag, instead.                                        #
@@ -1224,6 +1370,15 @@
 #<module name="m_namedmodes.so">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] Named stats module: Allows /STATS queries by name. Can also
+# be configured to add additional stats chars provided by modules and
+# additional aliases. The following line enables core stats names:
+#<namedstats enabledefaults="true">
+# While additional named stats can be added with:
+#<statsname name="" char="">
+#<module name="m_namedstats.so">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # NAMESX module: Provides support for the NAMESX extension which allows
 # clients to see all the prefixes set on a user without getting confused.
 # This is supported by mIRC, x-chat, klient, and maybe more.
@@ -1245,9 +1400,30 @@
 #<nationalchars file="bynets/russian-w1251-charlink" casemapping="ru_RU.cp1251-charlink">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] Nick delay module: Enforces a delay between nick changes per
+# user. If hint is set to true, the user will be notified that their
+# nick change was blocked. If operoverride is set to true, opers will
+# not have their nick changes blocked. Delay is in seconds.
+#<module name="m_nickdelay.so">
+#<nickdelay delay="10" operoverride="true" hint="true">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # Nickchange flood protection module: Provides channel mode +F X:Y
 # which allows up to X nick changes in Y seconds.
 #<module name="m_nickflood.so">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] Nick in 001 module: Replaces the nick!user@host in
+# RPL_WELCOME (001) with the user's nick.
+#
+# It was observed that certain (SOHO) routers rewrite their external IP
+# address in the payload of the TCP packet containing the 001 numeric,
+# causing disconnection if the lengths of the ASCII representations of
+# the IP addresses differ.
+#
+# This module functions as a workaround by replacing the nick!user@host
+# in 001 with just the nick.
+#<module name="m_nickin001.so">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # Nicklock module: Let opers change a user's nick and then stop that
@@ -1260,6 +1436,13 @@
 # No CTCP module: Adds the channel mode +C to block CTCPs and extban
 # 'C' to block CTCPs sent by specific users.
 #<module name="m_noctcp.so">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] No user CTCP module: Provides support for unreal-style user
+# mode +T - which blocks CTCPs. If operoverride is set to yes, opers
+# can bypass this mode.
+#<module name="m_noctcp_user.so">
+#<noctcpuser operoverride="no">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # No kicks module: Adds the +Q channel mode and the Q: extban to deny
@@ -1282,6 +1465,19 @@
 # No notice module: Adds the channel mode +T and the extban 'T' to
 # block specific users from noticing the channel.
 #<module name="m_nonotice.so">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] No op on channel creation module: Don't op normal users when
+# creating a new channel. Not recommended on production networks as
+# this will prevent users from registering channels on their own. Opers
+# are not affected.
+#<module name="m_nooponcreate.so">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] No UID nick module: Disallows changing nick to UID using
+# /nick. Generally, this blocks /nick 0. Does not block forced nick
+# changes.
+#<module name="m_nouidnick.so">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # Network business join module:
@@ -1475,9 +1671,23 @@
 #<database module="pgsql" name="mydb" user="myuser" pass="mypass" host="localhost" id="my_database" ssl="no">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] Privdeaf module: Provides support for blocking any private
+# messages using umode +D. Opers and U-Lined clients can optionally
+# override this.
+#<module name="m_privdeaf.so">
+#<privdeaf operoverride="true" ulineoverride="true">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # Muteban: Implements extended ban 'm', which stops anyone matching
 # a mask like +b m:nick!user@host from speaking on channel.
 #<module name="m_muteban.so">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] Quiet ban module: Provides channel mode +q for 'quiet' bans,
+# like on charybdis. This module CANNOT be used with m_muteban or
+# m_chanprotect, nor m_customprefix with the q channel mode being used
+# as a prefix.
+#<module name="m_quietban.so">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # Random quote module: Provides a random quote on connect.
@@ -1529,6 +1739,11 @@
 #<module name="m_regex_posix.so">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# Regular expression provider for RE2 regular expressions. You must
+# have the re2 library installed.
+#<module name="m_regex_re2.so">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # Regular expression provider for C++11 std::regex regular expressions.
 # This module works on any fully compliant implementation of the C++11
 # std::regex container. Examples for such are Visual C++ 2010 and newer
@@ -1559,9 +1774,31 @@
 #<module name="m_regonlycreate.so">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] Rehash SSL signal module: Allows reloading of SSL
+# credentials (cert, key, etc.) on SIGUSR1. This is highly useful if
+# your network uses Let's Encrypt, as this allows for an automated way
+# to reload your certificates instead running '/rehash -ssl' on every
+# server.
+#<module name="m_rehashsslsignal.so">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # Remove module: Adds the /REMOVE command which is a peaceful
 # alternative to /KICK.
 #<module name="m_remove.so">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] Replay message module: Replays messages sent to the server
+# back to the sender. Adds the IRCv3 capabilities 'echo-message' and
+# 'inspircd.org/replay-message'.
+#<module name="m_replaymsg.so">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] Require auth module: Provides /aline and /galine, known as
+# Auth-Lines. Users affected by these will have to use SASL to connect,
+# while any users already connected but not logged in to services will
+# be disconnected similar to a G-Line. Adds the stats chars 'a' and 'A'
+# respectively.
+#<module name="m_require_auth.so">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # Restricted channels module: Allows only opers to create channels.
@@ -1604,6 +1841,12 @@
 # and are the only way to specify where the space can occur if you do
 # use glob. For this reason, is recommended to use a real regex engine
 # so that at least \s or [[:space:]] is available.
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] Rotate log files module: Rotates log files after a defined
+# period, in seconds.
+#<module name="m_rotatelog.so">
+#<rotatelog period="3600">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # SAJOIN module: Adds the /SAJOIN command which forcibly joins a user
@@ -1771,6 +2014,16 @@
 #<shun enabledcommands="ADMIN PING PONG QUIT PART JOIN" notifyuser="yes" affectopers="no">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] Slow message module: Provides channel mode +W, and acts akin
+# to slowmode on sites like YouTube. It functions similar to
+# m_messageflood, but rejects messages over the limit instead of
+# kicking or banning. It also adds exemption 'slowmode' to
+# m_exemptchanops, if loaded.
+# Example: /mode #chan +W 5:9 to throttle messages faster than 5 lines
+# in 9 seconds.
+#<module name="m_slowmode.so">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # SSL channel mode module: Adds support for SSL-only channels via
 # channel mode +z and the 'z' extban which matches SSL client
 # certificate fingerprints.
@@ -1816,6 +2069,18 @@
 #                                                                     #
 # m_ssl_openssl.so is too complex to describe here, see the wiki:     #
 # https://wiki.inspircd.org/Modules/2.0/ssl_openssl                   #
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] SSL stats module: Provides stats about SSL ciphersuites in
+# use by users. This module can ONLY be used with m_ssl_gnutls. It
+# provides the 'z' snomask to log connecting user's ciphersuite,
+# information for /stats, and an additional WHOIS line if applicable.
+#<module name="m_sslstats_gnutls.so">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] Unlinked stats module: Provides stats character 'X' which
+# shows unlinked servers.
+#<module name="m_stats_unlinked.so">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # Strip color module: Adds channel mode +S that strips mIRC color
@@ -1879,6 +2144,12 @@
 #<svshold silent="false">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] SVSOPER module: Allows services to forcibly oper a user
+# using the SVSOPER command. This needs to also be supported in your
+# services package, such as the module os_opertype in Anope.
+#<module name="m_svsoper.so">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # SWHOIS module: Allows you to add arbitrary lines to user WHOIS.
 # This module is oper-only.
 # To use, SWHOIS must be in one of your oper class blocks.
@@ -1905,6 +2176,21 @@
 # Topiclock module: implements server-side topic locking to achieve deeper
 # integration with services packages.
 #<module name="m_topiclock.so">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] TOTP module: Enables two-factor authentication for oper
+# blocks. NOTE: This module requires a sha1 provider to work with
+# Google Authenticator. You may use m_sha1 (extras) or m_gnutls_hash
+# (extras).
+#<totp hash="sha256" window="5">
+#
+# To actually use this on oper blocks, run /totp as an oper to obtain
+# a secret and QR code (if you wish to scan using your phone). This
+# secret should be specified in your oper block in the format
+# <oper secret="xxx"> and also added to your authenticator app. Then,
+# to oper (after rehash) you run /oper username password <token>,
+# token being generated by your authenticator app.
+#<module name="m_totp.so">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # UHNAMES support module: Adds support for the IRCX style UHNAMES
