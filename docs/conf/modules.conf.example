@@ -65,12 +65,13 @@
 #
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # [EXTRAS] GnuTLS hashing module: Adds various hash functions using the
-# GnuTLS API. It adds: sha1, sha256, sha512, and ripemd160. This module
-# CANNOT be loaded with m_sha1.so (extras), m_sha256, or m_ripemd160.
-# m_md5 is not replaced by this module as it has special uses for other
-# modules such as m_cloaking. This module also requires the gnutls
-# libraries to be installed.
-#<module name="m_gnutls_hash.so">
+# GnuTLS API. It adds: sha1, sha256, sha512, and ripemd160, as well as
+# sha3-224, sha3-256, sha-384, and sha3-512 if GnuTLS is >3.5. This
+# module CANNOT be loaded with m_sha1.so (extras), m_sha256, or
+# m_ripemd160. m_md5 is not replaced by this module as it has special
+# uses for other modules such as m_cloaking. This module also requires
+# the gnutls libraries to be installed.
+#<module name="m_hash_gnutls.so">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # Abbreviation module: Provides the ability to abbreviate commands a-la
@@ -235,6 +236,11 @@
 #        clients will be tagged a bot.
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] ASCII casemapping module: Implements CASEMAPPING=ascii.
+# This module CANNOT be used with m_nationalchars.
+#<module name="m_ascii.so">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # Auditorium module: Adds channel mode +u which makes everyone else
 # except you in the channel invisible, used for large meetings etc.
 #<module name="m_auditorium.so">
@@ -332,6 +338,12 @@
 #<module name="m_blockcolor.so">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] Block highlight module: Adds a channel mode which kills
+# clients that mass highlight spam
+#<module name="m_blockhighlight.so">
+#<blockhighlight minlen="50" minusernum="10" reason="Mass highlight" stripcolor="yes">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # Botmode module: Adds the user mode +B. If set on a user, it will
 # show that the user is a bot in /WHOIS.
 #<module name="m_botmode.so">
@@ -362,6 +374,12 @@
 # m_sasl, m_namesx, m_uhnames, and m_ircv3 modules.
 # It is also recommended for the STARTTLS support in m_ssl_gnutls.
 #<module name="m_cap.so">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] CAP chghost module: Implements the CAP 'chghost'. Note:
+# due to limitations, if you have <options:cyclehosts> set to yes,
+# clients with this cap will still see fake quit messages.
+#<module name="m_cap_chghost.so">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # [EXTRAS] CAP notify module: Provides the cap-notify IRCv3 extension
@@ -921,9 +939,10 @@
 #<include file="conf/examples/filter.conf.example">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
-# [EXTRAS] FINDXLINE module: Provides the FINDXLINE command which lets
-# opers search XLines
-# Syntax: /findline {<xline type>|*} <wildcard string>
+# [EXTRAS] FINDXLINE module: Provides the FINDXLINE and RMXLINE
+# commands which allow for easy searching and removal of XLines
+# Syntax: /FINDXLINE {<xline type>|*} <ban mask> [<reason>]
+# Syntax: /RMXLINE {<xline type>|*} <ban mask> [<reason>]
 # You may specify a specific type (such as 'g') or use * to search all
 # lines.
 #
@@ -1148,6 +1167,19 @@
 # enabled. Note that extended-join can be incompatible with m_delayjoin
 # and host cycling.
 #<ircv3 accountnotify="on" awaynotify="on" extendedjoin="on">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] IRCv3 Strict-Transport-Security module: Adds the IRCv3 'sts'
+# capability, which advertises a STS policy to compatible clients.
+#
+# Configuration:
+# Duration is a time value, in seconds. The default is 1 month. Port
+# should be set to whatever secured port you wish to advertise. 
+# Preload indicates whether this policy should be included in client
+# preload lists, like how Google Chrome maintains a list of HSTS sites
+#<module name="m_ircv3_sts.so">
+#<sts duration="2592000" port="6697" preload="no">
+
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # [EXTRAS] JOIN 0 module: Implements /join 0, which makes a user part
@@ -1590,6 +1622,11 @@
 #<module name="m_opermodes.so">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [EXTRAS] Op moderation module: Adds channel mode +U and extban 'U' -
+# moderator mute. This is similar to +z on charybdis/ircd-seven.
+#<module name="m_opmoderated.so">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # Password forwarding module: Forwards a password users can send on
 # connect to the specified client below. The client is usually NickServ
 # and this module is usually used to authenticate users with NickServ
@@ -1739,8 +1776,8 @@
 #<module name="m_regex_posix.so">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
-# Regular expression provider for RE2 regular expressions. You must
-# have the re2 library installed.
+# [EXTRAS] Regular expression provider for RE2 regular expressions.
+# You must have the re2 library installed.
 #<module name="m_regex_re2.so">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
