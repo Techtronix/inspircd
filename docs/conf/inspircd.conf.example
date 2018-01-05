@@ -981,6 +981,11 @@
 # Settings similar to Charybdis IRCd defaults.
 #<include file="conf/examples/modules/charybdis.conf.example">
 
+# Contributed (third-party) modules are included within
+# modules-contrib.conf.example, and contain additional modules not shipped
+# with the original InspIRCd 2.0 release. As with modules.conf.example,
+# this file does nothing without modification.
+#<include file="conf/examples/modules-contrib.conf.example">
 
 #########################################################################
 #                                                                       #
