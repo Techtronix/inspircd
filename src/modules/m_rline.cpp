@@ -80,7 +80,7 @@ class RLine : public XLine
 			if (ServerInstance->XLines->AddLine(zl, NULL))
 			{
 				std::string timestr = ServerInstance->TimeString(zl->expiry);
-				ServerInstance->SNO->WriteToSnoMask('x', "Z-line added due to R-line match on *@%s%s%s: %s",
+				ServerInstance->SNO->WriteToSnoMask('x', "Z-Line added due to R-Line match on *@%s%s%s: %s",
 					zl->ipaddr.c_str(), zl->duration ? " to expire on " : "", zl->duration ? timestr.c_str() : "", zl->reason.c_str());
 				added_zline = true;
 			}
@@ -92,7 +92,7 @@ class RLine : public XLine
 
 	void DisplayExpiry()
 	{
-		ServerInstance->SNO->WriteToSnoMask('x',"Removing expired R-line %s (set by %s %ld seconds ago)",
+		ServerInstance->SNO->WriteToSnoMask('x',"Removing expired R-Line %s (set by %s %ld seconds ago)",
 			this->matchtext.c_str(), this->source.c_str(), (long int)(ServerInstance->Time() - this->set_time));
 	}
 
@@ -116,7 +116,7 @@ class RLineFactory : public XLineFactory
 	RLineFactory(dynamic_reference<RegexFactory>& rx) : XLineFactory("R"), rxfactory(rx)
 	{
 	}
-	
+
 	/** Generate a RLine
 	 */
 	XLine* Generate(time_t set_time, long duration, std::string source, std::string reason, std::string xline_specific_mask)
@@ -174,13 +174,13 @@ class CommandRLine : public Command
 				{
 					if (!duration)
 					{
-						ServerInstance->SNO->WriteToSnoMask('x',"%s added permanent R-line for %s: %s", user->nick.c_str(), parameters[0].c_str(), parameters[2].c_str());
+						ServerInstance->SNO->WriteToSnoMask('x',"%s added permanent R-Line for %s: %s", user->nick.c_str(), parameters[0].c_str(), parameters[2].c_str());
 					}
 					else
 					{
 						time_t c_requires_crap = duration + ServerInstance->Time();
 						std::string timestr = ServerInstance->TimeString(c_requires_crap);
-						ServerInstance->SNO->WriteToSnoMask('x', "%s added timed R-line for %s to expire on %s: %s", user->nick.c_str(), parameters[0].c_str(), timestr.c_str(), parameters[2].c_str());
+						ServerInstance->SNO->WriteToSnoMask('x', "%s added timed R-Line for %s to expire on %s: %s", user->nick.c_str(), parameters[0].c_str(), timestr.c_str(), parameters[2].c_str());
 					}
 
 					ServerInstance->XLines->ApplyLines();
@@ -196,7 +196,7 @@ class CommandRLine : public Command
 		{
 			if (ServerInstance->XLines->DelLine(parameters[0].c_str(), "R", user))
 			{
-				ServerInstance->SNO->WriteToSnoMask('x',"%s removed R-line on %s",user->nick.c_str(),parameters[0].c_str());
+				ServerInstance->SNO->WriteToSnoMask('x',"%s removed R-Line on %s",user->nick.c_str(),parameters[0].c_str());
 			}
 			else
 			{
