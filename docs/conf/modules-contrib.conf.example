@@ -27,6 +27,17 @@
 #<accounthost prefix="foo" suffix="bar" changereal="false">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [CONTRIB] Anti-capitalization module: Provides support for punishing
+# users that send capitalized messages. This module is a replacement
+# for m_blockcaps, as it has improved functionality and fixes issues.
+#
+# Changes incorporated in this module were merged into m_blockcaps for
+# InspIRCd 3.0 alpha.
+#
+# Syntax: /mode #chan +B <ban|block|mute|kick|kickban>:{minlen}:{percent}
+#<module name="m_anticaps.so">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # [CONTRIB] Anti-random module: Prevent against bots using random
 # patterns.
 #<module name="m_antirandom.so">
@@ -73,7 +84,15 @@
 # [CONTRIB] Block highlight module: Adds a channel mode which kills
 # clients that mass highlight spam
 #<module name="m_blockhighlight.so">
-#<blockhighlight minlen="50" minusernum="10" reason="Mass highlight" stripcolor="yes">
+#
+# Configuration: ignoreextmsg refers to ignoring external messages
+#
+#<blockhighlight
+#    ignoreextmsg="yes"
+#    minlen="50"
+#    minusernum="10"
+#    reason="Mass highlight spam is not allowed"
+#    stripcolor="yes">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # [CONTRIB] CAP chghost module: Implements the CAP 'chghost'. Note:
@@ -112,6 +131,12 @@
 # connect class. Use <connect autojoin="" autojoindelay=""> to enable
 # this functionality. Otherwise, the module will use the config below
 #<autojoin channel="#one,#two,#three" delay="30">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [CONTRIB] Connect class vhost module: Adds a "vhost" option to
+# connect blocks.
+# Format: <connect vhost="vhost.here">
+#<module name="m_conn_vhost.so">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # [CONTRIB] Custom penalty module: Allows the customization of command
@@ -352,6 +377,16 @@
 #<module name="m_require_auth.so">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [CONTRIB] Require CTCP module: Blocks clients who do not reply to
+# CTCP. This module may be useful if your server is under attack from
+# botnets/spambots/floodbots.
+#<module name="m_requirectcp.so">
+#<requirectcp
+#    ctcp="VERSION"
+#    accepted="CTCP response received, you are authorized to use this server."
+#    declined="No CTCP response recieved. You must respond to CTCPs to use this server.">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # [CONTRIB] Rotate log files module: Rotates log files after a defined
 # period, in seconds.
 #<module name="m_rotatelog.so">
@@ -378,6 +413,12 @@
 # [CONTRIB] Unlinked stats module: Provides stats character 'X' which
 # shows unlinked servers.
 #<module name="m_stats_unlinked.so">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [CONTRIB] SVSJOINKEY module: Implements the SVSJOINKEY command, which
+# allows services to forcibly join a user to a keyed channel. This
+# module requires support from a services package as well to be useful.
+#<module name="m_svsjoinkey.so">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # [CONTRIB] SVSOPER module: Allows services to forcibly oper a user
