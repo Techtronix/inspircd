@@ -104,7 +104,7 @@ int Channel::SetTopic(User *u, std::string &ntopic, bool forceset)
 		{
 			if (!this->HasUser(u))
 			{
-				u->WriteNumeric(442, "%s %s :You're not on that channel!",u->nick.c_str(), this->name.c_str());
+				u->WriteNumeric(442, "%s %s :You are not on that channel!",u->nick.c_str(), this->name.c_str());
 				return CMD_FAILURE;
 			}
 			if (IsModeSet('t') && !ServerInstance->OnCheckExemption(u,this,"topiclock").check(GetPrefixValue(u) >= HALFOP_VALUE))
@@ -350,7 +350,7 @@ Channel* Channel::JoinUser(User *user, const char* cn, bool override, const char
 
 				if (Ptr->IsBanned(user) && !can_bypass)
 				{
-					user->WriteNumeric(ERR_BANNEDFROMCHAN, "%s %s :Cannot join channel (You're banned)",user->nick.c_str(), Ptr->name.c_str());
+					user->WriteNumeric(ERR_BANNEDFROMCHAN, "%s %s :Cannot join channel (You are banned)",user->nick.c_str(), Ptr->name.c_str());
 					return NULL;
 				}
 
@@ -526,7 +526,7 @@ void Channel::KickUser(User *src, User *user, const char* reason)
 		}
 		if ((ServerInstance->ULine(user->server)) && (!ServerInstance->ULine(src->server)))
 		{
-			src->WriteNumeric(ERR_CHANOPRIVSNEEDED, "%s %s :Only a u-line may kick a u-line from a channel.",src->nick.c_str(), this->name.c_str());
+			src->WriteNumeric(ERR_CHANOPRIVSNEEDED, "%s %s :Only a U-Line may kick a U-Line from a channel.",src->nick.c_str(), this->name.c_str());
 			return;
 		}
 

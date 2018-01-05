@@ -61,7 +61,7 @@ public:
 
 	void DisplayExpiry()
 	{
-		ServerInstance->SNO->WriteToSnoMask('x',"Removing expired shun %s (set by %s %ld seconds ago)",
+		ServerInstance->SNO->WriteToSnoMask('x',"Removing expired SHUN %s (set by %s %ld seconds ago)",
 			this->matchtext.c_str(), this->source.c_str(), (long int)(ServerInstance->Time() - this->set_time));
 	}
 
@@ -124,7 +124,7 @@ class CommandShun : public Command
 			}
 			else
 			{
-				user->WriteServ("NOTICE %s :*** Shun %s not found in list, try /stats H.", user->nick.c_str(), parameters[0].c_str());
+				user->WriteServ("NOTICE %s :*** SHUN %s not found in list, try /stats H.", user->nick.c_str(), parameters[0].c_str());
 				return CMD_FAILURE;
 			}
 		}
@@ -163,7 +163,7 @@ class CommandShun : public Command
 			else
 			{
 				delete r;
-				user->WriteServ("NOTICE %s :*** Shun for %s already exists", user->nick.c_str(), target.c_str());
+				user->WriteServ("NOTICE %s :*** SHUN for %s already exists", user->nick.c_str(), target.c_str());
 				return CMD_FAILURE;
 			}
 		}

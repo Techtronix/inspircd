@@ -783,7 +783,7 @@ void LocalUser::FullConnect()
 
 	if (ServerInstance->Config->WelcomeNotice)
 		this->WriteServ("NOTICE Auth :Welcome to \002%s\002!",ServerInstance->Config->Network.c_str());
-	this->WriteNumeric(RPL_WELCOME, "%s :Welcome to the %s IRC Network %s",this->nick.c_str(), ServerInstance->Config->Network.c_str(), GetFullRealHost().c_str());
+	this->WriteNumeric(RPL_WELCOME, "%s :Welcome to the %s Internet Relay Chat Network %s",this->nick.c_str(), ServerInstance->Config->Network.c_str(), GetFullRealHost().c_str());
 	this->WriteNumeric(RPL_YOURHOSTIS, "%s :Your host is %s, running version InspIRCd-2.0-techtronix",this->nick.c_str(),ServerInstance->Config->ServerName.c_str());
 	this->WriteNumeric(RPL_SERVERCREATED, "%s :This server was created %s %s", this->nick.c_str(), __TIME__, __DATE__);
 
@@ -903,7 +903,7 @@ bool User::ChangeNick(const std::string& newnick, bool force)
 					Channel *chan = *i;
 					if (chan->GetPrefixValue(this) < VOICE_VALUE && chan->IsBanned(this))
 					{
-						this->WriteNumeric(404, "%s %s :Cannot send to channel (you're banned)", this->nick.c_str(), chan->name.c_str());
+						this->WriteNumeric(404, "%s %s :Cannot send to channel (You are banned)", this->nick.c_str(), chan->name.c_str());
 						return false;
 					}
 				}

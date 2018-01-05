@@ -49,7 +49,7 @@ CmdResult CommandZline::Handle (const std::vector<std::string>& parameters, User
 	{
 		if (target.find('!') != std::string::npos)
 		{
-			user->WriteServ("NOTICE %s :*** You cannot include a nickname in a zline, a zline must ban only an IP mask",user->nick.c_str());
+			user->WriteServ("NOTICE %s :*** You cannot include a nickname in a Z-Line, a Z-Line must ban only an IP mask",user->nick.c_str());
 			return CMD_FAILURE;
 		}
 
