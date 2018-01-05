@@ -81,6 +81,11 @@
 #<module name="m_autokick.so">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [CONTRIB] Ban negation module: Negate extended bans by prefixing the
+# ban with ~
+#<module name="m_bannegate.so">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # [CONTRIB] Block highlight module: Adds a channel mode which kills
 # clients that mass highlight spam
 #<module name="m_blockhighlight.so">
@@ -116,6 +121,10 @@
 #<module name="m_ciphersuitejoin.so">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [CONTRIB] Class ban module: Provides extban 'n' - connect class ban
+#<module name="m_classban.so">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # [CONTRIB] Connection banner module: Displays a static text to every
 # connecting user before registration. Similar to "*** Looking up your
 # hostname" messages.
@@ -131,6 +140,12 @@
 # connect class. Use <connect autojoin="" autojoindelay=""> to enable
 # this functionality. Otherwise, the module will use the config below
 #<autojoin channel="#one,#two,#three" delay="30">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [CONTRIB] Connect class match ident module: Allows a connect class to
+# match by ident
+# Format: <connect matchident="identhere">
+#<module name="m_conn_matchident.so">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # [CONTRIB] Connect class vhost module: Adds a "vhost" option to
@@ -343,13 +358,6 @@
 #<privdeaf operoverride="true" ulineoverride="true">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
-# [CONTRIB] Quiet ban module: Provides channel mode +q for 'quiet'
-# bans, like on charybdis. This module CANNOT be used with m_muteban or
-# m_chanprotect, nor m_customprefix with the q channel mode being used
-# as a prefix.
-#<module name="m_quietban.so">
-
-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # [CONTRIB] Regular expression provider for RE2 regular expressions.
 # You must have the re2 library installed.
 #<module name="m_regex_re2.so">
@@ -379,7 +387,9 @@
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # [CONTRIB] Require CTCP module: Blocks clients who do not reply to
 # CTCP. This module may be useful if your server is under attack from
-# botnets/spambots/floodbots.
+# botnets/spambots/floodbots. This is enabled per connect block. Adds
+# the 'p' snomask.
+# Format: <connect requirectcp="yes">
 #<module name="m_requirectcp.so">
 #<requirectcp
 #    ctcp="VERSION"
@@ -425,6 +435,18 @@
 # using the SVSOPER command. This needs to also be supported in your
 # services package, such as the module os_opertype in Anope.
 #<module name="m_svsoper.so">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [CONTRIB] Timed static quit module: Replaces the quit message of a
+# quitting user if they have been connected for less than a
+# configurable time.
+#<module name="m_timedstaticquit.so">
+#<timedstaticquit quitmsg="Client exited" mintime="5m">
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+# [CONTRIB] TOPICALL module: Provides the /TOPICALL command that
+# changes the topic of all channels. Oper only.
+#<module name="m_topicall.so">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # [CONTRIB] TOTP module: Enables two-factor authentication for oper
