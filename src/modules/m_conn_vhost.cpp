@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2017 genius3000 <genius3000@g3k.solutions>
+ *   Copyright (C) 2017-2018 genius3000 <genius3000@g3k.solutions>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -22,13 +22,30 @@
 /* $ModDepends: core 2.0 */
 /* $ModConfig: Within connect block: vhost="vhost.here" */
 /* The use of '$ident' will be replaced with the user's ident */
-
+/* The use of '$account' will be replaced with the user's account name */
 
 #include "inspircd.h"
+#include "account.h"
+
 
 class ModuleVhostOnConnect : public Module
 {
-	char hostmap[256];
+	std::bitset<UCHAR_MAX> hostmap;
+
+	const std::string GetAccount(LocalUser* user)
+	{
+		std::string result;
+
+		const AccountExtItem* accountname = GetAccountExtItem();
+		if (!accountname)
+			return result;
+
+		std::string* account = accountname->get(user);
+		if (account)
+			result = *account;
+
+		return result;
+	}
 
  public:
 	void init()
@@ -43,9 +60,9 @@ class ModuleVhostOnConnect : public Module
 		/* from m_sethost: use the same configured host character map if it exists */
 		std::string hmap = ServerInstance->Config->ConfValue("hostname")->getString("charmap", "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.-_/0123456789");
 
-		memset(hostmap, 0, sizeof(hostmap));
+		hostmap.reset();
 		for (std::string::iterator n = hmap.begin(); n != hmap.end(); n++)
-			hostmap[(unsigned char)*n] = 1;
+			hostmap.set(static_cast<unsigned char>(*n));
 	}
 
 	void Prioritize()
@@ -59,16 +76,30 @@ class ModuleVhostOnConnect : public Module
 	{
 		ConfigTag* tag = user->MyClass->config;
 		std::string vhost = tag->getString("vhost");
+		std::string replace;
 
 		if (vhost.empty())
 			return;
 
-		const std::string replace = "$ident";
-		std::string ident = user->ident;
-		if (ident[0] == '~')
-			ident.erase(0, 1);
+		replace = "$ident";
+		if (vhost.find(replace) != std::string::npos)
+		{
+			std::string ident = user->ident;
+			if (ident[0] == '~')
+				ident.erase(0, 1);
 
-		SearchAndReplace(vhost, replace, ident);
+			SearchAndReplace(vhost, replace, ident);
+		}
+
+		replace = "$account";
+		if (vhost.find(replace) != std::string::npos)
+		{
+			std::string account = GetAccount(user);
+			if (account.empty())
+				account = "unidentified";
+
+			SearchAndReplace(vhost, replace, account);
+		}
 
 		if (vhost.length() > 64)
 		{
@@ -79,7 +110,7 @@ class ModuleVhostOnConnect : public Module
 		/* from m_sethost: validate the characters */
 		for (std::string::const_iterator x = vhost.begin(); x != vhost.end(); x++)
 		{
-			if (!hostmap[(const unsigned char)*x])
+			if (!hostmap.test(static_cast<unsigned char>(*x)))
 			{
 				ServerInstance->Logs->Log("m_conn_vhost", DEFAULT, "m_conn_vhost: vhost in connect block %s has invalid characters", user->MyClass->name.c_str());
 				return;
