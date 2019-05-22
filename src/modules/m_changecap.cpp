@@ -47,7 +47,7 @@ class ChangeCap : public Command
 
 		if (IS_LOCAL(user) != NULL)
 		{
-			if (chan->GetPrefixValue(user) < OP_VALUE)
+			if ((chan->GetPrefixValue(user) < OP_VALUE) && !user->HasPrivPermission("channels/auspex"))
 			{
 				user->WriteServ("NOTICE %s :*** CHANGECAP You need to be a channel operator of %s to change its name capitalization", user->nick.c_str(), chan->name.c_str());
 				return CMD_FAILURE;
