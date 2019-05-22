@@ -30,3 +30,4 @@
 /src/modules/m_ssl_gnutls.cpp
 /src/modules/m_ssl_openssl.cpp
 
+.vscode/ipch/
