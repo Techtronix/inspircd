@@ -69,22 +69,24 @@ class ModuleNoCTCP : public Module
 					return MOD_RES_PASSTHRU;
 
 				Channel* c = target.Get<Channel>();
-				ModResult res = CheckExemption::Call(exemptionprov, user, c, "noctcp");
-				if (res == MOD_RES_ALLOW)
-					return MOD_RES_PASSTHRU;
-
-				if (!c->GetExtBanStatus(user, 'C').check(!c->IsModeSet(nc)))
-				{
-					user->WriteNumeric(ERR_CANNOTSENDTOCHAN, c->name, "Can't send CTCP to channel (+C is set)");
-					return MOD_RES_DENY;
-				}
-
 				const Channel::MemberMap& members = c->GetUsers();
 				for (Channel::MemberMap::const_iterator member = members.begin(); member != members.end(); ++member)
 				{
 					User* u = member->first;
 					if (u->IsModeSet(ncu))
 						details.exemptions.insert(u);
+				}
+
+				ModResult res = CheckExemption::Call(exemptionprov, user, c, "noctcp");
+				if (res == MOD_RES_ALLOW)
+					return MOD_RES_PASSTHRU;
+
+				bool modeset = c->IsModeSet(nc);
+				if (!c->GetExtBanStatus(user, 'C').check(!modeset))
+				{
+					user->WriteNumeric(ERR_CANNOTSENDTOCHAN, c->name, InspIRCd::Format("Can't send CTCP to channel (%s)",
+						modeset ? "+C is set" : "you're extbanned"));
+					return MOD_RES_DENY;
 				}
 				break;
 			}

@@ -90,24 +90,43 @@ class SQLConnection;
 class MySQLresult;
 class DispatcherThread;
 
-struct QQueueItem
+struct QueryQueueItem
 {
-	SQL::Query* q;
-	std::string query;
-	SQLConnection* c;
-	QQueueItem(SQL::Query* Q, const std::string& S, SQLConnection* C) : q(Q), query(S), c(C) {}
+	// An SQL database which this query is executed on.
+	SQLConnection* connection;
+
+	// An object which handles the result of the query.
+	SQL::Query* query;
+
+	// The SQL query which is to be executed.
+	std::string querystr;
+
+	QueryQueueItem(SQL::Query* q, const std::string& s, SQLConnection* c)
+		: connection(c)
+		, query(q)
+		, querystr(s)
+	{
+	}
 };
 
-struct RQueueItem
+struct ResultQueueItem
 {
-	SQL::Query* q;
-	MySQLresult* r;
-	RQueueItem(SQL::Query* Q, MySQLresult* R) : q(Q), r(R) {}
+	// An object which handles the result of the query.
+	SQL::Query* query;
+
+	// The result returned from executing the MySQL query.
+	MySQLresult* result;
+
+	ResultQueueItem(SQL::Query* q, MySQLresult* r)
+		: query(q)
+		, result(r)
+	{
+	}
 };
 
 typedef insp::flat_map<std::string, SQLConnection*> ConnMap;
-typedef std::deque<QQueueItem> QueryQueue;
-typedef std::deque<RQueueItem> ResultQueue;
+typedef std::deque<QueryQueueItem> QueryQueue;
+typedef std::deque<ResultQueueItem> ResultQueue;
 
 /** MySQL module
  *  */
@@ -138,10 +157,6 @@ class DispatcherThread : public SocketThread
 	void OnNotify() CXX11_OVERRIDE;
 };
 
-#if !defined(MYSQL_VERSION_ID) || MYSQL_VERSION_ID<32224
-#define mysql_field_count mysql_num_fields
-#endif
-
 /** Represents a mysql result set
  */
 class MySQLresult : public SQL::Result
@@ -153,7 +168,10 @@ class MySQLresult : public SQL::Result
 	std::vector<std::string> colnames;
 	std::vector<SQL::Row> fieldlists;
 
-	MySQLresult(MYSQL_RES* res, int affected_rows) : err(SQL::SUCCESS), currentrow(0), rows(0)
+	MySQLresult(MYSQL_RES* res, int affected_rows)
+		: err(SQL::SUCCESS)
+		, currentrow(0)
+		, rows(0)
 	{
 		if (affected_rows >= 1)
 		{
@@ -196,7 +214,10 @@ class MySQLresult : public SQL::Result
 		}
 	}
 
-	MySQLresult(SQL::Error& e) : err(e)
+	MySQLresult(SQL::Error& e)
+		: err(e)
+		, currentrow(0)
+		, rows(0)
 	{
 
 	}
@@ -284,42 +305,59 @@ class SQLConnection : public SQL::Provider
 	Mutex lock;
 
 	// This constructor creates an SQLConnection object with the given credentials, but does not connect yet.
-	SQLConnection(Module* p, ConfigTag* tag) : SQL::Provider(p, "SQL/" + tag->getString("id")),
-		config(tag), connection(NULL)
+	SQLConnection(Module* p, ConfigTag* tag)
+		: SQL::Provider(p, tag->getString("id"))
+		, config(tag)
+		, connection(NULL)
 	{
 	}
 
 	~SQLConnection()
 	{
-		Close();
+		mysql_close(connection);
 	}
 
 	// This method connects to the database using the credentials supplied to the constructor, and returns
 	// true upon success.
 	bool Connect()
 	{
-		unsigned int timeout = 1;
 		connection = mysql_init(connection);
-		mysql_options(connection,MYSQL_OPT_CONNECT_TIMEOUT,(char*)&timeout);
-		std::string host = config->getString("host");
-		std::string user = config->getString("user");
-		std::string pass = config->getString("pass");
-		std::string dbname = config->getString("name");
-		unsigned int port = config->getUInt("port", 3306);
-		bool rv = mysql_real_connect(connection, host.c_str(), user.c_str(), pass.c_str(), dbname.c_str(), port, NULL, 0);
-		if (!rv)
-			return rv;
 
-		// Enable character set settings
-		std::string charset = config->getString("charset");
-		if ((!charset.empty()) && (mysql_set_character_set(connection, charset.c_str())))
-			ServerInstance->Logs->Log(MODNAME, LOG_DEFAULT, "WARNING: Could not set character set to \"%s\"", charset.c_str());
+		// Set the connection timeout.
+		unsigned int timeout = config->getDuration("timeout", 5, 1, 30);
+		mysql_options(connection, MYSQL_OPT_CONNECT_TIMEOUT, &timeout);
 
-		std::string initquery;
-		if (config->readString("initialquery", initquery))
+		// Attempt to connect to the database.
+		const std::string host = config->getString("host");
+		const std::string user = config->getString("user");
+		const std::string pass = config->getString("pass");
+		const std::string dbname = config->getString("name");
+		unsigned int port = config->getUInt("port", 3306, 1, 65535);
+		if (!mysql_real_connect(connection, host.c_str(), user.c_str(), pass.c_str(), dbname.c_str(), port, NULL, CLIENT_IGNORE_SIGPIPE))
 		{
-			mysql_query(connection,initquery.c_str());
+			ServerInstance->Logs->Log(MODNAME, LOG_DEFAULT, "Unable to connect to the %s MySQL server: %s",
+				GetId().c_str(), mysql_error(connection));
+			return false;
 		}
+
+		// Set the default character set.
+		const std::string charset = config->getString("charset");
+		if (!charset.empty() && mysql_set_character_set(connection, charset.c_str()))
+		{
+			ServerInstance->Logs->Log(MODNAME, LOG_DEFAULT, "Could not set character set for %s to \"%s\": %s",
+				GetId().c_str(), charset.c_str(), mysql_error(connection));
+			return false;
+		}
+
+		// Execute the initial SQL query.
+		const std::string initialquery = config->getString("initialquery");
+		if (!initialquery.empty() && mysql_real_query(connection, initialquery.data(), initialquery.length()))
+		{
+			ServerInstance->Logs->Log(MODNAME, LOG_DEFAULT, "Could not execute initial query \"%s\" for %s: %s",
+				initialquery.c_str(), name.c_str(), mysql_error(connection));
+			return false;
+		}
+
 		return true;
 	}
 
@@ -355,21 +393,11 @@ class SQLConnection : public SQL::Provider
 		return true;
 	}
 
-	std::string GetError()
-	{
-		return mysql_error(connection);
-	}
-
-	void Close()
-	{
-		mysql_close(connection);
-	}
-
 	void Submit(SQL::Query* q, const std::string& qs) CXX11_OVERRIDE
 	{
 		ServerInstance->Logs->Log(MODNAME, LOG_DEBUG, "Executing MySQL query: " + qs);
 		Parent()->Dispatcher->LockQueue();
-		Parent()->qq.push_back(QQueueItem(q, qs, this));
+		Parent()->qq.push_back(QueryQueueItem(q, qs, this));
 		Parent()->Dispatcher->UnlockQueueWakeup();
 	}
 
@@ -412,8 +440,8 @@ class SQLConnection : public SQL::Provider
 };
 
 ModuleSQL::ModuleSQL()
+	: Dispatcher(NULL)
 {
-	Dispatcher = NULL;
 }
 
 void ModuleSQL::init()
@@ -478,10 +506,10 @@ void ModuleSQL::ReadConfig(ConfigStatus& status)
 		for (size_t j = qq.size(); j > 0; j--)
 		{
 			size_t k = j - 1;
-			if (qq[k].c == i->second)
+			if (qq[k].connection == i->second)
 			{
-				qq[k].q->OnError(err);
-				delete qq[k].q;
+				qq[k].query->OnError(err);
+				delete qq[k].query;
 				qq.erase(qq.begin() + k);
 			}
 		}
@@ -500,17 +528,17 @@ void ModuleSQL::OnUnloadModule(Module* mod)
 	while (i > 0)
 	{
 		i--;
-		if (qq[i].q->creator == mod)
+		if (qq[i].query->creator == mod)
 		{
 			if (i == 0)
 			{
 				// need to wait until the query is done
 				// (the result will be discarded)
-				qq[i].c->lock.Lock();
-				qq[i].c->lock.Unlock();
+				qq[i].connection->lock.Lock();
+				qq[i].connection->lock.Unlock();
 			}
-			qq[i].q->OnError(err);
-			delete qq[i].q;
+			qq[i].query->OnError(err);
+			delete qq[i].query;
 			qq.erase(qq.begin() + i);
 		}
 	}
@@ -531,23 +559,23 @@ void DispatcherThread::Run()
 	{
 		if (!Parent->qq.empty())
 		{
-			QQueueItem i = Parent->qq.front();
-			i.c->lock.Lock();
+			QueryQueueItem i = Parent->qq.front();
+			i.connection->lock.Lock();
 			this->UnlockQueue();
-			MySQLresult* res = i.c->DoBlockingQuery(i.query);
-			i.c->lock.Unlock();
+			MySQLresult* res = i.connection->DoBlockingQuery(i.querystr);
+			i.connection->lock.Unlock();
 
 			/*
 			 * At this point, the main thread could be working on:
-			 *  Rehash - delete i.c out from under us. We don't care about that.
-			 *  UnloadModule - delete i.q and the qq item. Need to avoid reporting results.
+			 *  Rehash - delete i.connection out from under us. We don't care about that.
+			 *  UnloadModule - delete i.query and the qq item. Need to avoid reporting results.
 			 */
 
 			this->LockQueue();
-			if (!Parent->qq.empty() && Parent->qq.front().q == i.q)
+			if (!Parent->qq.empty() && Parent->qq.front().query == i.query)
 			{
 				Parent->qq.pop_front();
-				Parent->rq.push_back(RQueueItem(i.q, res));
+				Parent->rq.push_back(ResultQueueItem(i.query, res));
 				NotifyParent();
 			}
 			else
@@ -573,13 +601,13 @@ void DispatcherThread::OnNotify()
 	this->LockQueue();
 	for(ResultQueue::iterator i = Parent->rq.begin(); i != Parent->rq.end(); i++)
 	{
-		MySQLresult* res = i->r;
+		MySQLresult* res = i->result;
 		if (res->err.code == SQL::SUCCESS)
-			i->q->OnResult(*res);
+			i->query->OnResult(*res);
 		else
-			i->q->OnError(res->err);
-		delete i->q;
-		delete i->r;
+			i->query->OnError(res->err);
+		delete i->query;
+		delete i->result;
 	}
 	Parent->rq.clear();
 	this->UnlockQueue();
