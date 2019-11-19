@@ -11,6 +11,7 @@
 /build
 /docs/doxygen
 /run
+compile_commands.json
 
 /include/config.h
 
