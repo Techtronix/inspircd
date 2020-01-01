@@ -181,15 +181,6 @@ class serverstats
 class CoreExport InspIRCd
 {
  private:
-	/** Set up the signal handlers
-	 */
-	void SetSignals();
-
-	/** Daemonize the ircd and close standard input/output streams
-	 * @return True if the program daemonized succesfully
-	 */
-	bool DaemonSeed();
-
 	/** The current time, updated in the mainloop
 	 */
 	struct timespec TIME;
@@ -200,11 +191,6 @@ class CoreExport InspIRCd
 	char ReadBuffer[65535];
 
 	ClientProtocol::RFCEvents rfcevents;
-
-	/** Check we aren't running as root, and exit if we are
-	 * with exit code EXIT_STATUS_ROOT.
-	 */
-	void CheckRoot();
 
  public:
 
@@ -362,7 +348,7 @@ class CoreExport InspIRCd
 	/** Bind all ports specified in the configuration file.
 	 * @return The number of ports bound without error
 	 */
-	int BindPorts(FailedPortList &failed_ports);
+	size_t BindPorts(FailedPortList &failed_ports);
 
 	/** Find a user in the nick hash.
 	 * If the user cant be found in the nick hash check the uuid hash
