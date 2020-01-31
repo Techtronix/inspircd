@@ -1,7 +1,8 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2014 Attila Molnar <attilamolnar@hush.com>
+ *   Copyright (C) 2018, 2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2014, 2016, 2018 Attila Molnar <attilamolnar@hush.com>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -179,6 +180,17 @@ namespace stdalgo
 	inline void delete_all(const Cont<T*, Alloc>& cont)
 	{
 		std::for_each(cont.begin(), cont.end(), defaultdeleter<T>());
+	}
+
+	/** Deletes a object and zeroes the memory location that pointed to it.
+	 * @param pr A reference to the pointer that contains the object to delete.
+	 */
+	template<typename T>
+	void delete_zero(T*& pr)
+	{
+		T* p = pr;
+		pr = NULL;
+		delete p;
 	}
 
 	/**

@@ -1,16 +1,20 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
+ *   Copyright (C) 2018 Chris Novakovic <chrisnovakovic@users.noreply.github.com>
+ *   Copyright (C) 2013, 2017-2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013 Adam <Adam@anope.org>
+ *   Copyright (C) 2012-2014, 2016, 2018 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012 William Pitcock <nenolod@dereferenced.org>
+ *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
+ *   Copyright (C) 2012 ChrisTX <xpipe@hotmail.de>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
- *   Copyright (C) 2003-2008 Craig Edwards <craigedwards@brainbox.cc>
- *   Copyright (C) 2008 Uli Schlachter <psychon@znc.in>
- *   Copyright (C) 2006-2008 Robin Burchell <robin+git@viroteck.net>
- *   Copyright (C) 2006-2007 Oliver Lupton <oliverlupton@gmail.com>
+ *   Copyright (C) 2009 Uli Schlachter <psychon@inspircd.org>
+ *   Copyright (C) 2008 Thomas Stagner <aquanight@inspircd.org>
+ *   Copyright (C) 2007-2008, 2010 Craig Edwards <brain@inspircd.org>
+ *   Copyright (C) 2007-2008 Robin Burchell <robin+git@viroteck.net>
+ *   Copyright (C) 2007 Oliver Lupton <om@inspircd.org>
  *   Copyright (C) 2007 Dennis Friis <peavey@inspircd.org>
- *   Copyright (C) 2007 Burlex <???@???>
- *   Copyright (C) 2003 Craig McLure <craig@chatspike.net>
- *   Copyright (C) 2003 randomdan <???@???>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -130,15 +134,6 @@ namespace
 		ServerInstance->stats.LastCPU.dwHighDateTime = KernelTime.dwHighDateTime + UserTime.dwHighDateTime;
 		ServerInstance->stats.LastCPU.dwLowDateTime = KernelTime.dwLowDateTime + UserTime.dwLowDateTime;
 #endif
-	}
-
-	// Deletes a pointer and then zeroes it.
-	template<typename T>
-	void DeleteZero(T*& pr)
-	{
-		T* p = pr;
-		pr = NULL;
-		delete p;
 	}
 
 	// Drops to the unprivileged user/group specified in <security:runas{user,group}>.
@@ -419,9 +414,9 @@ void InspIRCd::Cleanup()
 		delete FakeClient->server;
 		FakeClient->cull();
 	}
-	DeleteZero(this->FakeClient);
-	DeleteZero(this->XLines);
-	DeleteZero(this->Config);
+	stdalgo::delete_zero(this->FakeClient);
+	stdalgo::delete_zero(this->XLines);
+	stdalgo::delete_zero(this->Config);
 	SocketEngine::Deinit();
 	Logs->CloseLogs();
 }
@@ -556,12 +551,12 @@ InspIRCd::InspIRCd(int argc, char** argv)
 
 	std::cout << std::endl;
 
+	TryBindPorts();
+
 	this->Modules->LoadAll();
 
 	// Build ISupport as ModuleManager::LoadAll() does not do it
 	this->ISupport.Build();
-
-	TryBindPorts();
 
 	std::cout << "InspIRCd is now running as '" << Config->ServerName << "'[" << Config->GetSID() << "] with " << SocketEngine::GetMaxFds() << " max open sockets" << std::endl;
 

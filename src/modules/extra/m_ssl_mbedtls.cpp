@@ -1,7 +1,9 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2016 Attila Molnar <attilamolnar@hush.com>
+ *   Copyright (C) 2019 Matt Schatz <genius3000@g3k.solutions>
+ *   Copyright (C) 2016-2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2016-2017 Attila Molnar <attilamolnar@hush.com>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -26,6 +28,17 @@
 
 #include "inspircd.h"
 #include "modules/ssl.h"
+
+// Fix warnings about the use of commas at end of enumerator lists on C++03.
+#if defined __clang__
+# pragma clang diagnostic ignored "-Wc++11-extensions"
+#elif defined __GNUC__
+# if (__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 8))
+#  pragma GCC diagnostic ignored "-Wpedantic"
+# else
+#  pragma GCC diagnostic ignored "-pedantic"
+# endif
+#endif
 
 #include <mbedtls/ctr_drbg.h>
 #include <mbedtls/dhm.h>

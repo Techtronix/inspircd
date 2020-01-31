@@ -1,8 +1,10 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2013 Adam <Adam@anope.org>
- *   Copyright (C) 2003-2013 Anope Team <team@anope.org>
+ *   Copyright (C) 2019 Robby <robby@chatbelgie.be>
+ *   Copyright (C) 2015, 2017-2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013-2016 Attila Molnar <attilamolnar@hush.com>
+ *   Copyright (C) 2013, 2015-2016 Adam <Adam@anope.org>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -680,16 +682,22 @@ class MyManager : public Manager, public Timer, public EventHandler
 
 	bool Tick(time_t now) CXX11_OVERRIDE
 	{
-		ServerInstance->Logs->Log(MODNAME, LOG_DEBUG, "cache: purging DNS cache");
-
+		unsigned long expired = 0;
 		for (cache_map::iterator it = this->cache.begin(); it != this->cache.end(); )
 		{
 			const Query& query = it->second;
 			if (IsExpired(query, now))
+			{
+				expired++;
 				this->cache.erase(it++);
+			}
 			else
 				++it;
 		}
+
+		if (expired)
+			ServerInstance->Logs->Log(MODNAME, LOG_DEBUG, "cache: purged %lu expired DNS entries", expired);
+
 		return true;
 	}
 

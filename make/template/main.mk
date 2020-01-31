@@ -2,7 +2,17 @@
 #
 # InspIRCd -- Internet Relay Chat Daemon
 #
+#   Copyright (C) 2018 Puck Meerburg <puck@puckipedia.com>
+#   Copyright (C) 2012-2020 Sadie Powell <sadie@witchery.services>
+#   Copyright (C) 2012, 2015-2016 Attila Molnar <attilamolnar@hush.com>
+#   Copyright (C) 2012 Robby <robby@chatbelgie.be>
+#   Copyright (C) 2012 Christoph Egger <christoph@debian.org>
+#   Copyright (C) 2012 ChrisTX <xpipe@hotmail.de>
+#   Copyright (C) 2010 Dennis Friis <peavey@inspircd.org>
 #   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
+#   Copyright (C) 2007 Robin Burchell <robin+git@viroteck.net>
+#   Copyright (C) 2005-2007 Craig Edwards <brain@inspircd.org>
+#   Copyright (C) 2005 Craig McLure <craig@frostycoolslug.com>
 #
 # This file is part of InspIRCd.  InspIRCd is free software: you can
 # redistribute it and/or modify it under the terms of the GNU General Public
@@ -210,6 +220,7 @@ install: target
 	@-$(INSTALL) -d -g @GID@ -o @UID@ -m $(INSTMODE_DIR) $(BINPATH)
 	@-$(INSTALL) -d -g @GID@ -o @UID@ -m $(INSTMODE_DIR) $(CONPATH)
 	@-$(INSTALL) -d -g @GID@ -o @UID@ -m $(INSTMODE_DIR) $(DATPATH)
+	@-$(INSTALL) -d -g @GID@ -o @UID@ -m $(INSTMODE_DIR) $(EXAPATH)/codepages
 	@-$(INSTALL) -d -g @GID@ -o @UID@ -m $(INSTMODE_DIR) $(EXAPATH)/providers
 	@-$(INSTALL) -d -g @GID@ -o @UID@ -m $(INSTMODE_DIR) $(EXAPATH)/services
 	@-$(INSTALL) -d -g @GID@ -o @UID@ -m $(INSTMODE_DIR) $(EXAPATH)/sql
@@ -230,6 +241,7 @@ endif
 	-$(INSTALL) -g @GID@ -o @UID@ -m $(INSTMODE_TXT) @CONFIGURE_DIRECTORY@/inspircd-genssl.1 $(MANPATH) 2>/dev/null
 	-$(INSTALL) -g @GID@ -o @UID@ -m $(INSTMODE_BIN) tools/genssl $(BINPATH)/inspircd-genssl 2>/dev/null
 	-$(INSTALL) -g @GID@ -o @UID@ -m $(INSTMODE_TXT) docs/conf/*.example $(EXAPATH)
+	-$(INSTALL) -g @GID@ -o @UID@ -m $(INSTMODE_TXT) docs/conf/codepages/*.example $(EXAPATH)/codepages
 	-$(INSTALL) -g @GID@ -o @UID@ -m $(INSTMODE_TXT) docs/conf/providers/*.example $(EXAPATH)/providers
 	-$(INSTALL) -g @GID@ -o @UID@ -m $(INSTMODE_TXT) docs/conf/services/*.example $(EXAPATH)/services
 	-$(INSTALL) -g @GID@ -o @UID@ -m $(INSTMODE_TXT) docs/sql/*.sql $(EXAPATH)/sql
@@ -288,7 +300,7 @@ help:
 	@echo ' INSPIRCD_VERBOSE=1  Show the full command being executed instead of "BUILD: dns.cpp"'
 	@echo ' INSPIRCD_DEBUG=1    Enable debug build, for module development or crash tracing'
 	@echo ' INSPIRCD_DEBUG=2    Enable debug build with optimizations, for detailed backtraces'
-	@echo ' INSPIRCD_DEBUG=3    Enable fast build with no optimisations or symbols, for Travis CI'
+	@echo ' INSPIRCD_DEBUG=3    Enable fast build with no optimisations or symbols (only for CI)'
 	@echo ' DESTDIR=            Specify a destination root directory (for tarball creation)'
 	@echo ' -j <N>              Run a parallel build using N jobs'
 	@echo ''

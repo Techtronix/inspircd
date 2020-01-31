@@ -1,12 +1,16 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2012 Shawn Smith <shawn@inspircd.org>
- *   Copyright (C) 2009 Daniel De Graaf <danieldg@inspircd.org>
- *   Copyright (C) 2006-2008 Robin Burchell <robin+git@viroteck.net>
- *   Copyright (C) 2008 Pippijn van Steenhoven <pip88nl@gmail.com>
- *   Copyright (C) 2006, 2008 Craig Edwards <craigedwards@brainbox.cc>
+ *   Copyright (C) 2019 linuxdaemon <linuxdaemon.irc@gmail.com>
+ *   Copyright (C) 2013, 2017-2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2012-2015 Attila Molnar <attilamolnar@hush.com>
+ *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
+ *   Copyright (C) 2012 Shawn Smith <ShawnSmith0828@gmail.com>
+ *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
+ *   Copyright (C) 2009 Uli Schlachter <psychon@inspircd.org>
+ *   Copyright (C) 2008 Robin Burchell <robin+git@viroteck.net>
  *   Copyright (C) 2007 Dennis Friis <peavey@inspircd.org>
+ *   Copyright (C) 2006, 2008 Craig Edwards <brain@inspircd.org>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -145,11 +149,11 @@ class ModuleServicesAccount
  private:
 	CallerID::API calleridapi;
 	CheckExemption::EventProvider exemptionprov;
-	SimpleChannelModeHandler m1;
-	SimpleChannelModeHandler m2;
-	SimpleUserModeHandler m3;
-	Channel_r m4;
-	User_r m5;
+	SimpleChannelModeHandler reginvitemode;
+	SimpleChannelModeHandler regmoderatedmode;
+	SimpleUserModeHandler regdeafmode;
+	Channel_r chanregmode;
+	User_r userregmode;
 	AccountExtItemImpl accountname;
 	bool checking_ban;
 
@@ -159,11 +163,11 @@ class ModuleServicesAccount
 		, CTCTags::EventListener(this)
 		, calleridapi(this)
 		, exemptionprov(this)
-		, m1(this, "reginvite", 'R')
-		, m2(this, "regmoderated", 'M')
-		, m3(this, "regdeaf", 'R')
-		, m4(this)
-		, m5(this)
+		, reginvitemode(this, "reginvite", 'R')
+		, regmoderatedmode(this, "regmoderated", 'M')
+		, regdeafmode(this, "regdeaf", 'R')
+		, chanregmode(this)
+		, userregmode(this)
 		, accountname(this)
 		, checking_ban(false)
 	{
@@ -185,7 +189,7 @@ class ModuleServicesAccount
 			whois.SendLine(RPL_WHOISACCOUNT, *account, "is logged in as");
 		}
 
-		if (whois.GetTarget()->IsModeSet(m5))
+		if (whois.GetTarget()->IsModeSet(userregmode))
 		{
 			/* user is registered */
 			whois.SendLine(RPL_WHOISREGNICK, "is a registered nick");
@@ -195,8 +199,8 @@ class ModuleServicesAccount
 	void OnUserPostNick(User* user, const std::string &oldnick) CXX11_OVERRIDE
 	{
 		/* On nickchange, if they have +r, remove it */
-		if ((user->IsModeSet(m5)) && (ServerInstance->FindNickOnly(oldnick) != user))
-			m5.RemoveMode(user);
+		if ((user->IsModeSet(userregmode)) && (ServerInstance->FindNickOnly(oldnick) != user))
+			userregmode.RemoveMode(user);
 	}
 
 	ModResult HandleMessage(User* user, const MessageTarget& target)
@@ -213,7 +217,7 @@ class ModuleServicesAccount
 			{
 				Channel* targchan = target.Get<Channel>();
 
-				if (!targchan->IsModeSet(m2) || is_registered)
+				if (!targchan->IsModeSet(regmoderatedmode) || is_registered)
 					return MOD_RES_PASSTHRU;
 
 				if (CheckExemption::Call(exemptionprov, user, targchan, "regmoderated") == MOD_RES_ALLOW)
@@ -227,7 +231,7 @@ class ModuleServicesAccount
 			case MessageTarget::TYPE_USER:
 			{
 				User* targuser = target.Get<User>();
-				if (!targuser->IsModeSet(m3)  || is_registered)
+				if (!targuser->IsModeSet(regdeafmode)  || is_registered)
 					return MOD_RES_PASSTHRU;
 
 				if (calleridapi && calleridapi->IsOnAcceptList(user, targuser))
@@ -297,7 +301,7 @@ class ModuleServicesAccount
 
 		if (chan)
 		{
-			if (chan->IsModeSet(m1))
+			if (chan->IsModeSet(reginvitemode))
 			{
 				if (!is_registered)
 				{

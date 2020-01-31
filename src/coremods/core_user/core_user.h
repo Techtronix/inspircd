@@ -1,10 +1,8 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
+ *   Copyright (C) 2017-2019 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2014 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2008 Robin Burchell <robin+git@viroteck.net>
- *   Copyright (C) 2007 Dennis Friis <peavey@inspircd.org>
- *   Copyright (C) 2006 Craig Edwards <craigedwards@brainbox.cc>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -219,7 +217,6 @@ class ModeUserServerNoticeMask : public ModeHandler
  public:
 	ModeUserServerNoticeMask(Module* Creator);
 	ModeAction OnModeChange(User* source, User* dest, Channel* channel, std::string &parameter, bool adding) CXX11_OVERRIDE;
-	void OnParameterMissing(User* user, User* dest, Channel* channel) CXX11_OVERRIDE;
 
 	/** Create a displayable mode string of the snomasks set on a given user
 	 * @param user The user whose notice masks to format

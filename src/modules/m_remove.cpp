@@ -1,12 +1,18 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
+ *   Copyright (C) 2017 B00mX0r <b00mx0r@aureus.pw>
+ *   Copyright (C) 2013, 2018, 2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2012-2014, 2016 Attila Molnar <attilamolnar@hush.com>
+ *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
+ *   Copyright (C) 2012 Justin Crawford <Justasic@Gmail.com>
+ *   Copyright (C) 2010 Craig Edwards <brain@inspircd.org>
+ *   Copyright (C) 2009 Uli Schlachter <psychon@inspircd.org>
  *   Copyright (C) 2009 Daniel De Graaf <danieldg@inspircd.org>
- *   Copyright (C) 2008 Pippijn van Steenhoven <pip88nl@gmail.com>
+ *   Copyright (C) 2008 Thomas Stagner <aquanight@inspircd.org>
+ *   Copyright (C) 2007 Robin Burchell <robin+git@viroteck.net>
  *   Copyright (C) 2007 Dennis Friis <peavey@inspircd.org>
- *   Copyright (C) 2005, 2007 Robin Burchell <robin+git@viroteck.net>
- *   Copyright (C) 2005-2006 Craig Edwards <craigedwards@brainbox.cc>
- *   Copyright (C) 2006 Oliver Lupton <oliverlupton@gmail.com>
+ *   Copyright (C) 2006 Oliver Lupton <om@inspircd.org>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -135,7 +141,7 @@ class RemoveBase : public Command
 				/* Build up the part reason string. */
 				reason = "Removed by " + user->nick + ": " + reasonparam;
 
-				channel->WriteNotice(InspIRCd::Format("%s removed %s from the channel", user->nick.c_str(), target->nick.c_str()));
+				channel->WriteRemoteNotice(InspIRCd::Format("%s removed %s from the channel", user->nick.c_str(), target->nick.c_str()));
 				target->WriteNotice("*** " + user->nick + " removed you from " + channel->name + " with the message: " + reasonparam);
 
 				channel->PartUser(target, reason);

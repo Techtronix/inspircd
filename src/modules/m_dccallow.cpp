@@ -1,13 +1,19 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2009 Daniel De Graaf <danieldg@inspircd.org>
- *   Copyright (C) 2008 John Brooks <john.brooks@dereferenced.net>
- *   Copyright (C) 2008 Pippijn van Steenhoven <pip88nl@gmail.com>
- *   Copyright (C) 2006-2008 Craig Edwards <craigedwards@brainbox.cc>
+ *   Copyright (C) 2019 Matt Schatz <genius3000@g3k.solutions>
+ *   Copyright (C) 2018 linuxdaemon <linuxdaemon.irc@gmail.com>
+ *   Copyright (C) 2016 Adam <Adam@anope.org>
+ *   Copyright (C) 2013, 2017-2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2012-2016 Attila Molnar <attilamolnar@hush.com>
+ *   Copyright (C) 2012, 2014, 2019 Robby <robby@chatbelgie.be>
+ *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
+ *   Copyright (C) 2009 Matt Smith <dz@inspircd.org>
+ *   Copyright (C) 2008, 2010 Craig Edwards <brain@inspircd.org>
+ *   Copyright (C) 2008 John Brooks <special@inspircd.org>
  *   Copyright (C) 2007-2008 Robin Burchell <robin+git@viroteck.net>
- *   Copyright (C) 2007 Dennis Friis <peavey@inspircd.org>
- *   Copyright (C) 2006 Jamie ??? <???@???>
+ *   Copyright (C) 2007-2008 Dennis Friis <peavey@inspircd.org>
+ *   Copyright (C) 2006 jamie <jamie@e03df62e-2008-0410-955e-edbf42e46eb7>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -200,13 +206,13 @@ class CommandDccallow : public Command
 			// if they didn't specify an action, this is probably a command
 			if (action != '+' && action != '-')
 			{
-				if (!strcasecmp(parameters[0].c_str(), "LIST"))
+				if (irc::equals(parameters[0], "LIST"))
 				{
 					// list current DCCALLOW list
 					DisplayDCCAllowList(user);
 					return CMD_FAILURE;
 				}
-				else if (!strcasecmp(parameters[0].c_str(), "HELP"))
+				else if (irc::equals(parameters[0], "HELP"))
 				{
 					// display help
 					DisplayHelp(user);
@@ -407,14 +413,16 @@ class ModuleDCCAllow : public Module
 			if (user == u)
 				return MOD_RES_PASSTHRU;
 
-			if ((details.text.length()) && (details.text[0] == '\1'))
+			std::string ctcpname;
+			std::string ctcpbody;
+			if (details.IsCTCP(ctcpname, ctcpbody))
 			{
 				Expire();
 
 				// :jamie!jamie@test-D4457903BA652E0F.silverdream.org PRIVMSG eimaj :DCC SEND m_dnsbl.cpp 3232235786 52650 9676
 				// :jamie!jamie@test-D4457903BA652E0F.silverdream.org PRIVMSG eimaj :VERSION
 
-				if (strncmp(details.text.c_str(), "\1DCC ", 5) == 0)
+				if (irc::equals(ctcpname, "DCC") && !ctcpbody.empty())
 				{
 					dl = ext.get(u);
 					if (dl && dl->size())
@@ -424,18 +432,17 @@ class ModuleDCCAllow : public Module
 								return MOD_RES_PASSTHRU;
 					}
 
-					std::string buf = details.text.substr(5);
-					size_t s = buf.find(' ');
+					size_t s = ctcpbody.find(' ');
 					if (s == std::string::npos)
 						return MOD_RES_PASSTHRU;
 
-					const std::string type = buf.substr(0, s);
+					const std::string type = ctcpbody.substr(0, s);
 
-					if (stdalgo::string::equalsci(type, "SEND"))
+					if (irc::equals(type, "SEND"))
 					{
 						size_t first;
 
-						buf = buf.substr(s + 1);
+						std::string buf = ctcpbody.substr(s + 1);
 
 						if (!buf.empty() && buf[0] == '"')
 						{
@@ -483,7 +490,7 @@ class ModuleDCCAllow : public Module
 						u->WriteNotice("If you trust " + user->nick + " and were expecting this, you can type /DCCALLOW HELP for information on the DCCALLOW system.");
 						return MOD_RES_DENY;
 					}
-					else if ((blockchat) && (stdalgo::string::equalsci(type, "CHAT")))
+					else if (blockchat && irc::equals(type, "CHAT"))
 					{
 						user->WriteNotice("The user " + u->nick + " is not accepting DCC CHAT requests from you.");
 						u->WriteNotice(user->nick + " (" + user->ident + "@" + user->GetDisplayedHost() + ") attempted to initiate a DCC CHAT session, which was blocked.");
