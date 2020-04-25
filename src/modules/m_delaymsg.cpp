@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2013, 2017-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2015 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
@@ -95,7 +95,7 @@ void DelayMsgMode::OnUnset(User* source, Channel* chan)
 
 Version ModuleDelayMsg::GetVersion()
 {
-	return Version("Provides channel mode +d <int>, to deny messages to a channel until <int> seconds have passed", VF_VENDOR);
+	return Version("Adds channel mode d (delaymsg) which prevents newly joined users from speaking until the specified number of seconds have passed.", VF_VENDOR);
 }
 
 void ModuleDelayMsg::OnUserJoin(Membership* memb, bool sync, bool created, CUList&)
@@ -141,7 +141,8 @@ ModResult ModuleDelayMsg::HandleMessage(User* user, const MessageTarget& target,
 	{
 		if (channel->GetPrefixValue(user) < VOICE_VALUE)
 		{
-			user->WriteNumeric(ERR_CANNOTSENDTOCHAN, channel->name, InspIRCd::Format("You must wait %d seconds after joining to send to the channel (+d is set)", len));
+			const std::string message = InspIRCd::Format("You cannot send messages to this channel until you have been a member for %d seconds.", len);
+			user->WriteNumeric(Numerics::CannotSendTo(channel, message));
 			return MOD_RES_DENY;
 		}
 	}

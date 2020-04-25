@@ -2,7 +2,7 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2017 B00mX0r <b00mx0r@aureus.pw>
- *   Copyright (C) 2013, 2018 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2018, 2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2012, 2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2009 Uli Schlachter <psychon@inspircd.org>
@@ -33,7 +33,8 @@ class CommandSATopic : public Command
  public:
 	CommandSATopic(Module* Creator) : Command(Creator,"SATOPIC", 2, 2)
 	{
-		flags_needed = 'o'; syntax = "<channel> :<topic>";
+		flags_needed = 'o';
+		syntax = "<channel> :<topic>";
 	}
 
 	CmdResult Handle(User* user, const Params& parameters) CXX11_OVERRIDE
@@ -76,7 +77,7 @@ class ModuleSATopic : public Module
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides the SATOPIC command", VF_VENDOR);
+		return Version("Adds the /SATOPIC command which allows server operators to change the topic of a channel that they would not otherwise have the privileges to change.", VF_VENDOR);
 	}
 };
 

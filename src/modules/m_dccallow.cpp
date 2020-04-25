@@ -154,6 +154,8 @@ class DCCAllowExt : public SimpleExtItem<dccallowlist>
 			list->push_back(dccallow);
 		}
 
+		// The value was well formed.
+		set(user, list);
 	}
 
 	std::string ToInternal(const Extensible* container, void* item) const CXX11_OVERRIDE
@@ -187,7 +189,7 @@ class CommandDccallow : public Command
 		, ext(Ext)
 	{
 		syntax = "[(+|-)<nick> [<time>]]|[LIST|HELP]";
-		/* XXX we need to fix this so it can work with translation stuff (i.e. move +- into a seperate param */
+		/* XXX we need to fix this so it can work with translation stuff (i.e. move +- into a separate param */
 	}
 
 	CmdResult Handle(User* user, const Params& parameters) CXX11_OVERRIDE
@@ -605,7 +607,7 @@ class ModuleDCCAllow : public Module
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides the DCCALLOW command", VF_COMMON | VF_VENDOR);
+		return Version("Allows the server administrator to configure what files are allowed to be sent via DCC SEND and allows users to configure who can send them DCC CHAT and DCC SEND requests.", VF_COMMON | VF_VENDOR);
 	}
 };
 

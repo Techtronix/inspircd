@@ -2,7 +2,7 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2018 linuxdaemon <linuxdaemon.irc@gmail.com>
- *   Copyright (C) 2013, 2017-2018 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2018, 2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2013 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2010 Craig Edwards <brain@inspircd.org>
@@ -41,7 +41,8 @@ class CommandSetidle : public SplitCommand
  public:
 	CommandSetidle(Module* Creator) : SplitCommand(Creator,"SETIDLE", 1)
 	{
-		flags_needed = 'o'; syntax = "<duration>";
+		flags_needed = 'o';
+		syntax = "<duration>";
 	}
 
 	CmdResult HandleLocal(LocalUser* user, const Params& parameters) CXX11_OVERRIDE
@@ -75,7 +76,7 @@ class ModuleSetIdle : public Module
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides the SETIDLE command, allows opers to set their idle time", VF_VENDOR);
+		return Version("Adds the /SETIDLE command which allows server operators to change their idle time.", VF_VENDOR);
 	}
 };
 

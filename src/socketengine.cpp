@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2017-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2017-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013-2014 Adam <Adam@anope.org>
  *   Copyright (C) 2012, 2014-2015 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
@@ -180,11 +180,7 @@ EventHandler* SocketEngine::GetRef(int fd)
 
 bool SocketEngine::BoundsCheckFd(EventHandler* eh)
 {
-	if (!eh)
-		return false;
-	if (eh->GetFd() < 0)
-		return false;
-	return true;
+	return eh && eh->HasFd();
 }
 
 

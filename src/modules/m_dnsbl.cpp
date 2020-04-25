@@ -1,8 +1,8 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
+ *   Copyright (C) 2018-2020 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2018-2019 linuxdaemon <linuxdaemon.irc@gmail.com>
- *   Copyright (C) 2018-2019 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2013, 2016-2019 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013, 2015-2016 Adam <Adam@anope.org>
  *   Copyright (C) 2012-2016 Attila Molnar <attilamolnar@hush.com>
@@ -158,7 +158,7 @@ class DNSBLResolver : public DNS::Request
 							"*", them->GetIPString());
 					if (ServerInstance->XLines->AddLine(kl,NULL))
 					{
-						ServerInstance->SNO->WriteGlobalSno('x', "K-line added due to DNSBL match on *@%s to expire in %s (on %s): %s",
+						ServerInstance->SNO->WriteToSnoMask('x', "K-line added due to DNSBL match on *@%s to expire in %s (on %s): %s",
 							them->GetIPString().c_str(), InspIRCd::DurationString(kl->duration).c_str(),
 							InspIRCd::TimeString(kl->expiry).c_str(), reason.c_str());
 						ServerInstance->XLines->ApplyLines();
@@ -176,7 +176,7 @@ class DNSBLResolver : public DNS::Request
 							"*", them->GetIPString());
 					if (ServerInstance->XLines->AddLine(gl,NULL))
 					{
-						ServerInstance->SNO->WriteGlobalSno('x', "G-line added due to DNSBL match on *@%s to expire in %s (on %s): %s",
+						ServerInstance->SNO->WriteToSnoMask('x', "G-line added due to DNSBL match on *@%s to expire in %s (on %s): %s",
 							them->GetIPString().c_str(), InspIRCd::DurationString(gl->duration).c_str(),
 							InspIRCd::TimeString(gl->expiry).c_str(), reason.c_str());
 						ServerInstance->XLines->ApplyLines();
@@ -194,7 +194,7 @@ class DNSBLResolver : public DNS::Request
 							them->GetIPString());
 					if (ServerInstance->XLines->AddLine(zl,NULL))
 					{
-						ServerInstance->SNO->WriteGlobalSno('x', "Z-line added due to DNSBL match on %s to expire in %s (on %s): %s",
+						ServerInstance->SNO->WriteToSnoMask('x', "Z-line added due to DNSBL match on %s to expire in %s (on %s): %s",
 							them->GetIPString().c_str(), InspIRCd::DurationString(zl->duration).c_str(),
 							InspIRCd::TimeString(zl->expiry).c_str(), reason.c_str());
 						ServerInstance->XLines->ApplyLines();
@@ -282,7 +282,7 @@ class ModuleDNSBL : public Module, public Stats::EventListener
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides handling of DNS blacklists", VF_VENDOR);
+		return Version("Allows the server administrator to check the IP address of connecting users against a DNSBL.", VF_VENDOR);
 	}
 
 	/** Fill our conf vector with data

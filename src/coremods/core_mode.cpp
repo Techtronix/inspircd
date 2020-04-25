@@ -3,9 +3,9 @@
  *
  *   Copyright (C) 2019 linuxdaemon <linuxdaemon.irc@gmail.com>
  *   Copyright (C) 2019 Robby <robby@chatbelgie.be>
- *   Copyright (C) 2018-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2018-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2017 B00mX0r <b00mx0r@aureus.pw>
- *   Copyright (C) 2014-2016 Attila Molnar <attilamolnar@hush.com>
+ *   Copyright (C) 2014, 2016 Attila Molnar <attilamolnar@hush.com>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -25,8 +25,11 @@
 
 class CommandMode : public Command
 {
+ private:
 	unsigned int sent[256];
 	unsigned int seq;
+	ChanModeReference secretmode;
+	ChanModeReference privatemode;
 
 	/** Show the list of one or more list modes to a user.
 	 * @param user User to send to.
@@ -41,6 +44,18 @@ class CommandMode : public Command
 	 * @param targetchannel Channel whose modes to show. NULL if showing the modes of a user.
 	 */
 	void DisplayCurrentModes(User* user, User* targetuser, Channel* targetchannel);
+
+	bool CanSeeChan(User* user, Channel* chan)
+	{
+		// A user can always see the channel modes if they are:
+		// (1) In the channel.
+		// (2) An oper with the channels/auspex privilege.
+		if (chan->HasUser(user) ||  user->HasPrivPermission("channels/auspex"))
+			return true;
+
+		// Otherwise, they can only see the modes when the channel is not +p or +s.
+		return !chan->IsModeSet(secretmode) && !chan->IsModeSet(privatemode);
+	}
 
  public:
 	/** Constructor for mode.
@@ -60,6 +75,8 @@ class CommandMode : public Command
 CommandMode::CommandMode(Module* parent)
 	: Command(parent, "MODE", 1)
 	, seq(0)
+	, secretmode(creator, "secret")
+	, privatemode(creator, "private")
 {
 	syntax = "<target> [[(+|-)]<modes> [<mode-parameters>]]";
 	memset(&sent, 0, sizeof(sent));
@@ -78,7 +95,7 @@ CmdResult CommandMode::Handle(User* user, const Params& parameters)
 			targetuser = ServerInstance->FindNick(target);
 	}
 
-	if ((!targetchannel) && (!targetuser))
+	if ((!targetchannel || !CanSeeChan(user, targetchannel)) && (!targetuser))
 	{
 		if (target[0] == '#')
 			user->WriteNumeric(Numerics::NoSuchChannel(target));
@@ -266,6 +283,12 @@ class CoreModMode : public Module
 	CoreModMode()
 		: cmdmode(this)
 	{
+	}
+
+	void On005Numeric(std::map<std::string, std::string>& tokens) CXX11_OVERRIDE
+	{
+		tokens["CHANMODES"] = ServerInstance->Modes->GiveModeList(MODETYPE_CHANNEL);
+		tokens["USERMODES"] = ServerInstance->Modes->GiveModeList(MODETYPE_USER);
 	}
 
 	Version GetVersion() CXX11_OVERRIDE

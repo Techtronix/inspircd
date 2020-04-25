@@ -1,6 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
+ *   Copyright (C) 2020 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2019 linuxdaemon <linuxdaemon.irc@gmail.com>
  *   Copyright (C) 2013, 2017-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013, 2016 Adam <Adam@anope.org>
@@ -135,7 +136,7 @@ void ModuleSpanningTree::ShowLinks(TreeServer* Current, User* user, int hops)
 			ShowLinks(server, user, hops+1);
 		}
 	}
-	/* Don't display the line if its a uline, hide ulines is on, and the user isnt an oper */
+	/* Don't display the line if its a uline, hide ulines is on, and the user isn't an oper */
 	if ((Utils->HideULines) && (Current->IsULine()) && (!user->IsOper()))
 		return;
 	/* Or if the server is hidden and they're not an oper */
@@ -215,17 +216,13 @@ void ModuleSpanningTree::ConnectServer(Link* x, Autoconnect* y)
 		// If this fails then the IP sa will be AF_UNSPEC.
 		irc::sockets::aptosa(x->IPAddr, x->Port, sa);
 	}
-	
+
 	/* Do we already have an IP? If so, no need to resolve it. */
 	if (sa.family() != AF_UNSPEC)
 	{
 		// Create a TreeServer object that will start connecting immediately in the background
 		TreeSocket* newsocket = new TreeSocket(x, y, sa);
-		if (newsocket->GetFd() > -1)
-		{
-			/* Handled automatically on success */
-		}
-		else
+		if (!newsocket->HasFd())
 		{
 			ServerInstance->SNO->WriteToSnoMask('l', "CONNECT: Error connecting \002%s\002: %s.",
 				x->Name.c_str(), newsocket->getError().c_str());
@@ -424,7 +421,7 @@ void ModuleSpanningTree::OnUserPostMessage(User* user, const MessageTarget& targ
 			const std::string* serverglob = target.Get<std::string>();
 			CmdBuilder par(user, message_type);
 			par.push_tags(details.tags_out);
-			par.push(*serverglob);
+			par.push(std::string("$") + *serverglob);
 			par.push_last(details.text);
 			par.Broadcast();
 			break;
@@ -461,7 +458,7 @@ void ModuleSpanningTree::OnUserPostTagMessage(User* user, const MessageTarget& t
 			const std::string* serverglob = target.Get<std::string>();
 			CmdBuilder par(user, "TAGMSG");
 			par.push_tags(details.tags_out);
-			par.push(*serverglob);
+			par.push(std::string("$") + *serverglob);
 			par.Broadcast();
 			break;
 		}
@@ -824,7 +821,7 @@ ModuleSpanningTree::~ModuleSpanningTree()
 
 Version ModuleSpanningTree::GetVersion()
 {
-	return Version("Allows servers to be linked", VF_VENDOR);
+	return Version("Allows linking multiple servers together as part of one network.", VF_VENDOR);
 }
 
 /* It is IMPORTANT that m_spanningtree is the last module in the chain

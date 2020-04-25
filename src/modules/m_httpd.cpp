@@ -3,9 +3,9 @@
  *
  *   Copyright (C) 2019 linuxdaemon <linuxdaemon.irc@gmail.com>
  *   Copyright (C) 2018 edef <edef@edef.eu>
- *   Copyright (C) 2013-2014, 2017-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013-2014, 2017-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2016 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
+ *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009 Uli Schlachter <psychon@inspircd.org>
  *   Copyright (C) 2009 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2008 Robin Burchell <robin+git@viroteck.net>
@@ -95,7 +95,8 @@ class HttpServerSocket : public BufferedSocket, public Timer, public insp::intru
 	{
 		if (!messagecomplete)
 		{
-			AddToCull();
+			ServerInstance->Logs->Log(MODNAME, LOG_DEBUG, "HTTP socket %d timed out", GetFd());
+			Close();
 			return false;
 		}
 
@@ -229,7 +230,9 @@ class HttpServerSocket : public BufferedSocket, public Timer, public insp::intru
 			// IOHook may have errored
 			if (!getError().empty())
 			{
-				AddToCull();
+				ServerInstance->Logs->Log(MODNAME, LOG_DEBUG, "HTTP socket %d encountered a hook error: %s",
+					GetFd(), getError().c_str());
+				Close();
 				return;
 			}
 		}
@@ -244,17 +247,31 @@ class HttpServerSocket : public BufferedSocket, public Timer, public insp::intru
 		sockets.erase(this);
 	}
 
-	void OnError(BufferedSocketError) CXX11_OVERRIDE
+	void Close() CXX11_OVERRIDE
 	{
-		AddToCull();
+		if (waitingcull || !HasFd())
+			return;
+
+		waitingcull = true;
+		BufferedSocket::Close();
+		ServerInstance->GlobalCulls.AddItem(this);
+	}
+
+	void OnError(BufferedSocketError err) CXX11_OVERRIDE
+	{
+		ServerInstance->Logs->Log(MODNAME, LOG_DEBUG, "HTTP socket %d encountered an error: %d - %s",
+			GetFd(), err, getError().c_str());
+		Close();
 	}
 
 	void SendHTTPError(unsigned int response)
 	{
-		HTTPHeaders empty;
+		static HTTPHeaders empty;
 		std::string data = InspIRCd::Format(
-			"<html><head></head><body>Server error %u: %s<br>"
-			"<small>Powered by <a href='https://www.inspircd.org'>InspIRCd</a></small></body></html>", response, http_status_str((http_status)response));
+			"<html><head></head><body style='font-family: sans-serif; text-align: center'>"
+			"<h1 style='font-size: 48pt'>Error %u</h1><h2 style='font-size: 24pt'>%s</h2><hr>"
+			"<small>Powered by <a href='https://www.inspircd.org'>InspIRCd</a></small></body></html>",
+			response, http_status_str((http_status)response));
 
 		Page(data, response, &empty);
 	}
@@ -272,7 +289,7 @@ class HttpServerSocket : public BufferedSocket, public Timer, public insp::intru
 		else
 			rheaders.RemoveHeader("Content-Type");
 
-		/* Supporting Connection: keep-alive causes a whole world of hurt syncronizing timeouts,
+		/* Supporting Connection: keep-alive causes a whole world of hurt synchronizing timeouts,
 		 * so remove it, its not essential for what we need.
 		 */
 		rheaders.SetHeader("Connection", "Close");
@@ -313,22 +330,12 @@ class HttpServerSocket : public BufferedSocket, public Timer, public insp::intru
 	{
 		SendHeaders(s.length(), response, *hheaders);
 		WriteData(s);
-		Close(true);
+		BufferedSocket::Close(true);
 	}
 
 	void Page(std::stringstream* n, unsigned int response, HTTPHeaders* hheaders)
 	{
 		Page(n->str(), response, hheaders);
-	}
-
-	void AddToCull()
-	{
-		if (waitingcull)
-			return;
-
-		waitingcull = true;
-		Close();
-		ServerInstance->GlobalCulls.AddItem(this);
 	}
 
 	bool ParseURI(const std::string& uristr, HTTPRequestURI& out)
@@ -437,14 +444,14 @@ class ModuleHttpServer : public Module
 		for (insp::intrusive_list<HttpServerSocket>::const_iterator i = sockets.begin(); i != sockets.end(); ++i)
 		{
 			HttpServerSocket* sock = *i;
-			sock->AddToCull();
+			sock->Close();
 		}
 		return Module::cull();
 	}
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides HTTP serving facilities to modules", VF_VENDOR);
+		return Version("Allows the server administrator to serve various useful resources over HTTP.", VF_VENDOR);
 	}
 };
 

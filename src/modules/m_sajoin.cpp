@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2013, 2018-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2018-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013 Daniel Vassdal <shutter@canternet.org>
  *   Copyright (C) 2012-2014, 2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
@@ -35,7 +35,8 @@ class CommandSajoin : public Command
 	CommandSajoin(Module* Creator) : Command(Creator,"SAJOIN", 1)
 	{
 		allow_empty_last_param = false;
-		flags_needed = 'o'; syntax = "[<nick>] <channel>[,<channel>]+";
+		flags_needed = 'o';
+		syntax = "[<nick>] <channel>[,<channel>]+";
 		TRANSLATE2(TR_NICK, TR_TEXT);
 	}
 
@@ -124,7 +125,7 @@ class ModuleSajoin : public Module
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides the SAJOIN command, allows opers to force-join users to channels", VF_OPTCOMMON | VF_VENDOR);
+		return Version("Adds the /SAJOIN command which allows server operators to force users to join one or more channels.", VF_OPTCOMMON | VF_VENDOR);
 	}
 };
 

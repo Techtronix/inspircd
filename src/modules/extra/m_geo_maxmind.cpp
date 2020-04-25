@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2019-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2019 Matt Schatz <genius3000@g3k.solutions>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
@@ -154,13 +154,13 @@ class ModuleGeoMaxMind : public Module
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides Geolocation lookups using the libMaxMindDB library", VF_VENDOR);
+		return Version("Allows the server to perform geolocation lookups on both IP addresses and users.", VF_VENDOR);
 	}
 
 	void ReadConfig(ConfigStatus& status) CXX11_OVERRIDE
 	{
 		ConfigTag* tag = ServerInstance->Config->ConfValue("maxmind");
-		const std::string file = ServerInstance->Config->Paths.PrependConfig(tag->getString("file", "GeoLite2-Country.mmdb"));
+		const std::string file = ServerInstance->Config->Paths.PrependConfig(tag->getString("file", "GeoLite2-Country.mmdb", 1));
 
 		// Try to read the new database.
 		MMDB_s mmdb;
@@ -179,7 +179,7 @@ class ModuleGeoMaxMind : public Module
 	void OnGarbageCollect() CXX11_OVERRIDE
 	{
 		for (LocationMap::iterator iter = geoapi.locations.begin(); iter != geoapi.locations.end(); )
-		{	
+		{
 			Geolocation::Location* location = iter->second;
 			if (location->GetUseCount())
 			{

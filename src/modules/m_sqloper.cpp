@@ -4,7 +4,7 @@
  *   Copyright (C) 2019 B00mX0r <b00mx0r@aureus.pw>
  *   Copyright (C) 2018 Dylan Frank <b00mx0r@aureus.pw>
  *   Copyright (C) 2013-2014, 2018 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2013, 2017-2018 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2018, 2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2009 Uli Schlachter <psychon@inspircd.org>
@@ -190,7 +190,7 @@ public:
 		else
 			SQL.SetProvider("SQL/" + dbid);
 
-		query = tag->getString("query", "SELECT * FROM ircd_opers WHERE active=1;");
+		query = tag->getString("query", "SELECT * FROM ircd_opers WHERE active=1;", 1);
 		// Update sqloper list from the database.
 		GetOperBlocks();
 	}
@@ -249,7 +249,7 @@ public:
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Allows storage of oper credentials in an SQL table", VF_VENDOR);
+		return Version("Allows server operators to be authenticated against an SQL table.", VF_VENDOR);
 	}
 };
 

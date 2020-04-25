@@ -78,7 +78,7 @@ class JoinHook : public ClientProtocol::EventHook
 
 }
 
-class ModuleDelayJoin 
+class ModuleDelayJoin
 	: public Module
 	, public CTCTags::EventListener
 	, public Names::EventListener
@@ -131,7 +131,7 @@ ModeAction DelayJoinMode::OnModeChange(User* source, User* dest, Channel* channe
 
 Version ModuleDelayJoin::GetVersion()
 {
-	return Version("Provides channel mode +D, delay-join, users don't appear as joined to others until they speak", VF_VENDOR);
+	return Version("Adds channel mode D (delayjoin) which hides JOIN messages from users until they speak.", VF_VENDOR);
 }
 
 ModResult ModuleDelayJoin::OnNamesListItem(LocalUser* issuer, Membership* memb, std::string& prefixes, std::string& nick)

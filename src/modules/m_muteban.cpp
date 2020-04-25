@@ -1,8 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2016 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2013, 2017, 2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017, 2019-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012, 2018-2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009 Uli Schlachter <psychon@inspircd.org>
  *   Copyright (C) 2009 Daniel De Graaf <danieldg@inspircd.org>
@@ -47,7 +46,7 @@ class ModuleQuietBan
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides extban 'm', mute bans", VF_OPTCOMMON|VF_VENDOR);
+		return Version("Adds extended ban m which bans specific masks from speaking in a channel.", VF_OPTCOMMON|VF_VENDOR);
 	}
 
 	ModResult HandleMessage(User* user, const MessageTarget& target, bool& echo_original)
@@ -64,7 +63,7 @@ class ModuleQuietBan
 				return MOD_RES_DENY;
 			}
 
-			user->WriteNumeric(ERR_CANNOTSENDTOCHAN, chan->name, "Cannot send to channel (you're muted)");
+			user->WriteNumeric(Numerics::CannotSendTo(chan, "messages", 'm', "mute"));
 			return MOD_RES_DENY;
 		}
 

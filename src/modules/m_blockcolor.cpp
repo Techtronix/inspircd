@@ -2,7 +2,7 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2019 Matt Schatz <genius3000@g3k.solutions>
- *   Copyright (C) 2013, 2017 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017, 2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012, 2018 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2012 Shawn Smith <ShawnSmith0828@gmail.com>
  *   Copyright (C) 2012 DjSlash <djslash@djslash.org>
@@ -65,8 +65,10 @@ class ModuleBlockColor : public Module
 					// Block all control codes except \001 for CTCP
 					if ((*i >= 0) && (*i < 32) && (*i != 1))
 					{
-						user->WriteNumeric(ERR_CANNOTSENDTOCHAN, c->name, InspIRCd::Format("Can't send colors to channel (%s)",
-							modeset ? "+c is set" : "you're extbanned"));
+						if (modeset)
+							user->WriteNumeric(Numerics::CannotSendTo(c, "messages containing formatting characters", &bc));
+						else
+							user->WriteNumeric(Numerics::CannotSendTo(c, "messages containing formatting characters", 'c', "nocolor"));
 						return MOD_RES_DENY;
 					}
 				}
@@ -77,7 +79,7 @@ class ModuleBlockColor : public Module
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides channel mode +c to block color",VF_VENDOR);
+		return Version("Adds channel mode c (blockcolor) which allows channels to block messages which contain IRC formatting codes.",VF_VENDOR);
 	}
 };
 

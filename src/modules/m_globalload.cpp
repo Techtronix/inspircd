@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2013, 2017-2018 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2018, 2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2012, 2014-2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
@@ -124,7 +124,8 @@ class CommandGreloadmodule : public Command
  public:
 	CommandGreloadmodule(Module* Creator) : Command(Creator, "GRELOADMODULE", 1)
 	{
-		flags_needed = 'o'; syntax = "<modulename> [<servermask>]";
+		flags_needed = 'o';
+		syntax = "<modulename> [<servermask>]";
 	}
 
 	CmdResult Handle(User* user, const Params& parameters) CXX11_OVERRIDE
@@ -171,7 +172,7 @@ class ModuleGlobalLoad : public Module
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Allows global loading of a module", VF_COMMON | VF_VENDOR);
+		return Version("Adds the /GLOADMODULE, /GRELOADMODULE, and /GUNLOADMODULE commands which allows server operators to load, reload, and unload modules on remote servers.", VF_COMMON | VF_VENDOR);
 	}
 };
 

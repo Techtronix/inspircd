@@ -122,7 +122,7 @@ class ModuleAlias : public Module
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides aliases of commands", VF_VENDOR);
+		return Version("Allows the server administrator to define custom channel commands (e.g. !kick) and server commands (e.g. /OPERSERV).", VF_VENDOR);
 	}
 
 	std::string GetVar(std::string varname, const std::string &original_line)
@@ -166,7 +166,7 @@ class ModuleAlias : public Module
 
 	ModResult OnPreCommand(std::string& command, CommandBase::Params& parameters, LocalUser* user, bool validated) CXX11_OVERRIDE
 	{
-		/* If theyre not registered yet, we dont want
+		/* If they're not registered yet, we dont want
 		 * to know.
 		 */
 		if (user->registered != REG_ALL)

@@ -2,7 +2,7 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2019 Matt Schatz <genius3000@g3k.solutions>
- *   Copyright (C) 2013, 2017 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017, 2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012 Shawn Smith <ShawnSmith0828@gmail.com>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2012 Attila Molnar <attilamolnar@hush.com>
@@ -55,11 +55,15 @@ class ModuleNoNotice : public Module
 			if (res == MOD_RES_ALLOW)
 				return MOD_RES_PASSTHRU;
 
-			bool modeset = c->IsModeSet(nt);
-			if (!c->GetExtBanStatus(user, 'T').check(!modeset))
+			if (c->IsModeSet(nt))
 			{
-				user->WriteNumeric(ERR_CANNOTSENDTOCHAN, c->name, InspIRCd::Format("Can't send NOTICE to channel (%s)",
-					modeset ? "+T is set" : "you're extbanned"));
+				user->WriteNumeric(Numerics::CannotSendTo(c, "notices", &nt));
+				return MOD_RES_DENY;
+			}
+
+			if (c->GetExtBanStatus(user, 'T') == MOD_RES_DENY)
+			{
+				user->WriteNumeric(Numerics::CannotSendTo(c, "notices", 'T', "nonotice"));
 				return MOD_RES_DENY;
 			}
 		}
@@ -68,7 +72,7 @@ class ModuleNoNotice : public Module
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides channel mode +T to block notices to the channel", VF_VENDOR);
+		return Version("Adds channel mode T (nonotice) which allows channels to block messages sent with the /NOTICE command.", VF_VENDOR);
 	}
 };
 

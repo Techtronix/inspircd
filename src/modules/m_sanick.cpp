@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2013, 2018 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2018, 2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2014, 2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2010 Craig Edwards <brain@inspircd.org>
@@ -33,7 +33,8 @@ class CommandSanick : public Command
 	CommandSanick(Module* Creator) : Command(Creator,"SANICK", 2)
 	{
 		allow_empty_last_param = false;
-		flags_needed = 'o'; syntax = "<nick> <newnick>";
+		flags_needed = 'o';
+		syntax = "<nick> <newnick>";
 		TRANSLATE2(TR_NICK, TR_TEXT);
 	}
 
@@ -99,7 +100,7 @@ class ModuleSanick : public Module
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides the SANICK command, allows opers to change the nicknames of users", VF_OPTCOMMON | VF_VENDOR);
+		return Version("Adds the /SANICK command which allows server operators to change the nickname of a user.", VF_OPTCOMMON | VF_VENDOR);
 	}
 };
 

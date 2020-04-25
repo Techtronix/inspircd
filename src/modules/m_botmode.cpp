@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2013, 2017-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012, 2015 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012 Shawn Smith <ShawnSmith0828@gmail.com>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
@@ -24,7 +24,7 @@
 
 
 #include "inspircd.h"
-#include "modules/cap.h"
+#include "modules/ctctags.h"
 #include "modules/whois.h"
 
 enum
@@ -37,13 +37,13 @@ class BotTag : public ClientProtocol::MessageTagProvider
 {
  private:
 	SimpleUserModeHandler& botmode;
-	Cap::Reference ctctagcap;
+	CTCTags::CapReference ctctagcap;
 
  public:
 	BotTag(Module* mod, SimpleUserModeHandler& bm)
 		: ClientProtocol::MessageTagProvider(mod)
 		, botmode(bm)
-		, ctctagcap(mod, "message-tags")
+		, ctctagcap(mod)
 	{
 	}
 
@@ -76,7 +76,7 @@ class ModuleBotMode : public Module, public Whois::EventListener
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides user mode +B to mark the user as a bot",VF_VENDOR);
+		return Version("Adds user mode B (bot) which marks users with it set as bots in their /WHOIS response.",VF_VENDOR);
 	}
 
 	void OnWhois(Whois::Context& whois) CXX11_OVERRIDE

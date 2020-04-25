@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2013, 2017-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013 Daniel Vassdal <shutter@canternet.org>
  *   Copyright (C) 2012-2016, 2018 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
@@ -37,7 +37,8 @@ class CommandSamode : public Command
 	CommandSamode(Module* Creator) : Command(Creator,"SAMODE", 2)
 	{
 		allow_empty_last_param = false;
-		flags_needed = 'o'; syntax = "<target> (+|-)<modes> [<mode-parameters>]";
+		flags_needed = 'o';
+		syntax = "<target> (+|-)<modes> [<mode-parameters>]";
 		active = false;
 	}
 
@@ -100,7 +101,7 @@ class ModuleSaMode : public Module
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides the SAMODE command, allows opers to change modes on channels and users", VF_VENDOR);
+		return Version("Adds the /SAMODE command which allows server operators to change the modes of a target (channel, user) that they would not otherwise have the privileges to change.", VF_VENDOR);
 	}
 
 	ModResult OnPreMode(User* source, User* dest, Channel* channel, Modes::ChangeList& modes) CXX11_OVERRIDE

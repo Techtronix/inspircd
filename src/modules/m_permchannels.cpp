@@ -54,7 +54,7 @@ class PermChannel : public ModeHandler
 	}
 };
 
-// Not in a class due to circular dependancy hell.
+// Not in a class due to circular dependency hell.
 static std::string permchannelsconf;
 static bool WriteDatabase(PermChannel& permchanmode, Module* mod, bool save_listmodes)
 {
@@ -152,7 +152,7 @@ static bool WriteDatabase(PermChannel& permchanmode, Module* mod, bool save_list
 #ifdef _WIN32
 	remove(permchannelsconf.c_str());
 #endif
-	// Use rename to move temporary to new db - this is guarenteed not to fuck up, even in case of a crash.
+	// Use rename to move temporary to new db - this is guaranteed not to fuck up, even in case of a crash.
 	if (rename(permchannelsnewconf.c_str(), permchannelsconf.c_str()) < 0)
 	{
 		ServerInstance->Logs->Log(MODNAME, LOG_DEFAULT, "Cannot replace old database \"%s\" with new database \"%s\"! %s (%d)", permchannelsconf.c_str(), permchannelsnewconf.c_str(), strerror(errno), errno);
@@ -319,7 +319,7 @@ public:
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides channel mode +P to provide permanent channels", VF_VENDOR);
+		return Version("Adds channel mode P (permanent) which prevents the channel from being deleted when the last user leaves.", VF_VENDOR);
 	}
 
 	ModResult OnChannelPreDelete(Channel *c) CXX11_OVERRIDE

@@ -36,7 +36,6 @@
 #ifndef _WIN32
 	#include <unistd.h>
 	#include <sys/resource.h>
-	#include <dlfcn.h>
 	#include <getopt.h>
 	#include <pwd.h> // setuid
 	#include <grp.h> // setgid
@@ -53,7 +52,7 @@
 
 InspIRCd* ServerInstance = NULL;
 
-/** Seperate from the other casemap tables so that code *can* still exclusively rely on RFC casemapping
+/** Separate from the other casemap tables so that code *can* still exclusively rely on RFC casemapping
  * if it must.
  *
  * This is provided as a pointer so that modules can change it to their custom mapping tables,
@@ -134,6 +133,21 @@ namespace
 		ServerInstance->stats.LastCPU.dwHighDateTime = KernelTime.dwHighDateTime + UserTime.dwHighDateTime;
 		ServerInstance->stats.LastCPU.dwLowDateTime = KernelTime.dwLowDateTime + UserTime.dwLowDateTime;
 #endif
+	}
+
+	// Checks whether the server clock has skipped too much and warn about it if it has.
+	void CheckTimeSkip(time_t oldtime, time_t newtime)
+	{
+		if (!ServerInstance->Config->TimeSkipWarn)
+			return;
+
+		time_t timediff = newtime - oldtime;
+
+		if (timediff > ServerInstance->Config->TimeSkipWarn)
+			ServerInstance->SNO->WriteToSnoMask('a', "\002Performance warning!\002 Server clock jumped forwards by %lu seconds!", timediff);
+
+		else if (timediff < -ServerInstance->Config->TimeSkipWarn)
+			ServerInstance->SNO->WriteToSnoMask('a', "\002Performance warning!\002 Server clock jumped backwards by %lu seconds!", labs(timediff));
 	}
 
 	// Drops to the unprivileged user/group specified in <security:runas{user,group}>.
@@ -530,7 +544,7 @@ InspIRCd::InspIRCd(int argc, char** argv)
 	std::cout << "InspIRCd Process ID: " << con_green << getpid() << con_reset << std::endl;
 
 	/* During startup we read the configuration now, not in
-	 * a seperate thread
+	 * a separate thread
 	 */
 	this->Config->Read();
 	this->Config->Apply(NULL, "");
@@ -661,24 +675,14 @@ void InspIRCd::Run()
 		UpdateTime();
 
 		/* Run background module timers every few seconds
-		 * (the docs say modules shouldnt rely on accurate
+		 * (the docs say modules should not rely on accurate
 		 * timing using this event, so we dont have to
 		 * time this exactly).
 		 */
 		if (TIME.tv_sec != OLDTIME)
 		{
 			CollectStats();
-
-			if (Config->TimeSkipWarn)
-			{
-				time_t timediff = TIME.tv_sec - OLDTIME;
-
-				if (timediff > Config->TimeSkipWarn)
-					SNO->WriteToSnoMask('a', "\002Performance warning!\002 Server clock jumped forwards by %lu seconds!", timediff);
-
-				else if (timediff < -Config->TimeSkipWarn)
-					SNO->WriteToSnoMask('a', "\002Performance warning!\002 Server clock jumped backwards by %lu seconds!", labs(timediff));
-			}
+			CheckTimeSkip(OLDTIME, TIME.tv_sec);
 
 			OLDTIME = TIME.tv_sec;
 

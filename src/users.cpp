@@ -4,8 +4,7 @@
  *   Copyright (C) 2019 linuxdaemon <linuxdaemon.irc@gmail.com>
  *   Copyright (C) 2018 systocrat <systocrat@outlook.com>
  *   Copyright (C) 2018 Dylan Frank <b00mx0r@aureus.pw>
- *   Copyright (C) 2014 satmd <satmd@lain.at>
- *   Copyright (C) 2013-2014, 2016-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2016-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013 Daniel Vassdal <shutter@canternet.org>
  *   Copyright (C) 2013 ChrisTX <xpipe@hotmail.de>
  *   Copyright (C) 2013 Adam <Adam@anope.org>
@@ -91,7 +90,7 @@ User::User(const std::string& uid, Server* srv, UserType type)
 	ServerInstance->Logs->Log("USERS", LOG_DEBUG, "New UUID for user: %s", uuid.c_str());
 
 	if (srv->IsULine())
-		ServerInstance->Users->uline_count++;
+		ServerInstance->Users.all_ulines.push_back(this);
 
 	// Do not insert FakeUsers into the uuidlist so FindUUID() won't return them which is the desired behavior
 	if (type != USERTYPE_SERVER)
@@ -229,6 +228,19 @@ bool LocalUser::HasPrivPermission(const std::string& privstr)
 	return oper->AllowedPrivs.Contains(privstr);
 }
 
+bool User::HasSnomaskPermission(char chr) const
+{
+	return true;
+}
+
+bool LocalUser::HasSnomaskPermission(char chr) const
+{
+	if (!this->IsOper() || !ModeParser::IsModeChar(chr))
+		return false;
+
+	return this->oper->AllowedSnomasks[chr - 'A'];
+}
+
 void UserIOHandler::OnDataReady()
 {
 	if (user->quitting)
@@ -354,8 +366,8 @@ CullResult User::cull()
 	if (client_sa.family() != AF_UNSPEC)
 		ServerInstance->Users->RemoveCloneCounts(this);
 
-	if (server->IsULine() && ServerInstance->Users->uline_count)
-		ServerInstance->Users->uline_count--;
+	if (server->IsULine())
+		stdalgo::erase(ServerInstance->Users->all_ulines, this);
 
 	return Extensible::cull();
 }
@@ -419,6 +431,7 @@ void OperInfo::init()
 	AllowedPrivs.Clear();
 	AllowedUserModes.reset();
 	AllowedChanModes.reset();
+	AllowedSnomasks.reset();
 	AllowedUserModes['o' - 'A'] = true; // Call me paranoid if you want.
 
 	for(std::vector<reference<ConfigTag> >::iterator iter = class_blocks.begin(); iter != class_blocks.end(); ++iter)
@@ -428,30 +441,34 @@ void OperInfo::init()
 		AllowedOperCommands.AddList(tag->getString("commands"));
 		AllowedPrivs.AddList(tag->getString("privs"));
 
-		std::string modes = tag->getString("usermodes");
-		for (std::string::const_iterator c = modes.begin(); c != modes.end(); ++c)
+		const std::string umodes = tag->getString("usermodes");
+		for (std::string::const_iterator c = umodes.begin(); c != umodes.end(); ++c)
 		{
-			if (*c == '*')
-			{
+			const char& chr = *c;
+			if (chr == '*')
 				this->AllowedUserModes.set();
-			}
-			else if (*c >= 'A' && *c <= 'z')
-			{
-				this->AllowedUserModes[*c - 'A'] = true;
-			}
+			else if (ModeParser::IsModeChar(chr))
+				this->AllowedUserModes[chr - 'A'] = true;
 		}
 
-		modes = tag->getString("chanmodes");
-		for (std::string::const_iterator c = modes.begin(); c != modes.end(); ++c)
+		const std::string cmodes = tag->getString("chanmodes");
+		for (std::string::const_iterator c = cmodes.begin(); c != cmodes.end(); ++c)
 		{
-			if (*c == '*')
-			{
+			const char& chr = *c;
+			if (chr == '*')
 				this->AllowedChanModes.set();
-			}
-			else if (*c >= 'A' && *c <= 'z')
-			{
-				this->AllowedChanModes[*c - 'A'] = true;
-			}
+			else if (ModeParser::IsModeChar(chr))
+				this->AllowedChanModes[chr - 'A'] = true;
+		}
+
+		const std::string snomasks = tag->getString("snomasks", "*");
+		for (std::string::const_iterator c = snomasks.begin(); c != snomasks.end(); ++c)
+		{
+			const char& chr = *c;
+			if (chr == '*')
+				this->AllowedSnomasks.set();
+			else if (ModeParser::IsModeChar(chr))
+				this->AllowedSnomasks[chr - 'A'] = true;
 		}
 	}
 }
@@ -508,7 +525,7 @@ void LocalUser::CheckClass(bool clone_count)
 	}
 	else if (a->type == CC_DENY)
 	{
-		ServerInstance->Users->QuitUser(this, a->config->getString("reason", "Unauthorised connection"));
+		ServerInstance->Users->QuitUser(this, a->config->getString("reason", "Unauthorised connection", 1));
 		return;
 	}
 	else if (clone_count)
@@ -568,7 +585,7 @@ void LocalUser::FullConnect()
 	/*
 	 * You may be thinking "wtf, we checked this in User::AddClient!" - and yes, we did, BUT.
 	 * At the time AddClient is called, we don't have a resolved host, by here we probably do - which
-	 * may put the user into a totally seperate class with different restrictions! so we *must* check again.
+	 * may put the user into a totally separate class with different restrictions! so we *must* check again.
 	 * Don't remove this! -- w00t
 	 */
 	MyClass = NULL;
@@ -1155,9 +1172,9 @@ void LocalUser::SetClass(const std::string &explicit_name)
 				}
 			}
 
-			if (regdone && !c->config->getString("password").empty())
+			if (regdone && !c->password.empty())
 			{
-				if (!ServerInstance->PassCompare(this, c->config->getString("password"), password, c->config->getString("hash")))
+				if (!ServerInstance->PassCompare(this, c->password, password, c->passwordhash))
 				{
 					ServerInstance->Logs->Log("CONNECTCLASS", LOG_DEBUG, "Bad password, skipping");
 					continue;
@@ -1290,4 +1307,6 @@ void ConnectClass::Update(const ConnectClass* src)
 	limit = src->limit;
 	resolvehostnames = src->resolvehostnames;
 	ports = src->ports;
+	password = src->password;
+	passwordhash = src->passwordhash;
 }

@@ -1,6 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
+ *   Copyright (C) 2020 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2019 Sadie Powell <sadie@witchery.services>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
@@ -43,7 +44,7 @@ class ModuleGeoBan
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides a way to ban users by country", VF_OPTCOMMON|VF_VENDOR);
+		return Version("Adds extended ban G which matches against two letter country codes.", VF_OPTCOMMON|VF_VENDOR);
 	}
 
 	void On005Numeric(std::map<std::string, std::string>& tokens) CXX11_OVERRIDE
@@ -67,6 +68,9 @@ class ModuleGeoBan
 
 	void OnWhois(Whois::Context& whois) CXX11_OVERRIDE
 	{
+		if (whois.GetTarget()->server->IsULine())
+			return;
+
 		Geolocation::Location* location = geoapi ? geoapi->GetLocation(whois.GetTarget()) : NULL;
 		if (location)
 			whois.SendLine(RPL_WHOISCOUNTRY, location->GetCode(), "is connecting from " + location->GetName());

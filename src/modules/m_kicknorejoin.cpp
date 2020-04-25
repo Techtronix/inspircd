@@ -3,7 +3,7 @@
  *
  *   Copyright (C) 2018 A_D <A-UNDERSCORE-D@users.noreply.github.com>
  *   Copyright (C) 2014 Daniel Vassdal <shutter@canternet.org>
- *   Copyright (C) 2013, 2017-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2015 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009 Uli Schlachter <psychon@inspircd.org>
@@ -148,7 +148,7 @@ public:
 			const KickRejoinData* data = kr.ext.get(chan);
 			if ((data) && !invapi->IsInvited(user, chan) && (!data->canjoin(user)))
 			{
-				user->WriteNumeric(ERR_UNAVAILRESOURCE, chan, InspIRCd::Format("You must wait %u seconds after being kicked to rejoin (+J is set)", data->delay));
+				user->WriteNumeric(ERR_UNAVAILRESOURCE, chan->name, InspIRCd::Format("You must wait %u seconds after being kicked to rejoin (+J is set)", data->delay));
 				return MOD_RES_DENY;
 			}
 		}
@@ -169,7 +169,7 @@ public:
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides channel mode +J, delays rejoins after kicks", VF_VENDOR | VF_COMMON, kr.GetModuleSettings());
+		return Version("Adds channel mode J (kicknorejoin) which prevents users from rejoining after being kicked from a channel.", VF_VENDOR | VF_COMMON, kr.GetModuleSettings());
 	}
 };
 

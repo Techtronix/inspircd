@@ -3,7 +3,7 @@
  *
  *   Copyright (C) 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2018 linuxdaemon <linuxdaemon.irc@gmail.com>
- *   Copyright (C) 2017-2018 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2017-2018, 2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2014 JustArchi <JustArchi@JustArchi.net>
  *   Copyright (C) 2014 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2013 Daniel Vassdal <shutter@canternet.org>
@@ -124,7 +124,10 @@ class ModuleFlashPD : public Module
 		for (std::vector<ListenSocket*>::const_iterator i = ServerInstance->ports.begin(); i != ServerInstance->ports.end(); ++i)
 		{
 				ListenSocket* ls = *i;
-				if (!stdalgo::string::equalsci(ls->bind_tag->getString("type", "clients"), "clients") || !ls->bind_tag->getString("ssl").empty())
+				if (!stdalgo::string::equalsci(ls->bind_tag->getString("type", "clients", 1), "clients"))
+					continue;
+
+				if (!ls->bind_tag->getString("ssl").empty())
 					continue;
 
 				to_ports.append(ConvToStr(ls->bind_sa.port())).push_back(',');
@@ -160,7 +163,7 @@ class ModuleFlashPD : public Module
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Flash Policy Daemon, allows Flash IRC clients to connect", VF_VENDOR);
+		return Version("Allows connection policies to be served to IRC clients that use Adobe Flash.", VF_VENDOR);
 	}
 };
 

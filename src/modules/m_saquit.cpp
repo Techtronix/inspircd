@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2013, 2018 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2018, 2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009 Thomas Stagner <aquanight@inspircd.org>
@@ -34,7 +34,8 @@ class CommandSaquit : public Command
  public:
 	CommandSaquit(Module* Creator) : Command(Creator, "SAQUIT", 2, 2)
 	{
-		flags_needed = 'o'; syntax = "<nick> :<reason>";
+		flags_needed = 'o';
+		syntax = "<nick> :<reason>";
 		TRANSLATE2(TR_NICK, TR_TEXT);
 	}
 
@@ -82,7 +83,7 @@ class ModuleSaquit : public Module
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides the SAQUIT command, allows opers to force-quit users", VF_OPTCOMMON | VF_VENDOR);
+		return Version("Adds the /SAQUIT command which allows server operators to disconnect users from the server.", VF_OPTCOMMON | VF_VENDOR);
 	}
 };
 

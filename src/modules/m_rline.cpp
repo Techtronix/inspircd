@@ -3,7 +3,7 @@
  *
  *   Copyright (C) 2018 linuxdaemon <linuxdaemon.irc@gmail.com>
  *   Copyright (C) 2017, 2019 Matt Schatz <genius3000@g3k.solutions>
- *   Copyright (C) 2013, 2017-2018 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2018, 2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2013, 2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2018-2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
@@ -252,7 +252,7 @@ class ModuleRLine : public Module, public Stats::EventListener
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides support for banning users through regular expression patterns", VF_COMMON | VF_VENDOR, rxfactory ? rxfactory->name : "");
+		return Version("Adds the /RLINE command which allows server operators to prevent users matching a nickname!username@hostname+realname regular expression from connecting to the server.", VF_COMMON | VF_VENDOR, rxfactory ? rxfactory->name : "");
 	}
 
 	ModResult OnUserRegister(LocalUser* user) CXX11_OVERRIDE
@@ -307,7 +307,7 @@ class ModuleRLine : public Module, public Stats::EventListener
 		if (stats.GetSymbol() != 'R')
 			return MOD_RES_PASSTHRU;
 
-		ServerInstance->XLines->InvokeStats("R", 223, stats);
+		ServerInstance->XLines->InvokeStats("R", stats);
 		return MOD_RES_DENY;
 	}
 

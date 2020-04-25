@@ -4,7 +4,7 @@
  *   Copyright (C) 2016 Adam <Adam@anope.org>
  *   Copyright (C) 2014 Mantas Mikulėnas <grawity@gmail.com>
  *   Copyright (C) 2013-2016, 2018 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2013, 2017-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013 Daniel Vassdal <shutter@canternet.org>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
@@ -109,11 +109,16 @@ class ServerTracker
 
 class SASLCap : public Cap::Capability
 {
+ private:
 	std::string mechlist;
 	const ServerTracker& servertracker;
+	UserCertificateAPI sslapi;
 
 	bool OnRequest(LocalUser* user, bool adding) CXX11_OVERRIDE
 	{
+		if (requiressl && sslapi && !sslapi->GetCertificate(user))
+			return false;
+
 		// Servers MUST NAK any sasl capability request if the authentication layer
 		// is unavailable.
 		return servertracker.IsOnline();
@@ -121,6 +126,9 @@ class SASLCap : public Cap::Capability
 
 	bool OnList(LocalUser* user) CXX11_OVERRIDE
 	{
+		if (requiressl && sslapi && !sslapi->GetCertificate(user))
+			return false;
+
 		// Servers MUST NOT advertise the sasl capability if the authentication layer
 		// is unavailable.
 		return servertracker.IsOnline();
@@ -132,9 +140,11 @@ class SASLCap : public Cap::Capability
 	}
 
  public:
+	bool requiressl;
 	SASLCap(Module* mod, const ServerTracker& tracker)
 		: Cap::Capability(mod, "sasl")
 		, servertracker(tracker)
+		, sslapi(mod)
 	{
 	}
 
@@ -426,10 +436,13 @@ class ModuleSASL : public Module
 
 	void ReadConfig(ConfigStatus& status) CXX11_OVERRIDE
 	{
-		std::string target = ServerInstance->Config->ConfValue("sasl")->getString("target");
+		ConfigTag* tag = ServerInstance->Config->ConfValue("sasl");
+
+		const std::string target = tag->getString("target");
 		if (target.empty())
 			throw ModuleException("<sasl:target> must be set to the name of your services server!");
 
+		cap.requiressl = tag->getBool("requiressl");
 		sasl_target = target;
 		servertracker.Reset();
 	}
@@ -442,7 +455,7 @@ class ModuleSASL : public Module
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides support for IRC Authentication Layer (aka: SASL) via AUTHENTICATE", VF_VENDOR);
+		return Version("Provides the IRCv3 sasl client capability.", VF_VENDOR);
 	}
 };
 

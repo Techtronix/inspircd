@@ -3,7 +3,7 @@
  *
  *   Copyright (C) 2019 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2018 linuxdaemon <linuxdaemon.irc@gmail.com>
- *   Copyright (C) 2013, 2017-2018 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2018, 2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012, 2018-2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2012, 2014, 2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2009 Daniel De Graaf <danieldg@inspircd.org>
@@ -203,7 +203,7 @@ class ModuleSVSHold : public Module, public Stats::EventListener
 		if (stats.GetSymbol() != 'S')
 			return MOD_RES_PASSTHRU;
 
-		ServerInstance->XLines->InvokeStats("SVSHOLD", 210, stats);
+		ServerInstance->XLines->InvokeStats("SVSHOLD", stats);
 		return MOD_RES_DENY;
 	}
 
@@ -228,7 +228,7 @@ class ModuleSVSHold : public Module, public Stats::EventListener
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Implements SVSHOLD, like Q-lines, but can only be added/removed by Services", VF_COMMON | VF_VENDOR);
+		return Version("Adds the /SVSHOLD command which allows services to reserve nicknames.", VF_COMMON | VF_VENDOR);
 	}
 };
 

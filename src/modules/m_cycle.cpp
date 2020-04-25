@@ -2,7 +2,7 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2017 B00mX0r <b00mx0r@aureus.pw>
- *   Copyright (C) 2013, 2018 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2018, 2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2014, 2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2010 Craig Edwards <brain@inspircd.org>
@@ -36,7 +36,8 @@ class CommandCycle : public SplitCommand
 	CommandCycle(Module* Creator)
 		: SplitCommand(Creator, "CYCLE", 1)
 	{
-		Penalty = 3; syntax = "<channel> [:<reason>]";
+		Penalty = 3;
+		syntax = "<channel> [:<reason>]";
 	}
 
 	CmdResult HandleLocal(LocalUser* user, const Params& parameters) CXX11_OVERRIDE
@@ -92,7 +93,7 @@ class ModuleCycle : public Module
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides the CYCLE command, acts as a server-side HOP command to part and rejoin a channel", VF_VENDOR);
+		return Version("Allows channel members to part and rejoin a channel without needing to worry about channel modes such as +i (inviteonly) which might prevent rejoining.", VF_VENDOR);
 	}
 };
 

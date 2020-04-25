@@ -53,7 +53,7 @@ class CommandUserip : public Command
 				{
 					if (!checked_privs)
 					{
-						// Do not trigger the insufficient priviliges message more than once
+						// Do not trigger the insufficient privileges message more than once
 						checked_privs = true;
 						has_privs = user->HasPrivPermission("users/auspex");
 						if (!has_privs)
@@ -97,7 +97,7 @@ class ModuleUserIP : public Module
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides the USERIP command", VF_VENDOR);
+		return Version("Adds the /USERIP command which allows users to find out the IP address of one or more connected users.", VF_VENDOR);
 	}
 };
 

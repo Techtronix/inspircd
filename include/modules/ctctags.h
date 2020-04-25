@@ -20,13 +20,24 @@
 #pragma once
 
 #include "event.h"
+#include "modules/cap.h"
 
 namespace CTCTags
 {
+	class CapReference;
 	class EventListener;
 	class TagMessage;
 	class TagMessageDetails;
 }
+
+class CTCTags::CapReference : public Cap::Reference
+{
+ public:
+	CapReference(Module* mod)
+		: Cap::Reference(mod, "message-tags")
+	{
+	}
+};
 
 class CTCTags::TagMessage : public ClientProtocol::Message
 {
@@ -85,6 +96,9 @@ class CTCTags::TagMessageDetails
 	/* Whether to send the original tags back to clients with echo-message support. */
 	bool echo_original;
 
+	/** Whether to update the source user's idle time. */
+	bool update_idle;
+
 	/** The users who are exempted from receiving this message. */
 	CUList exemptions;
 
@@ -97,6 +111,7 @@ class CTCTags::TagMessageDetails
 	TagMessageDetails(const ClientProtocol::TagMap& tags)
 		: echo(true)
 		, echo_original(false)
+		, update_idle(true)
 		, tags_in(tags)
 	{
 	}
@@ -122,7 +137,7 @@ class CTCTags::EventListener
 	 *         message, or MOD_RES_PASSTHRU to let another module handle the event.
 	 */
 	virtual ModResult OnUserPreTagMessage(User* user, const MessageTarget& target, TagMessageDetails& details) { return MOD_RES_PASSTHRU; }
-	
+
 	/** Called immediately after a user sends a tag message to a channel, a user, or a server glob mask.
 	 * @param user The user sending the message.
 	 * @param target The target of the message. This can either be a channel, a user, or a server

@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2013, 2017-2018 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2018, 2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2013 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009 Daniel De Graaf <danieldg@inspircd.org>
@@ -36,7 +36,8 @@ class CommandSethost : public Command
 		: Command(Creator,"SETHOST", 1)
 	{
 		allow_empty_last_param = false;
-		flags_needed = 'o'; syntax = "<host>";
+		flags_needed = 'o';
+		syntax = "<host>";
 	}
 
 	CmdResult Handle(User* user, const Params& parameters) CXX11_OVERRIDE
@@ -79,16 +80,17 @@ class ModuleSetHost : public Module
 
 	void ReadConfig(ConfigStatus& status) CXX11_OVERRIDE
 	{
-		std::string hmap = ServerInstance->Config->ConfValue("hostname")->getString("charmap", "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.-_/0123456789");
+		ConfigTag* tag = ServerInstance->Config->ConfValue("hostname");
+		const std::string hmap = tag->getString("charmap", "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.-_/0123456789", 1);
 
 		cmd.hostmap.reset();
-		for (std::string::iterator n = hmap.begin(); n != hmap.end(); n++)
+		for (std::string::const_iterator n = hmap.begin(); n != hmap.end(); n++)
 			cmd.hostmap.set(static_cast<unsigned char>(*n));
 	}
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides the SETHOST command", VF_VENDOR);
+		return Version("Adds the /SETHOST command which allows server operators to change their displayed hostname.", VF_VENDOR);
 	}
 };
 

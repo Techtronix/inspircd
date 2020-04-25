@@ -2,7 +2,7 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2018 linuxdaemon <linuxdaemon.irc@gmail.com>
- *   Copyright (C) 2013, 2017-2018 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2018, 2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2012, 2015-2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2010 Craig Edwards <brain@inspircd.org>
@@ -136,8 +136,14 @@ class ModuleCustomTitle : public Module, public Whois::LineEventListener
 			if (pass.empty())
 				throw ModuleException("<title:password> is empty at " + tag->getTagLocation());
 
-			std::string hash = tag->getString("hash");
-			std::string host = tag->getString("host", "*@*");
+			const std::string hash = tag->getString("hash", "plaintext", 1);
+			if (stdalgo::string::equalsci(hash, "plaintext"))
+			{
+				ServerInstance->Logs->Log(MODNAME, LOG_DEFAULT, "<title> tag for %s at %s contains an plain text password, this is insecure!",
+					name.c_str(), tag->getTagLocation().c_str());
+			}
+
+			std::string host = tag->getString("host", "*@*", 1);
 			std::string title = tag->getString("title");
 			std::string vhost = tag->getString("vhost");
 			CustomTitle config(name, pass, hash, host, title, vhost);
@@ -165,7 +171,7 @@ class ModuleCustomTitle : public Module, public Whois::LineEventListener
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides the TITLE command, custom titles for users", VF_OPTCOMMON | VF_VENDOR);
+		return Version("Allows the server administrator to define accounts which can grant a custom title in /WHOIS and an optional virtual host.", VF_OPTCOMMON | VF_VENDOR);
 	}
 };
 

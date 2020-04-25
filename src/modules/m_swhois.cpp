@@ -2,7 +2,7 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2012-2016 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2012-2013, 2017-2018 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2012-2013, 2017-2018, 2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2007-2008 Robin Burchell <robin+git@viroteck.net>
@@ -44,7 +44,8 @@ class CommandSwhois : public Command
 		, operblock("swhois_operblock", ExtensionItem::EXT_USER, Creator)
 		, swhois("swhois", ExtensionItem::EXT_USER, Creator)
 	{
-		flags_needed = 'o'; syntax = "<nick> :<swhois>";
+		flags_needed = 'o';
+		syntax = "<nick> :<swhois>";
 		TRANSLATE2(TR_NICK, TR_TEXT);
 	}
 
@@ -158,7 +159,7 @@ class ModuleSWhois : public Module, public Whois::LineEventListener
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides the SWHOIS command which allows setting of arbitrary WHOIS lines", VF_OPTCOMMON | VF_VENDOR);
+		return Version("Adds the /SWHOIS command which adds custom lines to a user's WHOIS response.", VF_OPTCOMMON | VF_VENDOR);
 	}
 };
 

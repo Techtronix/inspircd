@@ -406,7 +406,7 @@ ModResult ModuleFilter::OnUserPreMessage(User* user, const MessageTarget& msgtar
 				break;
 			}
 			case MessageTarget::TYPE_SERVER:
-				break;
+				return MOD_RES_PASSTHRU;
 		}
 
 		if (is_selfmsg && warnonselfmsg)
@@ -428,9 +428,9 @@ ModResult ModuleFilter::OnUserPreMessage(User* user, const MessageTarget& msgtar
 			if (notifyuser)
 			{
 				if (msgtarget.type == MessageTarget::TYPE_CHANNEL)
-					user->WriteNumeric(ERR_CANNOTSENDTOCHAN, msgtarget.GetName(), InspIRCd::Format("Message to channel blocked and opers notified (%s)", f->reason.c_str()));
+					user->WriteNumeric(Numerics::CannotSendTo(msgtarget.Get<Channel>(), InspIRCd::Format("Your message to this channel was blocked: %s.", f->reason.c_str())));
 				else
-					user->WriteNotice("Your message to "+msgtarget.GetName()+" was blocked and opers notified: "+f->reason);
+					user->WriteNumeric(Numerics::CannotSendTo(msgtarget.Get<User>(), InspIRCd::Format("Your message to this user was blocked: %s.", f->reason.c_str())));
 			}
 			else
 				details.echo_original = true;
@@ -440,9 +440,9 @@ ModResult ModuleFilter::OnUserPreMessage(User* user, const MessageTarget& msgtar
 			if (notifyuser)
 			{
 				if (msgtarget.type == MessageTarget::TYPE_CHANNEL)
-					user->WriteNumeric(ERR_CANNOTSENDTOCHAN, msgtarget.GetName(), InspIRCd::Format("Message to channel blocked (%s)", f->reason.c_str()));
+					user->WriteNumeric(Numerics::CannotSendTo(msgtarget.Get<Channel>(), InspIRCd::Format("Your message to this channel was blocked: %s.", f->reason.c_str())));
 				else
-					user->WriteNotice("Your message to "+msgtarget.GetName()+" was blocked: "+f->reason);
+					user->WriteNumeric(Numerics::CannotSendTo(msgtarget.Get<User>(), InspIRCd::Format("Your message to this user was blocked: %s.", f->reason.c_str())));
 			}
 			else
 				details.echo_original = true;
@@ -542,7 +542,7 @@ ModResult ModuleFilter::OnPreCommand(std::string& command, CommandBase::Params& 
 		/* We cant block a part or quit, so instead we change the reason to 'Reason filtered' */
 		parameters[parting ? 1 : 0] = "Reason filtered";
 
-		/* We're warning or blocking, OR theyre quitting and its a KILL action
+		/* We're warning or blocking, OR they're quitting and its a KILL action
 		 * (we cant kill someone whos already quitting, so filter them anyway)
 		 */
 		if ((f->action == FA_WARN) || (f->action == FA_BLOCK) || (((!parting) && (f->action == FA_KILL))) || (f->action == FA_SILENT))
@@ -624,7 +624,7 @@ void ModuleFilter::ReadConfig(ConfigStatus& status)
 		ConfigTag* tag = i->second;
 
 		// If "target" is not found, try the old "channel" key to keep compatibility with 2.0 configs
-		const std::string target = tag->getString("target", tag->getString("channel"));
+		const std::string target = tag->getString("target", tag->getString("channel"), 1);
 		if (!target.empty())
 		{
 			if (target[0] == '#')
@@ -670,7 +670,7 @@ void ModuleFilter::ReadConfig(ConfigStatus& status)
 
 Version ModuleFilter::GetVersion()
 {
-	return Version("Provides text (spam) filtering", VF_VENDOR | VF_COMMON, RegexEngine ? RegexEngine->name : "");
+	return Version("Adds the /FILTER command which allows server operators to define regex matches for inappropriate phrases that are not allowed to be used in channel messages, private messages, part messages, or quit messages.", VF_VENDOR | VF_COMMON, RegexEngine ? RegexEngine->name : "");
 }
 
 std::string ModuleFilter::EncodeFilter(FilterResult* filter)
@@ -899,7 +899,7 @@ ModResult ModuleFilter::OnStats(Stats::Context& stats)
 	{
 		for (std::vector<FilterResult>::iterator i = filters.begin(); i != filters.end(); i++)
 		{
-			stats.AddRow(223, RegexEngine.GetProvider()+":"+i->freeform+" "+i->GetFlags()+" "+FilterActionToString(i->action)+" "+ConvToStr(i->duration)+" :"+i->reason);
+			stats.AddRow(223, RegexEngine.GetProvider(), i->freeform, i->GetFlags(), FilterActionToString(i->action), i->duration, i->reason);
 		}
 		for (ExemptTargetSet::const_iterator i = exemptedchans.begin(); i != exemptedchans.end(); ++i)
 		{

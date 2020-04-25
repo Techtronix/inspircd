@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2019-2020 Sadie Powell <sadie@witchery.services>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -16,9 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// IMPORTANT: The contents of this file are experimental and are not presently
-// covered by the InspIRCd API stability guarantee.
-
 
 #pragma once
 
@@ -28,6 +25,7 @@ namespace IRCv3
 {
 	namespace Replies
 	{
+		class CapReference;
 		class Reply;
 		class Fail;
 		class Note;
@@ -35,12 +33,23 @@ namespace IRCv3
 	}
 }
 
+/** Reference to the inspircd.org/standard-replies cap. */
+class IRCv3::Replies::CapReference
+	: public Cap::Reference
+{
+ public:
+	CapReference(Module* mod)
+		: Cap::Reference(mod, "inspircd.org/standard-replies")
+	{
+	}
+};
+
 /** Base class for standard replies. */
 class IRCv3::Replies::Reply
 {
  private:
 	/** The name of the command for this reply. */
-	std::string cmd;
+	const std::string cmd;
 
 	/** The event provider for this reply. */
 	ClientProtocol::EventProvider evprov;
@@ -53,6 +62,11 @@ class IRCv3::Replies::Reply
 	{
 		ClientProtocol::Event ev(evprov, msg);
 		user->Send(ev);
+	}
+
+	void SendNoticeInternal(LocalUser* user, Command* command, const std::string& description)
+	{
+		user->WriteNotice(InspIRCd::Format("*** %s: %s", command->name.c_str(), description.c_str()));
 	}
 
  protected:
@@ -141,7 +155,10 @@ class IRCv3::Replies::Reply
 		const T3& p3, const T4& p4, const T5& p5, const std::string& description)
 	{
 		ClientProtocol::Message msg(cmd.c_str(), ServerInstance->Config->ServerName);
-		msg.PushParamRef(command->name);
+		if (command)
+			msg.PushParamRef(command->name);
+		else
+			msg.PushParam("*");
 		msg.PushParam(code);
 		msg.PushParam(ConvToStr(p1));
 		msg.PushParam(ConvToStr(p2));
@@ -166,7 +183,57 @@ class IRCv3::Replies::Reply
 		if (cap.get(user))
 			Send(user, command, code, description);
 		else
-			user->WriteNotice(InspIRCd::Format("*** %s: %s", command->name.c_str(), description.c_str()));
+			SendNoticeInternal(user, command, description);
+	}
+
+	template<typename T1>
+	void SendIfCap(LocalUser* user, const Cap::Capability& cap, Command* command, const std::string& code,
+		const T1& p1, const std::string& description)
+	{
+		if (cap.get(user))
+			Send(user, command, code, p1, description);
+		else
+			SendNoticeInternal(user, command, description);
+	}
+
+	template<typename T1, typename T2>
+	void SendIfCap(LocalUser* user, const Cap::Capability& cap, Command* command, const std::string& code,
+		const T1& p1, const T2& p2, const std::string& description)
+	{
+		if (cap.get(user))
+			Send(user, command, code, p1, p2, description);
+		else
+			SendNoticeInternal(user, command, description);
+	}
+
+	template<typename T1, typename T2, typename T3>
+	void SendIfCap(LocalUser* user, const Cap::Capability& cap, Command* command, const std::string& code,
+		const T1& p1, const T2& p2, const T3& p3, const std::string& description)
+	{
+		if (cap.get(user))
+			Send(user, command, code, p1, p2, p3, description);
+		else
+			SendNoticeInternal(user, command, description);
+	}
+
+	template<typename T1, typename T2, typename T3, typename T4>
+	void SendIfCap(LocalUser* user, const Cap::Capability& cap, Command* command, const std::string& code,
+		const T1& p1, const T2& p2, const T3& p3, const T4& p4, const std::string& description)
+	{
+		if (cap.get(user))
+			Send(user, command, code, p1, p2, p3, p4, description);
+		else
+			SendNoticeInternal(user, command, description);
+	}
+
+	template<typename T1, typename T2, typename T3, typename T4, typename T5>
+	void SendIfCap(LocalUser* user, const Cap::Capability& cap, Command* command, const std::string& code,
+		const T1& p1, const T2& p2, const T3& p3, const T4& p4, const T5& p5, const std::string& description)
+	{
+		if (cap.get(user))
+			Send(user, command, code, p1, p2, p3, p4, p5, description);
+		else
+			SendNoticeInternal(user, command, description);
 	}
 };
 

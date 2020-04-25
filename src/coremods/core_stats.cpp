@@ -3,7 +3,7 @@
  *
  *   Copyright (C) 2018 Puck Meerburg <puck@puckipedia.com>
  *   Copyright (C) 2018 Dylan Frank <b00mx0r@aureus.pw>
- *   Copyright (C) 2016-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2016-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2012 ChrisTX <xpipe@hotmail.de>
@@ -117,8 +117,8 @@ void CommandStats::DoStats(Stats::Context& stats)
 			for (std::vector<ListenSocket*>::const_iterator i = ServerInstance->ports.begin(); i != ServerInstance->ports.end(); ++i)
 			{
 				ListenSocket* ls = *i;
-				std::string type = ls->bind_tag->getString("type", "clients");
-				std::string hook = ls->bind_tag->getString("ssl", "plaintext");
+				const std::string type = ls->bind_tag->getString("type", "clients", 1);
+				const std::string hook = ls->bind_tag->getString("ssl", "plaintext", 1);
 
 				stats.AddRow(249, ls->bind_sa.str() + " (" + type + ", " + hook + ")");
 			}
@@ -149,7 +149,7 @@ void CommandStats::DoStats(Stats::Context& stats)
 				else
 					param.append(c->host);
 
-				row.push(param).push(c->config->getString("port", "*"));
+				row.push(param).push(c->config->getString("port", "*", 1));
 				row.push(ConvToStr(c->GetRecvqMax())).push(ConvToStr(c->GetSendqSoftMax())).push(ConvToStr(c->GetSendqHardMax())).push(ConvToStr(c->GetCommandRate()));
 
 				param = ConvToStr(c->GetPenaltyThreshold());
@@ -195,19 +195,19 @@ void CommandStats::DoStats(Stats::Context& stats)
 		break;
 
 		case 'k':
-			ServerInstance->XLines->InvokeStats("K",216,stats);
+			ServerInstance->XLines->InvokeStats("K", stats);
 		break;
 		case 'g':
-			ServerInstance->XLines->InvokeStats("G",223,stats);
+			ServerInstance->XLines->InvokeStats("G", stats);
 		break;
 		case 'q':
-			ServerInstance->XLines->InvokeStats("Q",217,stats);
+			ServerInstance->XLines->InvokeStats("Q", stats);
 		break;
 		case 'Z':
-			ServerInstance->XLines->InvokeStats("Z",223,stats);
+			ServerInstance->XLines->InvokeStats("Z", stats);
 		break;
 		case 'e':
-			ServerInstance->XLines->InvokeStats("E",223,stats);
+			ServerInstance->XLines->InvokeStats("E", stats);
 		break;
 		case 'E':
 		{

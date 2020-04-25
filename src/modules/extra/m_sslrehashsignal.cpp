@@ -1,7 +1,8 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2018-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2020 Matt Schatz <genius3000@g3k.solutions>
+ *   Copyright (C) 2018-2020 Sadie Powell <sadie@witchery.services>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -35,28 +36,28 @@ class ModuleSSLRehashSignal : public Module
 		signal(SIGUSR1, SIG_IGN);
 	}
 
-	void init()
+	void init() CXX11_OVERRIDE
 	{
 		signal(SIGUSR1, SignalHandler);
 	}
 
-	void OnBackgroundTimer(time_t)
+	void OnBackgroundTimer(time_t) CXX11_OVERRIDE
 	{
 		if (!signaled)
 			return;
 
-		const std::string feedbackmsg = "Got SIGUSR1, reloading SSL credentials";
+		const std::string feedbackmsg = "Got SIGUSR1, reloading TLS (SSL) credentials";
 		ServerInstance->SNO->WriteGlobalSno('a', feedbackmsg);
 		ServerInstance->Logs->Log(MODNAME, LOG_DEFAULT, feedbackmsg);
 
-		const std::string str = "ssl";
+		const std::string str = "tls";
 		FOREACH_MOD(OnModuleRehash, (NULL, str));
 		signaled = 0;
 	}
 
-	Version GetVersion()
+	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Reloads SSL credentials on SIGUSR1", VF_VENDOR);
+		return Version("Allows the SIGUSR1 signal to be sent to the server to reload TLS (SSL) certificates.", VF_VENDOR);
 	}
 };
 

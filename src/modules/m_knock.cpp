@@ -33,6 +33,8 @@ enum
 	ERR_CANNOTKNOCK = 480,
 
 	// From ircd-ratbox.
+	RPL_KNOCK = 710,
+	RPL_KNOCKDLVR = 711,
 	ERR_CHANOPEN = 713,
 	ERR_KNOCKONCHAN = 714
 };
@@ -84,18 +86,22 @@ class CommandKnock : public Command
 		}
 
 		if (sendnotice)
+		{
 			c->WriteNotice(InspIRCd::Format("User %s is KNOCKing on %s (%s)", user->nick.c_str(), c->name.c_str(), parameters[1].c_str()));
+			user->WriteNotice("KNOCKing on " + c->name);
+		}
 
 		if (sendnumeric)
 		{
-			Numeric::Numeric numeric(710);
+			Numeric::Numeric numeric(RPL_KNOCK);
 			numeric.push(c->name).push(user->GetFullHost()).push("is KNOCKing: " + parameters[1]);
 
 			ClientProtocol::Messages::Numeric numericmsg(numeric, c->name);
 			c->Write(ServerInstance->GetRFCEvents().numeric, numericmsg);
+
+			user->WriteNumeric(RPL_KNOCKDLVR, c->name, "KNOCKing on channel");
 		}
 
-		user->WriteNotice("KNOCKing on " + c->name);
 		return CMD_SUCCESS;
 	}
 
@@ -139,7 +145,7 @@ class ModuleKnock : public Module
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides the KNOCK command and channel mode +K", VF_OPTCOMMON | VF_VENDOR);
+		return Version("Adds the /KNOCK command which allows users to request access to an invite-only channel and channel mode K (noknock) which allows channels to disable usage of this command.", VF_OPTCOMMON | VF_VENDOR);
 	}
 };
 

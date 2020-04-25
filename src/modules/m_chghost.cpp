@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2013-2014, 2017-2018 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013-2014, 2017-2018, 2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2014, 2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009, 2012 Daniel De Graaf <danieldg@inspircd.org>
@@ -98,16 +98,17 @@ class ModuleChgHost : public Module
 
 	void ReadConfig(ConfigStatus& status) CXX11_OVERRIDE
 	{
-		std::string hmap = ServerInstance->Config->ConfValue("hostname")->getString("charmap", "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.-_/0123456789");
+		ConfigTag* tag = ServerInstance->Config->ConfValue("hostname");
+		const std::string hmap = tag->getString("charmap", "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.-_/0123456789", 1);
 
 		cmd.hostmap.reset();
-		for (std::string::iterator n = hmap.begin(); n != hmap.end(); n++)
+		for (std::string::const_iterator n = hmap.begin(); n != hmap.end(); n++)
 			cmd.hostmap.set(static_cast<unsigned char>(*n));
 	}
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides the CHGHOST command", VF_OPTCOMMON | VF_VENDOR);
+		return Version("Adds the /CHGHOST command which allows server operators to change the displayed hostname of a user.", VF_OPTCOMMON | VF_VENDOR);
 	}
 };
 

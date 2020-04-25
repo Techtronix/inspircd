@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2013, 2018 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2018, 2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2014, 2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2010 Craig Edwards <brain@inspircd.org>
@@ -31,7 +31,8 @@ class CommandSakick : public Command
  public:
 	CommandSakick(Module* Creator) : Command(Creator,"SAKICK", 2, 3)
 	{
-		flags_needed = 'o'; syntax = "<channel> <nick> [:<reason>]";
+		flags_needed = 'o';
+		syntax = "<channel> <nick> [:<reason>]";
 		TRANSLATE3(TR_TEXT, TR_NICK, TR_TEXT);
 	}
 
@@ -94,7 +95,7 @@ class ModuleSakick : public Module
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides the SAKICK command", VF_OPTCOMMON|VF_VENDOR);
+		return Version("Adds the /SAKICK command which allows server operators to kick users from a channel without having any privileges in the channel.", VF_OPTCOMMON|VF_VENDOR);
 	}
 };
 

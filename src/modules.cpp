@@ -1,6 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
+ *   Copyright (C) 2020 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2019 nia <nia@netbsd.org>
  *   Copyright (C) 2019 iwalkalone <iwalkalone69@gmail.com>
  *   Copyright (C) 2013, 2017-2020 Sadie Powell <sadie@witchery.services>
@@ -64,6 +65,8 @@ Module::Module()
 
 CullResult Module::cull()
 {
+	if (ModuleDLLManager)
+		ServerInstance->GlobalCulls.AddItem(ModuleDLLManager);
 	return classbase::cull();
 }
 
@@ -232,7 +235,7 @@ bool ModuleManager::SetPriority(Module* mod, Implementation i, Priority s, Modul
 	}
 
 	/* Eh? this module doesnt exist, probably trying to set priority on an event
-	 * theyre not attached to.
+	 * they're not attached to.
 	 */
 	return false;
 
@@ -313,7 +316,7 @@ swap_now:
 bool ModuleManager::PrioritizeHooks()
 {
 	/* We give every module a chance to re-prioritize when we introduce a new one,
-	 * not just the one thats loading, as the new module could affect the preference
+	 * not just the one that's loading, as the new module could affect the preference
 	 * of others
 	 */
 	for (int tries = 0; tries < 20; tries++)
@@ -395,7 +398,7 @@ void ModuleManager::DoSafeUnload(Module* mod)
 	for (user_hash::const_iterator u = users.begin(); u != users.end(); )
 	{
 		User* user = u->second;
-		// The module may quit the user (e.g. SSL mod unloading) and that will remove it from the container
+		// The module may quit the user (e.g. TLS (SSL) mod unloading) and that will remove it from the container
 		++u;
 		mod->OnCleanup(ExtensionItem::EXT_USER, user);
 		user->doUnhookExtensions(items);
@@ -450,11 +453,8 @@ namespace
 		UnloadAction(Module* m) : mod(m) {}
 		void Call() CXX11_OVERRIDE
 		{
-			DLLManager* dll = mod->ModuleDLLManager;
 			ServerInstance->Modules->DoSafeUnload(mod);
 			ServerInstance->GlobalCulls.Apply();
-			// In pure static mode this is always NULL
-			delete dll;
 			ServerInstance->GlobalCulls.AddItem(this);
 		}
 	};
@@ -623,12 +623,13 @@ ServiceProvider* ModuleManager::FindService(ServiceType type, const std::string&
 
 std::string ModuleManager::ExpandModName(const std::string& modname)
 {
-	// Transform "callerid" -> "m_callerid.so" unless it already has a ".so" extension,
-	// so coremods in the "core_*.so" form aren't changed
-	std::string ret = modname;
-	if ((modname.length() < 3) || (modname.compare(modname.size() - 3, 3, ".so")))
-		ret.insert(0, "m_").append(".so");
-	return ret;
+	std::string fullname;
+	if (modname.compare(0, 5, "core_") != 0 && modname.compare(0, 2, "m_") != 0)
+		fullname.append("m_");
+	fullname.append(modname);
+	if (modname.length() < 3 || modname.compare(modname.size() - 3, 3, ".so") != 0)
+		fullname.append(".so");
+	return fullname;
 }
 
 dynamic_reference_base::dynamic_reference_base(Module* Creator, const std::string& Name)

@@ -1,8 +1,8 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2015-2016 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2013, 2015, 2017, 2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2015 Attila Molnar <attilamolnar@hush.com>
+ *   Copyright (C) 2013, 2015, 2017, 2019-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2008 Robin Burchell <robin+git@viroteck.net>
@@ -43,10 +43,9 @@ class ModuleRestrictMsg
 			// (3) the recipient is on a ulined server
 			// anything else, blocked.
 			if (u->IsOper() || user->IsOper() || u->server->IsULine())
-			{
 				return MOD_RES_PASSTHRU;
-			}
-			user->WriteNumeric(ERR_CANTSENDTOUSER, u->nick, "You are not permitted to send private messages to this user");
+
+			user->WriteNumeric(Numerics::CannotSendTo(u, "You cannot send messages to this user."));
 			return MOD_RES_DENY;
 		}
 
@@ -72,7 +71,7 @@ class ModuleRestrictMsg
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Forbids users from messaging each other, but users may still message opers and opers may message other opers", VF_VENDOR);
+		return Version("Prevents users who are not server operators from messaging each other.", VF_VENDOR);
 	}
 };
 

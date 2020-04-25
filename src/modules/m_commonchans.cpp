@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2013, 2017, 2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017, 2019-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2012 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
@@ -43,7 +43,7 @@ class ModuleCommonChans
 		if (user->HasPrivPermission("users/ignore-commonchans") || user->server->IsULine())
 			return MOD_RES_PASSTHRU;
 
-		user->WriteNumeric(ERR_CANTSENDTOUSER, targuser->nick, "You are not permitted to send private messages to this user (+c is set)");
+		user->WriteNumeric(Numerics::CannotSendTo(targuser, "messages", &mode));
 		return MOD_RES_DENY;
 	}
 
@@ -56,7 +56,7 @@ class ModuleCommonChans
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides user mode +c, requires users to share a common channel with you to private message you", VF_VENDOR);
+		return Version("Adds user mode c (deaf_commonchan) which requires users to have a common channel before they can privately message each other.", VF_VENDOR);
 	}
 
 	ModResult OnUserPreMessage(User* user, const MessageTarget& target, MessageDetails& details) CXX11_OVERRIDE

@@ -1,8 +1,8 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2013, 2017-2018 Sadie Powell <sadie@witchery.services>
- *   Copyright (C) 2012-2014, 2016 Attila Molnar <attilamolnar@hush.com>
+ *   Copyright (C) 2013, 2017-2018, 2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2012-2014 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2008 Thomas Stagner <aquanight@inspircd.org>
@@ -97,7 +97,8 @@ public:
 				// any upper case letters.
 				if (length > 0 && round((upper * 100) / length) >= percent)
 				{
-					user->WriteNumeric(ERR_CANNOTSENDTOCHAN, c->name, InspIRCd::Format("Your message cannot contain %d%% or more capital letters if it's longer than %d characters", percent, minlen));
+					const std::string msg = InspIRCd::Format("Your message cannot contain %d%% or more capital letters if it's longer than %d characters", percent, minlen);
+					user->WriteNumeric(Numerics::CannotSendTo(c, msg));
 					return MOD_RES_DENY;
 				}
 			}
@@ -117,14 +118,14 @@ public:
 			lowercase.set(static_cast<unsigned char>(*iter));
 
 		uppercase.reset();
-		const std::string upper = tag->getString("uppercase", tag->getString("capsmap", "ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
+		const std::string upper = tag->getString("uppercase", tag->getString("capsmap", "ABCDEFGHIJKLMNOPQRSTUVWXYZ", 1));
 		for (std::string::const_iterator iter = upper.begin(); iter != upper.end(); ++iter)
 			uppercase.set(static_cast<unsigned char>(*iter));
 	}
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides support to block all-CAPS channel messages and notices", VF_VENDOR);
+		return Version("Adds channel mode B (blockcaps) which allows channels to block messages which are excessively capitalised.", VF_VENDOR);
 	}
 };
 

@@ -2,7 +2,7 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2013-2015 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2013, 2017-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2010 Craig Edwards <brain@inspircd.org>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
@@ -25,13 +25,17 @@
 #include "listmode.h"
 #include "modules/exemption.h"
 
-/** Handles channel mode +X
- */
+enum
+{
+	RPL_ENDOFEXEMPTIONLIST = 953,
+	RPL_EXEMPTIONLIST = 954
+};
+
 class ExemptChanOps : public ListModeBase
 {
  public:
 	ExemptChanOps(Module* Creator)
-		: ListModeBase(Creator, "exemptchanops", 'X', "End of channel exemptchanops list", 954, 953, false)
+		: ListModeBase(Creator, "exemptchanops", 'X', "End of channel exemptchanops list", RPL_EXEMPTIONLIST, RPL_ENDOFEXEMPTIONLIST, false)
 	{
 		syntax = "<restriction>:<prefix>";
 	}
@@ -158,7 +162,7 @@ class ModuleExemptChanOps : public Module
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides the ability to allow channel operators to be exempt from certain modes", VF_VENDOR);
+		return Version("Adds channel mode X (exemptchanops) which allows channel operators to grant exemptions to various channel-level restrictions.", VF_VENDOR);
 	}
 
 	void ReadConfig(ConfigStatus& status) CXX11_OVERRIDE

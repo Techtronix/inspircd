@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2019 Matt Schatz <genius3000@g3k.solutions>
+ *   Copyright (C) 2020 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2016-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2016-2017 Attila Molnar <attilamolnar@hush.com>
  *
@@ -419,13 +419,13 @@ namespace mbedTLS
 			Config(const std::string& profilename, ConfigTag* tag, CTRDRBG& ctr_drbg)
 				: name(profilename)
 				, ctrdrbg(ctr_drbg)
-				, certstr(ReadFile(tag->getString("certfile", "cert.pem")))
-				, keystr(ReadFile(tag->getString("keyfile", "key.pem")))
-				, dhstr(ReadFile(tag->getString("dhfile", "dhparams.pem")))
+				, certstr(ReadFile(tag->getString("certfile", "cert.pem", 1)))
+				, keystr(ReadFile(tag->getString("keyfile", "key.pem", 1)))
+				, dhstr(ReadFile(tag->getString("dhfile", "dhparams.pem", 1)))
 				, ciphersuitestr(tag->getString("ciphersuites"))
 				, curvestr(tag->getString("curves"))
 				, mindh(tag->getUInt("mindhbits", 2048))
-				, hashstr(tag->getString("hash", "sha256"))
+				, hashstr(tag->getString("hash", "sha256", 1))
 				, castr(tag->getString("cafile"))
 				, minver(tag->getUInt("minver", 0))
 				, maxver(tag->getUInt("maxver", 0))
@@ -586,7 +586,7 @@ class mbedTLSIOHook : public SSLIOHook
 		}
 
 		CloseSession();
-		sock->SetError("No SSL session");
+		sock->SetError("No TLS (SSL) session");
 		return -1;
 	}
 
@@ -865,7 +865,7 @@ class ModuleSSLmbedTLS : public Module
 	{
 		// First, store all profiles in a new, temporary container. If no problems occur, swap the two
 		// containers; this way if something goes wrong we can go back and continue using the current profiles,
-		// avoiding unpleasant situations where no new SSL connections are possible.
+		// avoiding unpleasant situations where no new TLS (SSL) connections are possible.
 		ProfileList newprofiles;
 
 		ConfigTagList tags = ServerInstance->Config->ConfTags("sslprofile");
@@ -883,35 +883,38 @@ class ModuleSSLmbedTLS : public Module
 			}
 			catch (CoreException& ex)
 			{
-				throw ModuleException("Error while initializing the default SSL profile - " + ex.GetReason());
+				throw ModuleException("Error while initializing the default TLS (SSL) profile - " + ex.GetReason());
 			}
 		}
-
-		for (ConfigIter i = tags.first; i != tags.second; ++i)
+		else
 		{
-			ConfigTag* tag = i->second;
-			if (!stdalgo::string::equalsci(tag->getString("provider"), "mbedtls"))
-				continue;
-
-			std::string name = tag->getString("name");
-			if (name.empty())
+			ServerInstance->Logs->Log(MODNAME, LOG_DEFAULT, "You have defined an <sslprofile> tag; you should use this in place of \"mbedtls\" when configuring TLS (SSL) connections in <bind:ssl> or <link:ssl>");
+			for (ConfigIter i = tags.first; i != tags.second; ++i)
 			{
-				ServerInstance->Logs->Log(MODNAME, LOG_DEFAULT, "Ignoring <sslprofile> tag without name at " + tag->getTagLocation());
-				continue;
-			}
+				ConfigTag* tag = i->second;
+				if (!stdalgo::string::equalsci(tag->getString("provider"), "mbedtls"))
+					continue;
 
-			reference<mbedTLSIOHookProvider> prov;
-			try
-			{
-				mbedTLS::Profile::Config profileconfig(name, tag, ctr_drbg);
-				prov = new mbedTLSIOHookProvider(this, profileconfig);
-			}
-			catch (CoreException& ex)
-			{
-				throw ModuleException("Error while initializing SSL profile \"" + name + "\" at " + tag->getTagLocation() + " - " + ex.GetReason());
-			}
+				std::string name = tag->getString("name");
+				if (name.empty())
+				{
+					ServerInstance->Logs->Log(MODNAME, LOG_DEFAULT, "Ignoring <sslprofile> tag without name at " + tag->getTagLocation());
+					continue;
+				}
 
-			newprofiles.push_back(prov);
+				reference<mbedTLSIOHookProvider> prov;
+				try
+				{
+					mbedTLS::Profile::Config profileconfig(name, tag, ctr_drbg);
+					prov = new mbedTLSIOHookProvider(this, profileconfig);
+				}
+				catch (CoreException& ex)
+				{
+					throw ModuleException("Error while initializing TLS (SSL) profile \"" + name + "\" at " + tag->getTagLocation() + " - " + ex.GetReason());
+				}
+
+				newprofiles.push_back(prov);
+			}
 		}
 
 		// New profiles are ok, begin using them
@@ -939,13 +942,13 @@ class ModuleSSLmbedTLS : public Module
 
 	void OnModuleRehash(User* user, const std::string &param) CXX11_OVERRIDE
 	{
-		if (!irc::equals(param, "ssl"))
+		if (!irc::equals(param, "tls") && !irc::equals(param, "ssl"))
 			return;
 
 		try
 		{
 			ReadProfiles();
-			ServerInstance->SNO->WriteToSnoMask('a', "SSL module %s rehashed.", MODNAME);
+			ServerInstance->SNO->WriteToSnoMask('a', "TLS (SSL) module mbedTLS rehashed.");
 		}
 		catch (ModuleException& ex)
 		{
@@ -961,9 +964,9 @@ class ModuleSSLmbedTLS : public Module
 		LocalUser* user = IS_LOCAL(static_cast<User*>(item));
 		if ((user) && (user->eh.GetModHook(this)))
 		{
-			// User is using SSL, they're a local user, and they're using our IOHook.
-			// Potentially there could be multiple SSL modules loaded at once on different ports.
-			ServerInstance->Users.QuitUser(user, "SSL module unloading");
+			// User is using TLS (SSL), they're a local user, and they're using our IOHook.
+			// Potentially there could be multiple TLS (SSL) modules loaded at once on different ports.
+			ServerInstance->Users.QuitUser(user, "mbedTLS module unloading");
 		}
 	}
 
@@ -977,7 +980,7 @@ class ModuleSSLmbedTLS : public Module
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides SSL support via mbedTLS (PolarSSL)", VF_VENDOR);
+		return Version("Allows TLS (SSL) encrypted connections using the mbedTLS library.", VF_VENDOR);
 	}
 };
 

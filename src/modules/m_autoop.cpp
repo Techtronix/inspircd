@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2013, 2017-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2015 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2011 jackmcbarn <jackmcbarn@inspircd.org>
@@ -24,13 +24,18 @@
 #include "inspircd.h"
 #include "listmode.h"
 
-/** Handles +w channel mode
- */
+enum
+{
+	// InspIRCd-specific.
+	RPL_ACCESSLIST = 910,
+	RPL_ENDOFACCESSLIST = 911
+};
+
 class AutoOpList : public ListModeBase
 {
  public:
 	AutoOpList(Module* Creator)
-		: ListModeBase(Creator, "autoop", 'w', "End of Channel Access List", 910, 911, true)
+		: ListModeBase(Creator, "autoop", 'w', "End of Channel Access List", RPL_ACCESSLIST, RPL_ENDOFACCESSLIST, true)
 	{
 		ranktoset = ranktounset = OP_VALUE;
 		syntax = "<prefix>:<mask>";
@@ -117,7 +122,7 @@ class ModuleAutoOp : public Module
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides channel mode +w, basic channel access controls", VF_VENDOR);
+		return Version("Adds channel mode w (autoop) which allows channel operators to define an access list which gives status ranks to users on join.", VF_VENDOR);
 	}
 };
 

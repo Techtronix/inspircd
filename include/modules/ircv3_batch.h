@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2018-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2018-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2018 Attila Molnar <attilamolnar@hush.com>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
@@ -112,6 +112,7 @@ class IRCv3::Batch::Batch
 		, type(Type)
 		, batchinfo(NULL)
 		, batchstartmsg(NULL)
+		, batchendmsg(NULL)
 	{
 	}
 

@@ -2,7 +2,7 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2018-2019 linuxdaemon <linuxdaemon.irc@gmail.com>
- *   Copyright (C) 2013, 2017-2018 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2018, 2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013, 2015 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
@@ -43,7 +43,7 @@ class HTTPACL
 
 class ModuleHTTPAccessList : public Module, public HTTPACLEventListener
 {
-	std::string stylesheet;
+ private:
 	std::vector<HTTPACL> acl_list;
 	HTTPdAPI API;
 
@@ -103,7 +103,13 @@ class ModuleHTTPAccessList : public Module, public HTTPACLEventListener
 	{
 		ServerInstance->Logs->Log(MODNAME, LOG_DEBUG, "BlockAccess (%u)", returnval);
 
-		std::stringstream data("Access to this resource is denied by an access control list. Please contact your IRC administrator.");
+		std::stringstream data;
+		data << "<html><head></head><body style='font-family: sans-serif; text-align: center'>"
+			<< "<h1 style='font-size: 48pt'>Error " << returnval << "</h1>"
+			<< "<h2 style='font-size: 24pt'>Access to this resource is denied by an access control list.</h2>"
+			<< "<h2 style='font-size: 24pt'>Please contact your IRC administrator.</h2><hr>"
+			<< "<small>Powered by <a href='https://www.inspircd.org'>InspIRCd</a></small></body></html>";
+
 		HTTPDocumentResponse response(this, *http, &data, returnval);
 		response.headers.SetHeader("X-Powered-By", MODNAME);
 		if (!extraheaderkey.empty())
@@ -230,7 +236,7 @@ class ModuleHTTPAccessList : public Module, public HTTPACLEventListener
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides access control lists (passwording of resources, IP restrictions, etc) to m_httpd dependent modules", VF_VENDOR);
+		return Version("Allows the server administrator to control who can access resources served over HTTP with the httpd module.", VF_VENDOR);
 	}
 };
 

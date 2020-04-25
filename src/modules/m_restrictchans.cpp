@@ -2,7 +2,7 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2018-2019 linuxdaemon <linuxdaemon.irc@gmail.com>
- *   Copyright (C) 2013 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009 Daniel De Graaf <danieldg@inspircd.org>
@@ -80,14 +80,17 @@ class ModuleRestrictChans : public Module
 	{
 		// channel does not yet exist (record is null, about to be created IF we were to allow it)
 		if (!chan && !CanCreateChannel(user, cname))
+		{
+			user->WriteNumeric(ERR_BANNEDFROMCHAN, cname, "You are not allowed to create new channels.");
 			return MOD_RES_DENY;
+		}
 
 		return MOD_RES_PASSTHRU;
 	}
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Allows restricting who can create channels", VF_VENDOR);
+		return Version("Prevents unprivileged users from creating new channels.", VF_VENDOR);
 	}
 };
 

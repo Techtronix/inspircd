@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2013, 2018-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2018-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2014 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
@@ -37,7 +37,7 @@ class ModuleOperLog : public Module
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides logging of all oper commands to the ircd log at the default loglevel", VF_VENDOR);
+		return Version("Allows the server administrator to make the server log when a server operator-only command is executed.", VF_VENDOR);
 	}
 
 	void ReadConfig(ConfigStatus& status) CXX11_OVERRIDE
@@ -57,20 +57,15 @@ class ModuleOperLog : public Module
 			if ((thiscommand) && (thiscommand->flags_needed == 'o'))
 			{
 				std::string msg = "[" + user->GetFullRealHost() + "] " + command + " " + stdalgo::string::join(parameters);
-				ServerInstance->Logs->Log(MODNAME, LOG_DEFAULT, "OPERLOG: " + msg);
 				if (tosnomask)
 					ServerInstance->SNO->WriteGlobalSno('r', msg);
+				else
+					ServerInstance->Logs->Log(MODNAME, LOG_DEFAULT, msg);
 			}
 		}
 
 		return MOD_RES_PASSTHRU;
 	}
-
-	void On005Numeric(std::map<std::string, std::string>& tokens) CXX11_OVERRIDE
-	{
-		tokens["OPERLOG"];
-	}
-
 };
 
 MODULE_INIT(ModuleOperLog)

@@ -36,7 +36,10 @@ enum ParseFlags
 	FLAG_NO_EXEC = 2,
 
 	// All includes are disabled.
-	FLAG_NO_INC = 4
+	FLAG_NO_INC = 4,
+
+	// &env.FOO; is disabled.
+	FLAG_NO_ENV = 8
 };
 
 // Represents the position within a config file.
@@ -158,12 +161,20 @@ struct Parser
 		}
 	}
 
+	bool wordchar(char ch)
+	{
+		return isalnum(ch)
+			|| ch == '-'
+			|| ch == '.'
+			|| ch == '_';
+	}
+
 	void nextword(std::string& rv)
 	{
 		int ch = next();
 		while (isspace(ch))
 			ch = next();
-		while (isalnum(ch) || ch == '_'|| ch == '-')
+		while (wordchar(ch))
 		{
 			rv.push_back(ch);
 			ch = next();
@@ -205,7 +216,7 @@ struct Parser
 				while (1)
 				{
 					ch = next();
-					if (isalnum(ch) || (varname.empty() && ch == '#'))
+					if (wordchar(ch) || (varname.empty() && ch == '#'))
 						varname.push_back(ch);
 					else if (ch == ';')
 						break;
@@ -232,6 +243,17 @@ struct Parser
 					if (*endptr != '\0' || lvalue > 255)
 						throw CoreException("Invalid numeric character reference '&" + varname + ";'");
 					value.push_back(static_cast<char>(lvalue));
+				}
+				else if (varname.compare(0, 4, "env.") == 0)
+				{
+					if (flags & FLAG_NO_ENV)
+						throw CoreException("XML environment entity reference in file included with noenv=\"yes\"");
+
+					const char* envstr = getenv(varname.c_str() + 4);
+					if (!envstr)
+						throw CoreException("Undefined XML environment entity reference '&" + varname + ";'");
+
+					value.append(envstr);
 				}
 				else
 				{
@@ -400,6 +422,8 @@ void ParseStack::DoInclude(ConfigTag* tag, int flags)
 			flags |= FLAG_NO_INC;
 		if (tag->getBool("noexec", false))
 			flags |= FLAG_NO_EXEC;
+		if (tag->getBool("noenv", false))
+			flags |= FLAG_NO_ENV;
 
 		if (!ParseFile(ServerInstance->Config->Paths.PrependConfig(name), flags, mandatorytag))
 			throw CoreException("Included");
@@ -410,13 +434,15 @@ void ParseStack::DoInclude(ConfigTag* tag, int flags)
 			flags |= FLAG_NO_INC;
 		if (tag->getBool("noexec", false))
 			flags |= FLAG_NO_EXEC;
+		if (tag->getBool("noenv", false))
+			flags |= FLAG_NO_ENV;
 
 		const std::string includedir = ServerInstance->Config->Paths.PrependConfig(name);
 		std::vector<std::string> files;
 		if (!FileSystem::GetFileList(includedir, files, "*.conf"))
 			throw CoreException("Unable to read directory for include: " + includedir);
 
-		std::sort(files.begin(), files.end()); 
+		std::sort(files.begin(), files.end());
 		for (std::vector<std::string>::const_iterator iter = files.begin(); iter != files.end(); ++iter)
 		{
 			const std::string path = includedir + '/' + *iter;
@@ -432,6 +458,8 @@ void ParseStack::DoInclude(ConfigTag* tag, int flags)
 			flags |= FLAG_NO_INC;
 		if (tag->getBool("noexec", true))
 			flags |= FLAG_NO_EXEC;
+		if (tag->getBool("noenv", true))
+			flags |= FLAG_NO_ENV;
 
 		if (!ParseFile(name, flags, mandatorytag, true))
 			throw CoreException("Included");

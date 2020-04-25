@@ -1,6 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
+ *   Copyright (C) 2020 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2013-2014, 2017-2018 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012, 2014, 2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
@@ -53,7 +54,6 @@ CmdResult CommandOper::HandleLocal(LocalUser* user, const Params& parameters)
 
 		if (match_pass && match_hosts)
 		{
-			/* found this oper's opertype */
 			user->Oper(ifo);
 			return CMD_SUCCESS;
 		}
@@ -65,9 +65,10 @@ CmdResult CommandOper::HandleLocal(LocalUser* user, const Params& parameters)
 	if (!match_pass)
 		fields.append("password ");
 	if (!match_hosts)
-		fields.append("hosts");
+		fields.append("hosts ");
+	fields.erase(fields.length() - 1, 1);
 
-	// tell them they suck, and lag them up to help prevent brute-force attacks
+	// Tell them they failed (generically) and lag them up to help prevent brute-force attacks
 	user->WriteNumeric(ERR_NOOPERHOST, "Invalid oper credentials");
 	user->CommandFloodPenalty += 10000;
 

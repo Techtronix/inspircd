@@ -1,9 +1,9 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2019 Matt Schatz <genius3000@g3k.solutions>
+ *   Copyright (C) 2019-2020 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2013-2016 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2013, 2016-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2016-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013 Daniel Vassdal <shutter@canternet.org>
  *   Copyright (C) 2013 Adam <Adam@anope.org>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
@@ -48,8 +48,7 @@ ListenSocket::ListenSocket(ConfigTag* tag, const irc::sockets::sockaddrs& bind_t
 	}
 
 	fd = socket(bind_to.family(), SOCK_STREAM, 0);
-
-	if (this->fd == -1)
+	if (!HasFd())
 		return;
 
 #ifdef IPV6_V6ONLY
@@ -84,6 +83,11 @@ ListenSocket::ListenSocket(ConfigTag* tag, const irc::sockets::sockaddrs& bind_t
 #endif
 	}
 
+	SocketEngine::SetReuse(fd);
+	int rv = SocketEngine::Bind(this->fd, bind_to);
+	if (rv >= 0)
+		rv = SocketEngine::Listen(this->fd, ServerInstance->Config->MaxConn);
+
 	if (bind_to.family() == AF_UNIX)
 	{
 		const std::string permissionstr = tag->getString("permissions");
@@ -91,11 +95,6 @@ ListenSocket::ListenSocket(ConfigTag* tag, const irc::sockets::sockaddrs& bind_t
 		if (permissions && permissions <= 07777)
 			chmod(bind_to.str().c_str(), permissions);
 	}
-
-	SocketEngine::SetReuse(fd);
-	int rv = SocketEngine::Bind(this->fd, bind_to);
-	if (rv >= 0)
-		rv = SocketEngine::Listen(this->fd, ServerInstance->Config->MaxConn);
 
 	// Default defer to on for TLS listeners because in TLS the client always speaks first
 	int timeout = tag->getDuration("defer", (tag->getString("ssl").empty() ? 0 : 3));
@@ -130,7 +129,7 @@ ListenSocket::ListenSocket(ConfigTag* tag, const irc::sockets::sockaddrs& bind_t
 
 ListenSocket::~ListenSocket()
 {
-	if (this->GetFd() > -1)
+	if (this->HasFd())
 	{
 		ServerInstance->Logs->Log("SOCKET", LOG_DEBUG, "Shut down listener on fd %d", this->fd);
 		SocketEngine::Shutdown(this, 2);
@@ -208,7 +207,7 @@ void ListenSocket::OnEventHandlerRead()
 	FIRST_MOD_RESULT(OnAcceptConnection, res, (incomingSockfd, this, &client, &server));
 	if (res == MOD_RES_PASSTHRU)
 	{
-		std::string type = bind_tag->getString("type", "clients");
+		const std::string type = bind_tag->getString("type", "clients", 1);
 		if (stdalgo::string::equalsci(type, "clients"))
 		{
 			ServerInstance->Users->AddUser(incomingSockfd, this, &client, &server);
@@ -245,6 +244,6 @@ void ListenSocket::ResetIOHookProvider()
 	if (!provname.empty())
 		provname.insert(0, "ssl/");
 
-	// SSL should be the last
+	// TLS (SSL) should be the last
 	iohookprovs.back().SetProvider(provname);
 }

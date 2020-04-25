@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2019-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2019 Robby <robby@chatbelgie.be>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
@@ -163,8 +163,9 @@ class ModuleDisable : public Module
 
 		// The user has tried to change a disabled mode!
 		const char* what = mh->GetModeType() == MODETYPE_CHANNEL ? "channel" : "user";
-		WriteLog("%s was blocked from executing the disabled %s mode %c (%s)",
-			user->GetFullRealHost().c_str(), what, mh->GetModeChar(), mh->name.c_str());
+		WriteLog("%s was blocked from %ssetting the disabled %s mode %c (%s)",
+			user->GetFullRealHost().c_str(), adding ? "" : "un",
+			what, mh->GetModeChar(), mh->name.c_str());
 
 		if (fakenonexistent)
 		{
@@ -183,7 +184,7 @@ class ModuleDisable : public Module
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides support for disabling commands and modes", VF_VENDOR);
+		return Version("Allows commands, channel modes, and user modes to be disabled.", VF_VENDOR);
 	}
 };
 

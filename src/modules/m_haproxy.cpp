@@ -1,8 +1,8 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
+ *   Copyright (C) 2019-2020 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2019 linuxdaemon <linuxdaemon.irc@gmail.com>
- *   Copyright (C) 2019 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2018-2019 Sadie Powell <sadie@witchery.services>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
@@ -200,16 +200,16 @@ class HAProxyHook : public IOHookMiddle
 		if (!sslapi)
 			return true;
 
-		// If the client is not connecting via SSL the rest of this TLV is irrelevant.
+		// If the client is not connecting via TLS (SSL) the rest of this TLV is irrelevant.
 		std::string& recvq = GetRecvQ();
 		if ((recvq[start_index] & PP2_CLIENT_SSL) == 0)
 			return true;
 
 		// Create a fake ssl_cert for the user. Ideally we should use the user's
-		// SSL client certificate here but as of 2018-10-16 this is not forwarded
+		// TLS (SSL) client certificate here but as of 2018-10-16 this is not forwarded
 		// by HAProxy.
 		ssl_cert* cert = new ssl_cert;
-		cert->error = "HAProxy does not forward client SSL certificates";
+		cert->error = "HAProxy does not forward client TLS (SSL) certificates";
 		cert->invalid = true;
 		cert->revoked = true;
 		cert->trusted = false;
@@ -433,7 +433,7 @@ class ModuleHAProxy : public Module
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides support for the HAProxy PROXY protocol", VF_VENDOR);
+		return Version("Allows IRC connections to be made using reverse proxies that implement the HAProxy PROXY protocol.", VF_VENDOR);
 	}
 };
 

@@ -4,7 +4,7 @@
  *   Copyright (C) 2019 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2018 linuxdaemon <linuxdaemon.irc@gmail.com>
  *   Copyright (C) 2017-2018 B00mX0r <b00mx0r@aureus.pw>
- *   Copyright (C) 2013, 2017-2018 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2018, 2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2018-2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2012 Jens Voss <DukePyrolator@anope.org>
@@ -187,27 +187,20 @@ class ModuleShun : public Module, public Stats::EventListener
 		if (stats.GetSymbol() != 'H')
 			return MOD_RES_PASSTHRU;
 
-		ServerInstance->XLines->InvokeStats("SHUN", 223, stats);
+		ServerInstance->XLines->InvokeStats("SHUN", stats);
 		return MOD_RES_DENY;
 	}
 
 	void ReadConfig(ConfigStatus& status) CXX11_OVERRIDE
 	{
 		ConfigTag* tag = ServerInstance->Config->ConfValue("shun");
-		std::string cmds = tag->getString("enabledcommands");
-		std::transform(cmds.begin(), cmds.end(), cmds.begin(), ::toupper);
-
-		if (cmds.empty())
-			cmds = "PING PONG QUIT";
 
 		ShunEnabledCommands.clear();
-
-		irc::spacesepstream dcmds(cmds);
-		std::string thiscmd;
-
-		while (dcmds.GetToken(thiscmd))
+		irc::spacesepstream enabledcmds(tag->getString("enabledcommands", "ADMIN OPER PING PONG QUIT", 1));
+		for (std::string enabledcmd; enabledcmds.GetToken(enabledcmd); )
 		{
-			ShunEnabledCommands.insert(thiscmd);
+			std::transform(enabledcmd.begin(), enabledcmd.end(), enabledcmd.begin(), ::toupper);
+			ShunEnabledCommands.insert(enabledcmd);
 		}
 
 		NotifyOfShun = tag->getBool("notifyuser", true);
@@ -219,19 +212,13 @@ class ModuleShun : public Module, public Stats::EventListener
 		if (validated)
 			return MOD_RES_PASSTHRU;
 
-		if (!ServerInstance->XLines->MatchesLine("SHUN", user))
-		{
-			/* Not shunned, don't touch. */
-			return MOD_RES_PASSTHRU;
-		}
+		// Exempt the user from shuns if:
+		//   (1) They are an oper and affectopers is disabled.
+		//   (2) They have the servers/ignore-shun privilege.
+		if ((!affectopers && user->IsOper()) || user->HasPrivPermission("servers/ignore-shun"))
+				return MOD_RES_PASSTHRU;
 
-		if (!affectopers && user->IsOper())
-		{
-			/* Don't do anything if the user is an operator and affectopers isn't set */
-			return MOD_RES_PASSTHRU;
-		}
-
-		if (!ShunEnabledCommands.count(command))
+		if (ServerInstance->XLines->MatchesLine("SHUN", user) && !ShunEnabledCommands.count(command))
 		{
 			if (NotifyOfShun)
 				user->WriteNotice("*** Command " + command + " not processed, as you have been blocked from issuing commands (SHUN)");
@@ -255,7 +242,7 @@ class ModuleShun : public Module, public Stats::EventListener
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides the SHUN command, which stops a user from executing all except configured commands", VF_VENDOR|VF_COMMON);
+		return Version("Adds the /SHUN command which allows server operators to prevent users from executing commands.", VF_VENDOR|VF_COMMON);
 	}
 };
 

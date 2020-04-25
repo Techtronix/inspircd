@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2013, 2018 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2018, 2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2013 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009 Uli Schlachter <psychon@inspircd.org>
@@ -34,7 +34,8 @@ class CommandSetident : public Command
  CommandSetident(Module* Creator) : Command(Creator,"SETIDENT", 1)
 	{
 		allow_empty_last_param = false;
-		flags_needed = 'o'; syntax = "<ident>";
+		flags_needed = 'o';
+		syntax = "<ident>";
 	}
 
 	CmdResult Handle(User* user, const Params& parameters) CXX11_OVERRIDE
@@ -69,7 +70,7 @@ class ModuleSetIdent : public Module
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides the SETIDENT command", VF_VENDOR);
+		return Version("Adds the /SETIDENT command which allows server operators to change their username (ident).", VF_VENDOR);
 	}
 };
 

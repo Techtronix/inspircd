@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2013 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2010 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2009 Uli Schlachter <psychon@inspircd.org>
@@ -37,7 +37,7 @@ class ModuleRandQuote : public Module
 		ConfigTag* conf = ServerInstance->Config->ConfValue("randquote");
 		prefix = conf->getString("prefix");
 		suffix = conf->getString("suffix");
-		FileReader reader(conf->getString("file", "quotes"));
+		FileReader reader(conf->getString("file", "quotes", 1));
 		quotes = reader.GetVector();
 	}
 
@@ -52,7 +52,7 @@ class ModuleRandQuote : public Module
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides random quotes on connect", VF_VENDOR);
+		return Version("Allows random quotes to be sent to users when they connect to the server.", VF_VENDOR);
 	}
 };
 

@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2019-2020 Sadie Powell <sadie@witchery.services>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -18,18 +18,17 @@
 
 
 #include "inspircd.h"
-#include "modules/cap.h"
 #include "modules/ctctags.h"
 
 class MsgIdTag : public ClientProtocol::MessageTagProvider
 {
  private:
-	Cap::Reference ctctagcap;
+	CTCTags::CapReference ctctagcap;
 
  public:
 	MsgIdTag(Module* mod)
 		: ClientProtocol::MessageTagProvider(mod)
-		, ctctagcap(mod, "message-tags")
+		, ctctagcap(mod)
 	{
 	}
 
@@ -113,7 +112,7 @@ class ModuleMsgId
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides the msgid IRCv3 tag", VF_VENDOR);
+		return Version("Provides support for the IRCv3 Message IDs specification.", VF_VENDOR);
 	}
 };
 

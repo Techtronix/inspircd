@@ -1,6 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
+ *   Copyright (C) 2020 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2013, 2015 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012-2013, 2017 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
@@ -239,7 +240,7 @@ enum ServiceType {
 	SERVICE_METADATA,
 	/** is a data processing provider (MD5, SQL) */
 	SERVICE_DATA,
-	/** is an I/O hook provider (SSL) */
+	/** is an I/O hook provider */
 	SERVICE_IOHOOK,
 	/** Service managed by a module */
 	SERVICE_CUSTOM

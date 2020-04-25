@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2019 Matt Schatz <genius3000@g3k.solutions>
+ *   Copyright (C) 2019-2020 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2018 linuxdaemon <linuxdaemon.irc@gmail.com>
  *   Copyright (C) 2013 Daniel Vassdal <shutter@canternet.org>
  *   Copyright (C) 2013 Adam <Adam@anope.org>
@@ -383,7 +383,7 @@ bool InspIRCd::Duration(const std::string& str, unsigned long& duration)
 		}
 		else
 		{
-			/* Found something thats not a number, find out how much
+			/* Found something that's not a number, find out how much
 			 * it multiplies the built up number by, multiply the total
 			 * and reset the built up number.
 			 */
@@ -536,7 +536,7 @@ unsigned long InspIRCd::GenRandomInt(unsigned long max)
 	return rv % max;
 }
 
-// This is overridden by a higher-quality algorithm when SSL support is loaded
+// This is overridden by a higher-quality algorithm when TLS (SSL) support is loaded
 void InspIRCd::DefaultGenRandom(char* output, size_t max)
 {
 #if defined HAS_ARC4RANDOM_BUF

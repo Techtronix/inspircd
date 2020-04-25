@@ -1,9 +1,9 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2013, 2017-2018 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2018, 2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2016 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
+ *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2008, 2010 Craig Edwards <brain@inspircd.org>
  *   Copyright (C) 2007-2008 Robin Burchell <robin+git@viroteck.net>
@@ -68,7 +68,7 @@ class ModuleServProtectMode : public Module, public Whois::EventListener, public
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides user mode +k to protect services from kicks, kills, and mode changes", VF_VENDOR);
+		return Version("Adds user mode k (servprotect) which protects services pseudoclients from being kicked, being killed, or having their channel prefix modes changed.", VF_VENDOR);
 	}
 
 	void OnWhois(Whois::Context& whois) CXX11_OVERRIDE

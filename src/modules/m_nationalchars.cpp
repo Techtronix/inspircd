@@ -274,7 +274,7 @@ class ModuleNationalChars : public Module
 	{
 		ConfigTag* tag = ServerInstance->Config->ConfValue("nationalchars");
 		charset = tag->getString("file");
-		std::string casemapping = tag->getString("casemapping", FileSystem::GetFileName(charset));
+		std::string casemapping = tag->getString("casemapping", FileSystem::GetFileName(charset), 1);
 		if (casemapping.find(' ') != std::string::npos)
 			throw ModuleException("<nationalchars:casemapping> must not contain any spaces!");
 		ServerInstance->Config->CaseMapping = casemapping;
@@ -323,7 +323,7 @@ class ModuleNationalChars : public Module
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides an ability to have non-RFC1459 nicks & support for national CASEMAPPING", VF_VENDOR | VF_COMMON);
+		return Version("Allows the server administrator to define what characters are allowed in nicknames and channel names and how those characters should be compared in a case insensitive way.", VF_VENDOR | VF_COMMON);
 	}
 
 	/*make an array to check against it 8bit characters a bit faster. Whether allowed or uppercase (for your needs).*/

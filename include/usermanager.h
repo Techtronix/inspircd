@@ -3,7 +3,7 @@
  *
  *   Copyright (C) 2015 Adam <Adam@anope.org>
  *   Copyright (C) 2013-2016 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2012-2013, 2017, 2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2012-2013, 2017, 2019-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2010 Craig Edwards <brain@inspircd.org>
  *   Copyright (C) 2009 Daniel De Graaf <danieldg@inspircd.org>
@@ -45,6 +45,9 @@ class CoreExport UserManager : public fakederef<UserManager>
 	/** Sequence container in which each element is a User*
 	 */
 	typedef std::vector<User*> OperList;
+
+	/** A list containing users who are on a U-lined servers. */
+	typedef std::vector<User*> ULineList;
 
 	/** A list holding local users
 	*/
@@ -89,13 +92,13 @@ class CoreExport UserManager : public fakederef<UserManager>
 	 */
 	OperList all_opers;
 
+	/** A list of users on U-lined servers. */
+	ULineList all_ulines;
+
 	/** Number of unregistered users online right now.
 	 * (Unregistered means before USER/NICK/dns)
 	 */
 	unsigned int unregistered_count;
-
-	/** The number of users on U-lined servers. */
-	unsigned int uline_count;
 
 	/** Perform background user events for all local users such as PING checks, registration timeouts,
 	 * penalty management and recvq processing for users who have data in their recvq due to throttling.
@@ -147,7 +150,7 @@ class CoreExport UserManager : public fakederef<UserManager>
 	 */
 	const CloneCounts& GetCloneCounts(User* user) const;
 
-	/** Return a map containg IP addresses and their clone counts
+	/** Return a map containing IP addresses and their clone counts
 	 * @return The clone count map
 	 */
 	const CloneMap& GetCloneMap() const { return clonemap; }
@@ -175,7 +178,7 @@ class CoreExport UserManager : public fakederef<UserManager>
 	/** Return a count of users on a u-lined servers.
 	 * @return The number of users on u-lined servers.
 	 */
-	unsigned int ULineCount() const { return this->uline_count; }
+	unsigned int ULineCount() const { return this->all_ulines.size(); }
 
 	/** Return a count of local registered users
 	 * @return The number of registered local users

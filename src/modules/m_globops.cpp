@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2013, 2018-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2018-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2012 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
@@ -35,7 +35,8 @@ class CommandGlobops : public Command
  public:
 	CommandGlobops(Module* Creator) : Command(Creator,"GLOBOPS", 1,1)
 	{
-		flags_needed = 'o'; syntax = ":<message>";
+		flags_needed = 'o';
+		syntax = ":<message>";
 	}
 
 	CmdResult Handle(User* user, const Params& parameters) CXX11_OVERRIDE
@@ -64,7 +65,7 @@ class ModuleGlobops : public Module
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides the GLOBOPS command and snomask 'g'", VF_VENDOR);
+		return Version("Adds the /GLOBOPS command which allows server operators to send messages to all server operators with the g (globops) snomask.", VF_VENDOR);
 	}
 };
 

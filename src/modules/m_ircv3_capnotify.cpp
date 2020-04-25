@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2018-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2018-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2015, 2018 Attila Molnar <attilamolnar@hush.com>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
@@ -103,7 +103,7 @@ class ModuleIRCv3CapNotify : public Module, public Cap::EventListener, public Re
 				continue;
 
 			// Check that this user can actually see the cap.
-			if (!cap->OnList(user))
+			if (add && (!cap || !cap->OnList(user)))
 				continue;
 
 			// If the cap is being added and the client supports cap values then show the value, if any
@@ -164,7 +164,7 @@ class ModuleIRCv3CapNotify : public Module, public Cap::EventListener, public Re
 
 	void OnReloadModuleRestore(Module* mod, void* data) CXX11_OVERRIDE
 	{
-		// Reloading can change the set of caps provided by a module so assuming that if the reload succeded all
+		// Reloading can change the set of caps provided by a module so assuming that if the reload succeeded all
 		// caps that the module previously provided are available or all were lost if the reload failed is wrong.
 		// Instead, we verify the availability of each cap individually.
 		dynamic_reference_nocheck<Cap::Manager> capmanager(this, "capmanager");
@@ -183,7 +183,7 @@ class ModuleIRCv3CapNotify : public Module, public Cap::EventListener, public Re
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides the cap-notify IRCv3 extension", VF_VENDOR);
+		return Version("Provides the IRCv3 cap-notify client capability.", VF_VENDOR);
 	}
 };
 

@@ -3,7 +3,7 @@
  *
  *   Copyright (C) 2019 linuxdaemon <linuxdaemon.irc@gmail.com>
  *   Copyright (C) 2014 Googolplexed <googol@googolplexed.net>
- *   Copyright (C) 2013, 2018-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2018, 2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2014, 2018 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2012 Boleslaw Tokarski <boleslaw.tokarski@tieto.com>
@@ -33,7 +33,7 @@ class ModulePassForward : public Module
  public:
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Sends server password to NickServ", VF_VENDOR);
+		return Version("Allows the /PASS password to be forwarded to a services pseudoclient such as NickServ.", VF_VENDOR);
 	}
 
 	void ReadConfig(ConfigStatus& status) CXX11_OVERRIDE
@@ -41,7 +41,7 @@ class ModulePassForward : public Module
 		ConfigTag* tag = ServerInstance->Config->ConfValue("passforward");
 		nickrequired = tag->getString("nick", "NickServ");
 		forwardmsg = tag->getString("forwardmsg", "NOTICE $nick :*** Forwarding PASS to $nickrequired");
-		forwardcmd = tag->getString("cmd", "SQUERY $nickrequired :IDENTIFY $pass");
+		forwardcmd = tag->getString("cmd", "SQUERY $nickrequired :IDENTIFY $pass", 1);
 	}
 
 	void FormatStr(std::string& result, const std::string& format, const LocalUser* user)
@@ -105,11 +105,14 @@ class ModulePassForward : public Module
 		}
 
 		std::string tmp;
-		FormatStr(tmp, forwardmsg, user);
-		ServerInstance->Parser.ProcessBuffer(user, tmp);
+		if (!forwardmsg.empty())
+		{
+			FormatStr(tmp, forwardmsg, user);
+			ServerInstance->Parser.ProcessBuffer(user, tmp);
+			tmp.clear();
+		}
 
-		tmp.clear();
-		FormatStr(tmp,forwardcmd, user);
+		FormatStr(tmp, forwardcmd, user);
 		ServerInstance->Parser.ProcessBuffer(user, tmp);
 	}
 };

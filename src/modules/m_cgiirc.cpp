@@ -4,7 +4,7 @@
  *   Copyright (C) 2019 linuxdaemon <linuxdaemon.irc@gmail.com>
  *   Copyright (C) 2014 md_5 <git@md-5.net>
  *   Copyright (C) 2014 Googolplexed <googol@googolplexed.net>
- *   Copyright (C) 2013, 2017-2018 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2018, 2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013 Adam <Adam@anope.org>
  *   Copyright (C) 2012-2013, 2015 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
@@ -307,12 +307,19 @@ class ModuleCgiIRC
 				// The IP address will be received via the WEBIRC command.
 				const std::string fingerprint = tag->getString("fingerprint");
 				const std::string password = tag->getString("password");
+				const std::string passwordhash = tag->getString("hash", "plaintext", 1);
 
 				// WebIRC blocks require a password.
 				if (fingerprint.empty() && password.empty())
 					throw ModuleException("When using <cgihost type=\"webirc\"> either the fingerprint or password field is required, at " + tag->getTagLocation());
 
-				webirchosts.push_back(WebIRCHost(mask, fingerprint, password, tag->getString("hash")));
+				if (!password.empty() && stdalgo::string::equalsci(passwordhash, "plaintext"))
+				{
+					ServerInstance->Logs->Log(MODNAME, LOG_DEFAULT, "<cgihost> tag at %s contains an plain text password, this is insecure!",
+						tag->getTagLocation().c_str());
+				}
+
+				webirchosts.push_back(WebIRCHost(mask, fingerprint, password, passwordhash));
 			}
 			else
 			{
@@ -459,7 +466,7 @@ class ModuleCgiIRC
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Enables forwarding the real IP address of a user from a gateway to the IRC server", VF_VENDOR);
+		return Version("Adds the ability for IRC gateways to forward the real IP address of users connecting through them.", VF_VENDOR);
 	}
 };
 

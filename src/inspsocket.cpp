@@ -4,7 +4,7 @@
  *   Copyright (C) 2019 linuxdaemon <linuxdaemon.irc@gmail.com>
  *   Copyright (C) 2018 Dylan Frank <b00mx0r@aureus.pw>
  *   Copyright (C) 2013-2016 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2013, 2017-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013 Adam <Adam@anope.org>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
@@ -49,7 +49,7 @@ BufferedSocket::BufferedSocket(int newfd)
 	Timeout = NULL;
 	this->fd = newfd;
 	this->state = I_CONNECTED;
-	if (fd > -1)
+	if (HasFd())
 		SocketEngine::AddFd(this, FD_WANT_FAST_READ | FD_WANT_EDGE_WRITE);
 }
 
@@ -66,10 +66,10 @@ void BufferedSocket::DoConnect(const irc::sockets::sockaddrs& dest, const irc::s
 
 BufferedSocketError BufferedSocket::BeginConnect(const irc::sockets::sockaddrs& dest, const irc::sockets::sockaddrs& bind, unsigned int timeout)
 {
-	if (fd < 0)
+	if (!HasFd())
 		fd = socket(dest.family(), SOCK_STREAM, 0);
 
-	if (fd < 0)
+	if (!HasFd())
 		return I_ERR_SOCKET;
 
 	if (bind.family() != 0)
@@ -104,7 +104,7 @@ void StreamSocket::Close()
 		return;
 
 	closing = true;
-	if (this->fd > -1)
+	if (HasFd())
 	{
 		// final chance, dump as much of the sendq as we can
 		DoWrite();
@@ -229,7 +229,7 @@ void StreamSocket::DoWrite()
 
 		return;
 	}
-	if (!error.empty() || fd < 0)
+	if (!error.empty() || !HasFd())
 	{
 		ServerInstance->Logs->Log("SOCKET", LOG_DEBUG, "DoWrite on errored or closed socket");
 		return;
@@ -369,7 +369,7 @@ bool StreamSocket::OnSetEndPoint(const irc::sockets::sockaddrs& local, const irc
 
 void StreamSocket::WriteData(const std::string &data)
 {
-	if (fd < 0)
+	if (!HasFd())
 	{
 		ServerInstance->Logs->Log("SOCKET", LOG_DEBUG, "Attempt to write data to dead socket: %s",
 			data.c_str());

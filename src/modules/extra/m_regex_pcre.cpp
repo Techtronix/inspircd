@@ -28,7 +28,7 @@
 
 /// $PackageInfo: require_system("arch") pcre
 /// $PackageInfo: require_system("centos") pcre-devel
-/// $PackageInfo: require_system("darwin") pcre 
+/// $PackageInfo: require_system("darwin") pcre
 /// $PackageInfo: require_system("debian") libpcre3-dev
 /// $PackageInfo: require_system("ubuntu") libpcre3-dev
 
@@ -89,7 +89,7 @@ class ModuleRegexPCRE : public Module
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Regex Provider Module for PCRE", VF_VENDOR);
+		return Version("Provides a regular expression engine which uses the PCRE library.", VF_VENDOR);
 	}
 };
 

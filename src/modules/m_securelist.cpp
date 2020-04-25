@@ -2,7 +2,7 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2018 linuxdaemon <linuxdaemon.irc@gmail.com>
- *   Copyright (C) 2013, 2018 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2018, 2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2013, 2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009 Daniel De Graaf <danieldg@inspircd.org>
@@ -31,14 +31,16 @@ typedef std::vector<std::string> AllowList;
 
 class ModuleSecureList : public Module
 {
+ private:
 	AllowList allowlist;
 	bool exemptregistered;
+	bool showmsg;
 	unsigned int WaitTime;
 
  public:
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Disallows the LIST command for recently connected clients to hinder spam bots", VF_VENDOR);
+		return Version("Prevents users from using the /LIST command until a predefined period has passed.", VF_VENDOR);
 	}
 
 	void ReadConfig(ConfigStatus& status) CXX11_OVERRIDE
@@ -55,24 +57,20 @@ class ModuleSecureList : public Module
 		}
 
 		ConfigTag* tag = ServerInstance->Config->ConfValue("securelist");
-
 		exemptregistered = tag->getBool("exemptregistered");
+		showmsg = tag->getBool("showmsg", true);
 		WaitTime = tag->getDuration("waittime", 60, 1);
 		allowlist.swap(newallows);
 	}
 
-
-	/*
-	 * OnPreCommand()
-	 *   Intercept the LIST command.
-	 */
 	ModResult OnPreCommand(std::string& command, CommandBase::Params& parameters, LocalUser* user, bool validated) CXX11_OVERRIDE
 	{
 		/* If the command doesnt appear to be valid, we dont want to mess with it. */
 		if (!validated)
 			return MOD_RES_PASSTHRU;
 
-		if ((command == "LIST") && (ServerInstance->Time() < (user->signon+WaitTime)) && (!user->IsOper()))
+		time_t waitallowed = user->signon + WaitTime;
+		if ((command == "LIST") && (ServerInstance->Time() < waitallowed) && (!user->IsOper()))
 		{
 			/* Normally wouldnt be allowed here, are they exempt? */
 			for (std::vector<std::string>::iterator x = allowlist.begin(); x != allowlist.end(); x++)
@@ -83,11 +81,15 @@ class ModuleSecureList : public Module
 			if (exemptregistered && ext && ext->get(user))
 				return MOD_RES_PASSTHRU;
 
-			/* Not exempt, BOOK EM DANNO! */
-			user->WriteNotice("*** You cannot list within the first " + ConvToStr(WaitTime) + " seconds of connecting. Please try again later.");
-			/* Some clients (e.g. mIRC, various java chat applets) muck up if they don't
-			 * receive these numerics whenever they send LIST, so give them an empty LIST to mull over.
-			 */
+			if (showmsg)
+			{
+				user->WriteNotice(InspIRCd::Format("*** You cannot view the channel list right now. Please %stry again in %s.",
+					(exemptregistered ? "login to an account or " : ""),
+					InspIRCd::DurationString(waitallowed - ServerInstance->Time()).c_str()));
+			}
+
+			// The client might be waiting on a response to do something so send them an
+			// empty list response to satisfy that.
 			user->WriteNumeric(RPL_LISTSTART, "Channel", "Users Name");
 			user->WriteNumeric(RPL_LISTEND, "End of channel list.");
 			return MOD_RES_DENY;
@@ -97,7 +99,8 @@ class ModuleSecureList : public Module
 
 	void On005Numeric(std::map<std::string, std::string>& tokens) CXX11_OVERRIDE
 	{
-		tokens["SECURELIST"];
+		if (showmsg)
+			tokens["SECURELIST"] = ConvToStr(WaitTime);
 	}
 };
 

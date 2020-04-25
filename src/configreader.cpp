@@ -3,7 +3,7 @@
  *
  *   Copyright (C) 2019 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2013-2016 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2013-2014, 2016-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013-2014, 2016-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013 Daniel Vassdal <shutter@canternet.org>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2012 Justin Crawford <Justasic@Gmail.com>
@@ -53,10 +53,10 @@ ServerLimits::ServerLimits(ConfigTag* tag)
 }
 
 ServerConfig::ServerPaths::ServerPaths(ConfigTag* tag)
-	: Config(tag->getString("configdir", INSPIRCD_CONFIG_PATH))
-	, Data(tag->getString("datadir", INSPIRCD_DATA_PATH))
-	, Log(tag->getString("logdir", INSPIRCD_LOG_PATH))
-	, Module(tag->getString("moduledir", INSPIRCD_MODULE_PATH))
+	: Config(tag->getString("configdir", INSPIRCD_CONFIG_PATH, 1))
+	, Data(tag->getString("datadir", INSPIRCD_DATA_PATH, 1))
+	, Log(tag->getString("logdir", INSPIRCD_LOG_PATH, 1))
+	, Module(tag->getString("moduledir", INSPIRCD_MODULE_PATH, 1))
 {
 }
 
@@ -304,6 +304,14 @@ void ServerConfig::CrossCheckConnectBlocks(ServerConfig* current)
 			me->maxconnwarn = tag->getBool("maxconnwarn", me->maxconnwarn);
 			me->limit = tag->getUInt("limit", me->limit);
 			me->resolvehostnames = tag->getBool("resolvehostnames", me->resolvehostnames);
+			me->password = tag->getString("password", me->password);
+
+			me->passwordhash = tag->getString("hash", me->passwordhash);
+			if (!me->password.empty() && (me->passwordhash.empty() || stdalgo::string::equalsci(me->passwordhash, "plaintext")))
+			{
+				ServerInstance->Logs->Log("CONNECTCLASS", LOG_DEFAULT, "<connect> tag '%s' at %s contains an plain text password, this is insecure!",
+					name.c_str(), tag->getTagLocation().c_str());
+			}
 
 			std::string ports = tag->getString("port");
 			if (!ports.empty())
@@ -357,7 +365,7 @@ void ServerConfig::Fill()
 		if (!sid.empty() && !InspIRCd::IsSID(sid))
 			throw CoreException(sid + " is not a valid server ID. A server ID must be 3 characters long, with the first character a digit and the next two characters a digit or letter.");
 
-		CaseMapping = options->getString("casemapping", "rfc1459");
+		CaseMapping = options->getString("casemapping", "rfc1459", 1);
 		if (CaseMapping == "ascii")
 			national_case_insensitive_map = ascii_case_insensitive_map;
 		else if (CaseMapping == "rfc1459")
@@ -386,8 +394,8 @@ void ServerConfig::Fill()
 	MaxConn = ConfValue("performance")->getUInt("somaxconn", SOMAXCONN);
 	TimeSkipWarn = ConfValue("performance")->getDuration("timeskipwarn", 2, 0, 30);
 	XLineMessage = options->getString("xlinemessage", options->getString("moronbanner", "You're banned!"));
-	ServerDesc = server->getString("description", "Configure Me");
-	Network = server->getString("network", "Network");
+	ServerDesc = server->getString("description", "Configure Me", 1);
+	Network = server->getString("network", "Network", 1);
 	NetBufferSize = ConfValue("performance")->getInt("netbuffersize", 10240, 1024, 65534);
 	CustomVersion = security->getString("customversion");
 	HideBans = security->getBool("hidebans");
@@ -429,7 +437,7 @@ void ServerConfig::Fill()
 	ReadXLine(this, "badhost", "host", ServerInstance->XLines->GetFactory("K"));
 	ReadXLine(this, "exception", "host", ServerInstance->XLines->GetFactory("E"));
 
-	const std::string restrictbannedusers = options->getString("restrictbannedusers", "yes");
+	const std::string restrictbannedusers = options->getString("restrictbannedusers", "yes", 1);
 	if (stdalgo::string::equalsci(restrictbannedusers, "no"))
 		RestrictBannedUsers = ServerConfig::BUT_NORMAL;
 	else if (stdalgo::string::equalsci(restrictbannedusers, "silent"))

@@ -2,7 +2,7 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2019 Robby <robby@chatbelgie.be>
- *   Copyright (C) 2018-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2018-2020 Sadie Powell <sadie@witchery.services>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -175,7 +175,7 @@ class ModuleAntiCaps : public Module
 
 	void InformUser(Channel* channel, User* user, const std::string& message)
 	{
-		user->WriteNumeric(ERR_CANNOTSENDTOCHAN, channel->name, message + " and was blocked.");
+		user->WriteNumeric(Numerics::CannotSendTo(channel, message + " and was blocked."));
 	}
 
  public:
@@ -190,7 +190,7 @@ class ModuleAntiCaps : public Module
 		ConfigTag* tag = ServerInstance->Config->ConfValue("anticaps");
 
 		uppercase.reset();
-		const std::string upper = tag->getString("uppercase", "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+		const std::string upper = tag->getString("uppercase", "ABCDEFGHIJKLMNOPQRSTUVWXYZ", 1);
 		for (std::string::const_iterator iter = upper.begin(); iter != upper.end(); ++iter)
 			uppercase.set(static_cast<unsigned char>(*iter));
 
@@ -299,7 +299,7 @@ class ModuleAntiCaps : public Module
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides support for punishing users that send capitalised messages", VF_COMMON|VF_VENDOR);
+		return Version("Adds channel mode B (anticaps) which allows channels to block messages which are excessively capitalised.", VF_COMMON|VF_VENDOR);
 	}
 };
 

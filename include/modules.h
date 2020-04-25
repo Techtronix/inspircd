@@ -1,10 +1,11 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
+ *   Copyright (C) 2020 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2019 iwalkalone <iwalkalone69@gmail.com>
  *   Copyright (C) 2013 Adam <Adam@anope.org>
  *   Copyright (C) 2012-2016, 2018 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2012-2013, 2016-2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2012-2013, 2017-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2009 Uli Schlachter <psychon@inspircd.org>
@@ -30,13 +31,11 @@
 
 #pragma once
 
+#include "moduledefs.h"
 #include "dynamic.h"
 #include "base.h"
 #include "ctables.h"
 #include "inspsocket.h"
-#include <string>
-#include <deque>
-#include <sstream>
 #include "timer.h"
 #include "mode.h"
 
@@ -100,19 +99,6 @@ struct ModResult {
 		return MOD_RES_ALLOW;
 	}
 };
-
-/** InspIRCd major version.
- * 1.2 -> 102; 2.1 -> 201; 2.12 -> 212
- */
-#define INSPIRCD_VERSION_MAJ 300
-
-/** InspIRCd API version.
- * If you change any API elements, increment this value. This counter should be
- * reset whenever the major version is changed. Modules can use these two values
- * and numerical comparisons in preprocessor macros if they wish to support
- * multiple versions of InspIRCd in one file.
- */
-#define INSPIRCD_VERSION_API 9
 
 /**
  * This #define allows us to call a method in all
@@ -200,7 +186,7 @@ class CoreExport Version
 	/** Simple module version */
 	Version(const std::string &desc, int flags = VF_NONE);
 
-	/** Complex version information, including linking compatability data */
+	/** Complex version information, including linking compatibility data */
 	Version(const std::string &desc, int flags, const std::string& linkdata);
 };
 
@@ -242,7 +228,7 @@ enum Implementation
 /** Base class for all InspIRCd modules
  *  This class is the base class for InspIRCd modules. All modules must inherit from this class,
  *  its methods will be called when irc server events occur. class inherited from module must be
- *  instantiated by the ModuleFactory class (see relevent section) for the module to be initialised.
+ *  instantiated by the ModuleFactory class (see relevant section) for the module to be initialised.
  */
 class CoreExport Module : public classbase, public usecountbase
 {
@@ -277,7 +263,7 @@ class CoreExport Module : public classbase, public usecountbase
 	/** Module setup
 	 * \exception ModuleException Throwing this class, or any class derived from ModuleException, causes loading of the module to abort.
 	 */
-	virtual void init() {}
+	virtual void init() { }
 
 	/** Clean up prior to destruction
 	 * If you override, you must call this AFTER your module's cleanup
@@ -289,9 +275,8 @@ class CoreExport Module : public classbase, public usecountbase
 	 */
 	virtual ~Module();
 
-	virtual void Prioritize()
-	{
-	}
+	/** Called when the hooks provided by a module need to be prioritised. */
+	virtual void Prioritize() { }
 
 	/** This method is called when you should reload module specific configuration:
 	 * on boot, on a /REHASH and on module load.
@@ -392,7 +377,7 @@ class CoreExport Module : public classbase, public usecountbase
 
 	/** Called on rehash.
 	 * This method is called when a user initiates a module-specific rehash. This can be used to do
-	 * expensive operations (such as reloading SSL certificates) that are not executed on a normal
+	 * expensive operations (such as reloading TLS (SSL) certificates) that are not executed on a normal
 	 * rehash for efficiency. A rehash of this type does not reload the core configuration.
 	 *
 	 * @param user The user performing the rehash.
@@ -462,7 +447,7 @@ class CoreExport Module : public classbase, public usecountbase
 
 	/** Called after a user opers locally.
 	 * This is identical to Module::OnOper(), except it is called after OnOper so that other modules
-	 * can be gauranteed to already have processed the oper-up, for example m_spanningtree has sent
+	 * can be guaranteed to already have processed the oper-up, for example m_spanningtree has sent
 	 * out the OPERTYPE, etc.
 	 * @param user The user who is opering up
 	 * @param opername The name of the oper that the user is opering up to. Only valid locally. Empty string otherwise.
@@ -488,7 +473,7 @@ class CoreExport Module : public classbase, public usecountbase
 	virtual ModResult OnUserPreInvite(User* source,User* dest,Channel* channel, time_t timeout);
 
 	/** Called after a user has been successfully invited to a channel.
-	 * You cannot prevent the invite from occuring using this function, to do that,
+	 * You cannot prevent the invite from occurring using this function, to do that,
 	 * use OnUserPreInvite instead.
 	 * @param source The user who is issuing the INVITE
 	 * @param dest The user being invited
@@ -655,7 +640,7 @@ class CoreExport Module : public classbase, public usecountbase
 
 	/** Called when a 005 numeric is about to be output.
 	 * The module should modify the 005 numeric if needed to indicate its features.
-	* @param tokens The 005 map to be modified if neccessary.
+	* @param tokens The 005 map to be modified if necessary.
 	*/
 	virtual void On005Numeric(std::map<std::string, std::string>& tokens);
 
@@ -681,7 +666,7 @@ class CoreExport Module : public classbase, public usecountbase
 	 * for example loaded "m_killwidgets.so" with "m_makewidgets.so". It is highly
 	 * recommended that modules do *NOT* bail if they cannot satisfy dependencies,
 	 * but instead operate under reduced functionality, unless the dependency is
-	 * absolutely neccessary (e.g. a module that extends the features of another
+	 * absolutely necessary (e.g. a module that extends the features of another
 	 * module).
 	 * @param mod A pointer to the new module
 	 */
@@ -694,7 +679,7 @@ class CoreExport Module : public classbase, public usecountbase
 	 * for example loaded "m_killwidgets.so" with "m_makewidgets.so". It is highly
 	 * recommended that modules do *NOT* bail if they cannot satisfy dependencies,
 	 * but instead operate under reduced functionality, unless the dependency is
-	 * absolutely neccessary (e.g. a module that extends the features of another
+	 * absolutely necessary (e.g. a module that extends the features of another
 	 * module).
 	 * @param mod Pointer to the module being unloaded (still valid)
 	 */
@@ -702,18 +687,18 @@ class CoreExport Module : public classbase, public usecountbase
 
 	/** Called once every five seconds for background processing.
 	 * This timer can be used to control timed features. Its period is not accurate
-	 * enough to be used as a clock, but it is gauranteed to be called at least once in
+	 * enough to be used as a clock, but it is guaranteed to be called at least once in
 	 * any five second period, directly from the main loop of the server.
 	 * @param curtime The current timer derived from time(2)
 	 */
 	virtual void OnBackgroundTimer(time_t curtime);
 
 	/** Called whenever any command is about to be executed.
-	 * This event occurs for all registered commands, wether they are registered in the core,
+	 * This event occurs for all registered commands, whether they are registered in the core,
 	 * or another module, and for invalid commands. Invalid commands may only be sent to this
 	 * function when the value of validated is false. By returning 1 from this method you may prevent the
 	 * command being executed. If you do this, no output is created by the core, and it is
-	 * down to your module to produce any output neccessary.
+	 * down to your module to produce any output necessary.
 	 * Note that unless you return 1, you should not destroy any structures (e.g. by using
 	 * InspIRCd::QuitUser) otherwise when the command's handler function executes after your
 	 * method returns, it will be passed an invalid pointer to the user object and crash!)
@@ -727,7 +712,7 @@ class CoreExport Module : public classbase, public usecountbase
 	virtual ModResult OnPreCommand(std::string& command, CommandBase::Params& parameters, LocalUser* user, bool validated);
 
 	/** Called after any command has been executed.
-	 * This event occurs for all registered commands, wether they are registered in the core,
+	 * This event occurs for all registered commands, whether they are registered in the core,
 	 * or another module, but it will not occur for invalid commands (e.g. ones which do not
 	 * exist within the command table). The result code returned by the command handler is
 	 * provided.
@@ -784,7 +769,7 @@ class CoreExport Module : public classbase, public usecountbase
 	virtual ModResult OnUserRegister(LocalUser* user);
 
 	/** Called whenever a user joins a channel, to determine if invite checks should go ahead or not.
-	 * This method will always be called for each join, wether or not the channel is actually +i, and
+	 * This method will always be called for each join, whether or not the channel is actually +i, and
 	 * determines the outcome of an if statement around the whole section of invite checking code.
 	 * return 1 to explicitly allow the join to go ahead or 0 to ignore the event.
 	 * @param user The user joining the channel
@@ -807,7 +792,7 @@ class CoreExport Module : public classbase, public usecountbase
 	virtual ModResult OnRawMode(User* user, Channel* chan, ModeHandler* mh, const std::string& param, bool adding);
 
 	/** Called whenever a user joins a channel, to determine if key checks should go ahead or not.
-	 * This method will always be called for each join, wether or not the channel is actually +k, and
+	 * This method will always be called for each join, whether or not the channel is actually +k, and
 	 * determines the outcome of an if statement around the whole section of key checking code.
 	 * if the user specified no key, the keygiven string will be a valid but empty value.
 	 * return 1 to explicitly allow the join to go ahead or 0 to ignore the event.
@@ -819,7 +804,7 @@ class CoreExport Module : public classbase, public usecountbase
 	virtual ModResult OnCheckKey(User* user, Channel* chan, const std::string &keygiven);
 
 	/** Called whenever a user joins a channel, to determine if channel limit checks should go ahead or not.
-	 * This method will always be called for each join, wether or not the channel is actually +l, and
+	 * This method will always be called for each join, whether or not the channel is actually +l, and
 	 * determines the outcome of an if statement around the whole section of channel limit checking code.
 	 * return 1 to explicitly allow the join to go ahead or 0 to ignore the event.
 	 * @param user The user joining the channel
@@ -965,7 +950,6 @@ class CoreExport Module : public classbase, public usecountbase
 
 	/** Called before a server shuts down.
 	 * @param reason The reason the server is shutting down.
-	 * @param restart Whether the server is restarting.
 	 */
 	virtual void OnShutdown(const std::string& reason);
 };
@@ -1074,17 +1058,17 @@ class CoreExport ModuleManager : public fakederef<ModuleManager>
 	void SetPriority(Module* mod, Priority s);
 
 	/** Attach an event to a module.
-	 * You may later detatch the event with ModuleManager::Detach().
-	 * If your module is unloaded, all events are automatically detatched.
+	 * You may later detach the event with ModuleManager::Detach().
+	 * If your module is unloaded, all events are automatically detached.
 	 * @param i Event type to attach
 	 * @param mod Module to attach event to
 	 * @return True if the event was attached
 	 */
 	bool Attach(Implementation i, Module* mod);
 
-	/** Detatch an event from a module.
+	/** Detach an event from a module.
 	 * This is not required when your module unloads, as the core will
-	 * automatically detatch your module from all events it is attached to.
+	 * automatically detach your module from all events it is attached to.
 	 * @param i Event type to detach
 	 * @param mod Module to detach event from
 	 * @return True if the event was detached
@@ -1190,24 +1174,3 @@ class CoreExport ModuleManager : public fakederef<ModuleManager>
 	 */
 	void DelReferent(ServiceProvider* service);
 };
-
-/** Do not mess with these functions unless you know the C preprocessor
- * well enough to explain why they are needed. The order is important.
- */
-#define MODULE_INIT_STR MODULE_INIT_STR_FN_2(MODULE_INIT_SYM)
-#define MODULE_INIT_STR_FN_2(x) MODULE_INIT_STR_FN_1(x)
-#define MODULE_INIT_STR_FN_1(x) #x
-#define MODULE_INIT_SYM MODULE_INIT_SYM_FN_2(INSPIRCD_VERSION_MAJ, INSPIRCD_VERSION_API)
-#define MODULE_INIT_SYM_FN_2(x,y) MODULE_INIT_SYM_FN_1(x,y)
-#define MODULE_INIT_SYM_FN_1(x,y) inspircd_module_ ## x ## _ ## y
-
-/** This definition is used as shorthand for the various classes
- * and functions needed to make a module loadable by the OS.
- * It defines the class factory and external init_module function.
- */
-#define MODULE_INIT(y) \
-	extern "C" DllExport Module * MODULE_INIT_SYM() \
-	{ \
-		return new y; \
-	} \
-	extern "C" DllExport const char inspircd_src_version[] = INSPIRCD_VERSION;

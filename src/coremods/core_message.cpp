@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2017-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2017-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013, 2017-2018 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009 Daniel De Graaf <danieldg@inspircd.org>
@@ -128,7 +128,7 @@ namespace
 	{
 		// If the source is local and was not sending a CTCP reply then update their idle time.
 		LocalUser* lsource = IS_LOCAL(source);
-		if (lsource && (msgdetails.type != MSG_NOTICE || !msgdetails.IsCTCP()))
+		if (lsource && msgdetails.update_idle && (msgdetails.type != MSG_NOTICE || !msgdetails.IsCTCP()))
 			lsource->idle_lastmsg = ServerInstance->Time();
 
 		// Inform modules that a message was sent.
@@ -408,7 +408,7 @@ class ModuleCoreMessage : public Module
 		if (chan->IsModeSet(noextmsgmode) && !chan->HasUser(user))
 		{
 			// The noextmsg mode is set and the user is not in the channel.
-			user->WriteNumeric(ERR_CANNOTSENDTOCHAN, chan->name, "Cannot send to channel (no external messages)");
+			user->WriteNumeric(Numerics::CannotSendTo(chan, "external messages", *noextmsgmode));
 			return MOD_RES_DENY;
 		}
 
@@ -416,7 +416,7 @@ class ModuleCoreMessage : public Module
 		if (no_chan_priv && chan->IsModeSet(moderatedmode))
 		{
 			// The moderated mode is set and the user has no status rank.
-			user->WriteNumeric(ERR_CANNOTSENDTOCHAN, chan->name, "Cannot send to channel (+m is set)");
+			user->WriteNumeric(Numerics::CannotSendTo(chan, "messages", *moderatedmode));
 			return MOD_RES_DENY;
 		}
 
@@ -424,7 +424,7 @@ class ModuleCoreMessage : public Module
 		{
 			// The user is banned in the channel and restrictbannedusers is enabled.
 			if (ServerInstance->Config->RestrictBannedUsers == ServerConfig::BUT_RESTRICT_NOTIFY)
-				user->WriteNumeric(ERR_CANNOTSENDTOCHAN, chan->name, "Cannot send to channel (you're banned)");
+				user->WriteNumeric(Numerics::CannotSendTo(chan, "You cannot send messages to this channel whilst banned."));
 			return MOD_RES_DENY;
 		}
 

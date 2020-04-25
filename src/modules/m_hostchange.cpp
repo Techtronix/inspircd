@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2013, 2018-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2018-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2014 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009 Robin Burchell <robin+git@viroteck.net>
@@ -176,7 +176,9 @@ private:
 			}
 		}
 
-		const std::string hmap = ServerInstance->Config->ConfValue("hostname")->getString("charmap", "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.-_/0123456789");
+		ConfigTag* tag = ServerInstance->Config->ConfValue("hostname");
+		const std::string hmap = tag->getString("charmap", "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.-_/0123456789", 1);
+
 		hostmap.reset();
 		for (std::string::const_iterator iter = hmap.begin(); iter != hmap.end(); ++iter)
 			hostmap.set(static_cast<unsigned char>(*iter));
@@ -185,7 +187,7 @@ private:
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides rule-based masking of user hostnames", VF_VENDOR);
+		return Version("Allows the server administrator to define custom rules for applying hostnames to users.", VF_VENDOR);
 	}
 
 	void OnUserConnect(LocalUser* user) CXX11_OVERRIDE

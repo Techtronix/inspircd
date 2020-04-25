@@ -2,7 +2,7 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2013-2016 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2013, 2017-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2010 Craig Edwards <brain@inspircd.org>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
@@ -150,7 +150,8 @@ class CommandCheck : public Command
 		: Command(parent,"CHECK", 1)
 		, snomaskmode(parent, "snomask")
 	{
-		flags_needed = 'o'; syntax = "<nick>|<ipmask>|<hostmask>|<channel> [<servername>]";
+		flags_needed = 'o';
+		syntax = "<nick>|<ipmask>|<hostmask>|<channel> [<servername>]";
 	}
 
 	CmdResult Handle(User* user, const Params& parameters) CXX11_OVERRIDE
@@ -326,7 +327,7 @@ class ModuleCheck : public Module
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides the CHECK command to view user, channel, IP address or hostname information", VF_VENDOR|VF_OPTCOMMON);
+		return Version("Adds the /CHECK command which allows server operators to look up details about a channel, user, IP address, or hostname.", VF_VENDOR|VF_OPTCOMMON);
 	}
 };
 

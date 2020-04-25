@@ -2,7 +2,7 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2018 linuxdaemon <linuxdaemon.irc@gmail.com>
- *   Copyright (C) 2013, 2017-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2013 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
@@ -26,23 +26,18 @@
 #include "inspircd.h"
 #include "listmode.h"
 
-/*
- * Written by Om <om@inspircd.org>, April 2005.
- * Based on m_exception, which was originally based on m_chanprotect and m_silence
- *
- * The +I channel mode takes a nick!ident@host, glob patterns allowed,
- * and if a user matches an entry on the +I list then they can join the channel,
- * ignoring if +i is set on the channel
- * Now supports CIDR and IP addresses -- Brain
- */
+enum
+{
+	// From RFC 2812.
+	RPL_INVEXLIST = 346,
+	RPL_ENDOFINVEXLIST = 347
+};
 
-/** Handles channel mode +I
- */
 class InviteException : public ListModeBase
 {
  public:
 	InviteException(Module* Creator)
-		: ListModeBase(Creator, "invex", 'I', "End of Channel Invite Exception List", 346, 347, true)
+		: ListModeBase(Creator, "invex", 'I', "End of Channel Invite Exception List", RPL_INVEXLIST, RPL_ENDOFINVEXLIST, true)
 	{
 		syntax = "<mask>";
 	}
@@ -94,7 +89,7 @@ public:
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides channel mode +I, invite exceptions", VF_VENDOR);
+		return Version("Adds channel mode I (invex) which allows channel operators to exempt user masks from the i (inviteonly) channel mode.", VF_VENDOR);
 	}
 };
 

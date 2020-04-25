@@ -1,11 +1,11 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
+ *   Copyright (C) 2019-2020 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2019 linuxdaemon <linuxdaemon.irc@gmail.com>
- *   Copyright (C) 2019 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2013 Daniel Vassdal <shutter@canternet.org>
  *   Copyright (C) 2012-2016, 2018 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2012-2013, 2016-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2012-2013, 2016-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012, 2018-2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2012 DjSlash <djslash@djslash.org>
  *   Copyright (C) 2012 ChrisTX <xpipe@hotmail.de>
@@ -70,7 +70,7 @@ enum UserType {
 	USERTYPE_SERVER = 3
 };
 
-/** Holds information relevent to &lt;connect allow&gt; and &lt;connect deny&gt; tags in the config file.
+/** Holds information relevant to &lt;connect allow&gt; and &lt;connect deny&gt; tags in the config file.
  */
 struct CoreExport ConnectClass : public refcountbase
 {
@@ -148,6 +148,12 @@ struct CoreExport ConnectClass : public refcountbase
 	 * If non-empty the server ports which this user has to be using
 	 */
 	insp::flat_set<int> ports;
+
+	/** If non-empty then the password a user must specify in PASS to be assigned to this class. */
+	std::string password;
+
+	/** If non-empty then the hash algorithm that the password field is hashed with. */
+	std::string passwordhash;
 
 	/** Create a new connect class with no settings.
 	 */
@@ -355,13 +361,13 @@ class CoreExport User : public Extensible
 
 	/** If this is set to true, then all socket operations for the user
 	 * are dropped into the bit-bucket.
-	 * This value is set by QuitUser, and is not needed seperately from that call.
+	 * This value is set by QuitUser, and is not needed separately from that call.
 	 * Please note that setting this value alone will NOT cause the user to quit.
 	 */
 	unsigned int quitting:1;
 
 	/** What type of user is this? */
-	const UserType usertype:2;
+	const unsigned int usertype:2;
 
 	/** Get client IP string from sockaddr, using static internal buffer
 	 * @return The IP string
@@ -483,6 +489,12 @@ class CoreExport User : public Extensible
 	 * @return True if the user can set or unset this mode.
 	 */
 	virtual bool HasModePermission(const ModeHandler* mh) const;
+
+	/** Determines whether this user can set the specified snomask.
+	 * @param chr The server notice mask character to look up.
+	 * @return True if the user can set the specified snomask; otherwise, false.
+	 */
+	virtual bool HasSnomaskPermission(char chr) const;
 
 	/** Creates a usermask with real host.
 	 * Takes a buffer to use and fills the given buffer with the hostmask in the format user\@host
@@ -686,10 +698,10 @@ class CoreExport User : public Extensible
 	virtual ~User();
 	CullResult cull() CXX11_OVERRIDE;
 
-	/** @copydoc Serializable::Deserialize. */
+	/** @copydoc Serializable::Deserialize */
 	bool Deserialize(Data& data) CXX11_OVERRIDE;
 
-	/** @copydoc Serializable::Deserialize. */
+	/** @copydoc Serializable::Deserialize */
 	bool Serialize(Serializable::Data& data) CXX11_OVERRIDE;
 };
 
@@ -873,6 +885,9 @@ class CoreExport LocalUser : public User, public insp::intrusive_list_node<Local
 	 */
 	bool HasModePermission(const ModeHandler* mh) const CXX11_OVERRIDE;
 
+	/** @copydoc User::HasSnomaskPermission */
+	bool HasSnomaskPermission(char chr) const CXX11_OVERRIDE;
+
 	/** Change nick to uuid, unset REG_NICK and send a nickname overruled numeric.
 	 * This is called when another user (either local or remote) needs the nick of this user and this user
 	 * isn't registered.
@@ -890,10 +905,10 @@ class CoreExport LocalUser : public User, public insp::intrusive_list_node<Local
 	 */
 	void Send(ClientProtocol::EventProvider& protoevprov, ClientProtocol::Message& msg);
 
-	/** @copydoc Serializable::Deserialize. */
+	/** @copydoc Serializable::Deserialize */
 	bool Deserialize(Data& data) CXX11_OVERRIDE;
 
-	/** @copydoc Serializable::Deserialize. */
+	/** @copydoc Serializable::Deserialize */
 	bool Serialize(Serializable::Data& data) CXX11_OVERRIDE;
 };
 

@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2013, 2017-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2013 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
@@ -26,27 +26,22 @@
 #include "inspircd.h"
 #include "listmode.h"
 
-/* Written by Om<om@inspircd.org>, April 2005. */
-/* Rewritten to use the listmode utility by Om, December 2005 */
-/* Adapted from m_exception, which was originally based on m_chanprotect and m_silence */
+enum
+{
+	// From RFC 2812.
+	RPL_EXCEPTLIST = 348,
+	RPL_ENDOFEXCEPTLIST = 349
+};
 
-// The +e channel mode takes a nick!ident@host, glob patterns allowed,
-// and if a user matches an entry on the +e list then they can join the channel, overriding any (+b) bans set on them
-// Now supports CIDR and IP addresses -- Brain
-
-
-/** Handles +e channel mode
- */
 class BanException : public ListModeBase
 {
  public:
 	BanException(Module* Creator)
-		: ListModeBase(Creator, "banexception", 'e', "End of Channel Exception List", 348, 349, true)
+		: ListModeBase(Creator, "banexception", 'e', "End of Channel Exception List", RPL_EXCEPTLIST, RPL_ENDOFEXCEPTLIST, true)
 	{
 		syntax = "<mask>";
 	}
 };
-
 
 class ModuleBanException : public Module
 {
@@ -110,7 +105,7 @@ class ModuleBanException : public Module
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides channel mode +e, ban exceptions", VF_VENDOR);
+		return Version("Adds channel mode e (banexception) which allows channel operators to exempt user masks from the b (ban) channel mode.", VF_VENDOR);
 	}
 };
 

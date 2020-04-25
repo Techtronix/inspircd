@@ -2,8 +2,8 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2019 linuxdaemon <linuxdaemon.irc@gmail.com>
- *   Copyright (C) 2013, 2017-2019 Sadie Powell <sadie@witchery.services>
- *   Copyright (C) 2012-2014, 2016 Attila Molnar <attilamolnar@hush.com>
+ *   Copyright (C) 2013, 2017-2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2012-2014 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2018 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2007 Dennis Friis <peavey@inspircd.org>
@@ -27,15 +27,20 @@
 #include "listmode.h"
 #include "modules/exemption.h"
 
-/** Handles channel mode +g
- */
+enum
+{
+	// InspIRCd-specific.
+	RPL_ENDOFSPAMFILTER = 940,
+	RPL_SPAMFILTER = 941
+};
+
 class ChanFilter : public ListModeBase
 {
  public:
 	unsigned long maxlen;
 
 	ChanFilter(Module* Creator)
-		: ListModeBase(Creator, "filter", 'g', "End of channel spamfilter list", 941, 940, false)
+		: ListModeBase(Creator, "filter", 'g', "End of channel spamfilter list", RPL_SPAMFILTER, RPL_ENDOFSPAMFILTER, false)
 	{
 		syntax = "<pattern>";
 	}
@@ -124,9 +129,10 @@ class ModuleChanFilter : public Module
 		}
 
 		if (hidemask)
-			user->WriteNumeric(ERR_CANNOTSENDTOCHAN, chan->name, "Cannot send to channel (your part message contained a censored word)");
+			user->WriteNumeric(Numerics::CannotSendTo(chan, "Your part message contained a banned phrase and was blocked."));
 		else
-			user->WriteNumeric(ERR_CANNOTSENDTOCHAN, chan->name, "Cannot send to channel (your part message contained a censored word: " + match->mask + ")");
+			user->WriteNumeric(Numerics::CannotSendTo(chan, InspIRCd::Format("Your part message contained a banned phrase (%s) and was blocked.",
+				match->mask.c_str())));
 	}
 
 	ModResult OnUserPreMessage(User* user, const MessageTarget& target, MessageDetails& details) CXX11_OVERRIDE
@@ -145,9 +151,10 @@ class ModuleChanFilter : public Module
 			}
 
 			if (hidemask)
-				user->WriteNumeric(ERR_CANNOTSENDTOCHAN, chan->name, "Cannot send to channel (your message contained a censored word)");
+				user->WriteNumeric(Numerics::CannotSendTo(chan, "Your message to this channel contained a banned phrase and was blocked."));
 			else
-				user->WriteNumeric(ERR_CANNOTSENDTOCHAN, chan->name, "Cannot send to channel (your message contained a censored word: " + match->mask + ")");
+				user->WriteNumeric(Numerics::CannotSendTo(chan, InspIRCd::Format("Your message to this channel contained a banned phrase (%s) and was blocked.",
+					match->mask.c_str())));
 
 			return MOD_RES_DENY;
 		}
@@ -161,7 +168,7 @@ class ModuleChanFilter : public Module
 		if (cf.maxlen != 35)
 			maxfilterlen.assign(ConvToStr(cf.maxlen));
 
-		return Version("Provides channel-specific censor lists (like mode +G but varies from channel to channel)", VF_VENDOR, maxfilterlen);
+		return Version("Adds channel mode g (filter) which allows channel operators to define glob patterns for inappropriate phrases that are not allowed to be used in the channel.", VF_VENDOR, maxfilterlen);
 	}
 };
 

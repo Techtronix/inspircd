@@ -1,6 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
+ *   Copyright (C) 2020 Joel Sing <joel@sing.id.au>
  *   Copyright (C) 2019 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2014-2015 Attila Molnar <attilamolnar@hush.com>
@@ -118,6 +119,9 @@ class BindInterface : public LDAPInterface
 
 		if (!checkingAttributes && requiredattributes.empty())
 		{
+			if (verbose)
+				ServerInstance->SNO->WriteToSnoMask('c', "Successful connection from %s (dn=%s)", user->GetFullRealHost().c_str(), DN.c_str());
+
 			// We're done, there are no attributes to check
 			SetVHost(user, DN);
 			authed->set(user, 1);
@@ -133,6 +137,9 @@ class BindInterface : public LDAPInterface
 			{
 				// Only one has to pass
 				passed = true;
+
+				if (verbose)
+					ServerInstance->SNO->WriteToSnoMask('c', "Successful connection from %s (dn=%s)", user->GetFullRealHost().c_str(), DN.c_str());
 
 				SetVHost(user, DN);
 				authed->set(user, 1);
@@ -171,7 +178,7 @@ class BindInterface : public LDAPInterface
 		if (!attrCount)
 		{
 			if (verbose)
-				ServerInstance->SNO->WriteToSnoMask('c', "Forbidden connection from %s (unable to validate attributes)", user->GetFullRealHost().c_str());
+				ServerInstance->SNO->WriteToSnoMask('c', "Forbidden connection from %s (dn=%s) (unable to validate attributes)", user->GetFullRealHost().c_str(), DN.c_str());
 			ServerInstance->Users->QuitUser(user, killreason);
 			delete this;
 		}
@@ -437,7 +444,7 @@ public:
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Allow/deny connections based upon answers from an LDAP server", VF_VENDOR);
+		return Version("Allows connecting users to be authenticated against an LDAP database.", VF_VENDOR);
 	}
 };
 

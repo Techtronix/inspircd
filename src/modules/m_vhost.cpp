@@ -2,7 +2,7 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2018 linuxdaemon <linuxdaemon.irc@gmail.com>
- *   Copyright (C) 2013, 2018 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2018, 2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2012 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2009 Daniel De Graaf <danieldg@inspircd.org>
@@ -103,13 +103,21 @@ class ModuleVHost : public Module
 			std::string mask = tag->getString("host");
 			if (mask.empty())
 				throw ModuleException("<vhost:host> is empty! at " + tag->getTagLocation());
+
 			std::string username = tag->getString("user");
 			if (username.empty())
 				throw ModuleException("<vhost:user> is empty! at " + tag->getTagLocation());
+
 			std::string pass = tag->getString("pass");
 			if (pass.empty())
 				throw ModuleException("<vhost:pass> is empty! at " + tag->getTagLocation());
-			std::string hash = tag->getString("hash");
+
+			const std::string hash = tag->getString("hash", "plaintext", 1);
+			if (stdalgo::string::equalsci(hash, "plaintext"))
+			{
+				ServerInstance->Logs->Log(MODNAME, LOG_DEFAULT, "<vhost> tag for %s at %s contains an plain text password, this is insecure!",
+					username.c_str(), tag->getTagLocation().c_str());
+			}
 
 			CustomVhost vhost(username, pass, hash, mask);
 			newhosts.insert(std::make_pair(username, vhost));
@@ -120,7 +128,7 @@ class ModuleVHost : public Module
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides masking of user hostnames via the VHOST command", VF_VENDOR);
+		return Version("Allows the server administrator to define accounts which can grant a custom virtual host.", VF_VENDOR);
 	}
 };
 

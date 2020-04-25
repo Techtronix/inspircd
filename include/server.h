@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2019-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2018 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2014 Attila Molnar <attilamolnar@hush.com>
  *
@@ -40,7 +40,7 @@ class CoreExport Server : public classbase
 	 */
 	bool uline;
 
-	/** True if this server is a silent uline, i.e. silent="true" in the uline block
+	/** True if this server is a silent uline, i.e. silent="yes" in the uline block
 	 */
 	bool silentuline;
 

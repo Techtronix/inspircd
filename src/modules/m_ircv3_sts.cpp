@@ -1,7 +1,8 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2017-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2020 Matt Schatz <genius3000@g3k.solutions>
+ *   Copyright (C) 2017-2020 Sadie Powell <sadie@witchery.services>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -70,6 +71,7 @@ class STSCap : public Cap::Capability
 	STSCap(Module* mod)
 		: Cap::Capability(mod, "sts")
 	{
+		DisableAutoRegister();
 	}
 
 	~STSCap()
@@ -127,7 +129,7 @@ class ModuleIRCv3STS : public Module
  private:
 	STSCap cap;
 
-	// The IRCv3 STS specification requires that the server is listening using SSL using a valid certificate.
+	// The IRCv3 STS specification requires that the server is listening using TLS (SSL) using a valid certificate.
 	bool HasValidSSLPort(unsigned int port)
 	{
 		for (std::vector<ListenSocket*>::const_iterator iter = ServerInstance->ports.begin(); iter != ServerInstance->ports.end(); ++iter)
@@ -139,7 +141,7 @@ class ModuleIRCv3STS : public Module
 			if (saport != port)
 				continue;
 
-			// Is this listener using SSL?
+			// Is this listener using TLS (SSL)?
 			if (ls->bind_tag->getString("ssl").empty())
 				continue;
 
@@ -170,14 +172,17 @@ class ModuleIRCv3STS : public Module
 		if (!HasValidSSLPort(port))
 			throw ModuleException("<sts:port> must be a TLS port, at " + tag->getTagLocation());
 
-		unsigned long duration = tag->getDuration("duration", 60*60*24*30*2);
+		unsigned long duration = tag->getDuration("duration", 5*60, 60);
 		bool preload = tag->getBool("preload");
 		cap.SetPolicy(host, duration, port, preload);
+
+		if (!cap.IsRegistered())
+			ServerInstance->Modules->AddService(cap);
 	}
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides IRCv3 Strict Transport Security policy advertisement", VF_OPTCOMMON|VF_VENDOR);
+		return Version("Adds support for the IRCv3 Strict Transport Security specification.", VF_OPTCOMMON|VF_VENDOR);
 	}
 };
 

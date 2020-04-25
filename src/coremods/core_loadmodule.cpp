@@ -2,7 +2,7 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2018 linuxdaemon <linuxdaemon.irc@gmail.com>
- *   Copyright (C) 2017-2018 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2017-2018, 2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013-2014, 2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009 Daniel De Graaf <danieldg@inspircd.org>
@@ -33,7 +33,13 @@ class CommandLoadmodule : public Command
  public:
 	/** Constructor for loadmodule.
 	 */
-	CommandLoadmodule ( Module* parent) : Command(parent,"LOADMODULE",1,1) { flags_needed='o'; syntax = "<modulename>"; }
+	CommandLoadmodule(Module* parent)
+		: Command(parent,"LOADMODULE", 1, 1)
+	{
+		flags_needed = 'o';
+		syntax = "<modulename>";
+	}
+
 	/** Handle command.
 	 * @param parameters The parameters to the command
 	 * @param user The user issuing the command

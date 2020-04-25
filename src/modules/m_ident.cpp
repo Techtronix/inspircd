@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2013, 2018-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2018-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2015 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012-2013 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
@@ -61,7 +61,7 @@ enum
  * our ident lookup class that is outside of this module, or out-
  * side of the control of the class. There are no timers, internal
  * events, or such, which will cause the socket to be deleted,
- * queued for deletion, etc. In fact, theres not even any queueing!
+ * queued for deletion, etc. In fact, there's not even any queueing!
  *
  * Using this framework we have a much more stable module.
  *
@@ -113,8 +113,7 @@ class IdentRequestSocket : public EventHandler
 		age = ServerInstance->Time();
 
 		SetFd(socket(user->server_sa.family(), SOCK_STREAM, 0));
-
-		if (GetFd() == -1)
+		if (!HasFd())
 			throw ModuleException("Could not create socket");
 
 		done = false;
@@ -184,10 +183,10 @@ class IdentRequestSocket : public EventHandler
 
 	void Close()
 	{
-		/* Remove ident socket from engine, and close it, but dont detatch it
+		/* Remove ident socket from engine, and close it, but dont detach it
 		 * from its parent user class, or attempt to delete its memory.
 		 */
-		if (GetFd() > -1)
+		if (HasFd())
 		{
 			ServerInstance->Logs->Log(MODNAME, LOG_DEBUG, "Close ident socket %d", GetFd());
 			SocketEngine::Close(this);
@@ -285,7 +284,7 @@ class ModuleIdent : public Module
 		// Check that they haven't been prefixed already.
 		if (user->ident[0] == '~')
 			return;
-		
+
 		// All invalid usernames are prefixed with a tilde.
 		std::string newident(user->ident);
 		newident.insert(newident.begin(), '~');
@@ -307,7 +306,7 @@ class ModuleIdent : public Module
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides support for RFC1413 ident lookups", VF_VENDOR);
+		return Version("Allows the usernames (idents) of users to be looked up using the RFC 1413 Identification Protocol.", VF_VENDOR);
 	}
 
 	void ReadConfig(ConfigStatus& status) CXX11_OVERRIDE

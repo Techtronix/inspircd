@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2017-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2017-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2014-2015 Attila Molnar <attilamolnar@hush.com>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
@@ -49,6 +49,13 @@ namespace Invite
 		ANNOUNCE_DYNAMIC
 	};
 }
+
+enum
+{
+	// From RFC 1459.
+	RPL_BANLIST = 367,
+	RPL_ENDOFBANLIST = 368
+};
 
 /** Handle /INVITE.
  */
@@ -164,7 +171,7 @@ class ModeChannelBan : public ListModeBase
 {
  public:
 	ModeChannelBan(Module* Creator)
-		: ListModeBase(Creator, "ban", 'b', "End of channel ban list", 367, 368, true)
+		: ListModeBase(Creator, "ban", 'b', "End of channel ban list", RPL_BANLIST, RPL_ENDOFBANLIST, true)
 	{
 		syntax = "<mask>";
 	}

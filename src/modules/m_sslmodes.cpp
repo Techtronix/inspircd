@@ -1,10 +1,11 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2013, 2017-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2020 Matt Schatz <genius3000@g3k.solutions>
+ *   Copyright (C) 2013, 2017-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013 Shawn Smith <ShawnSmith0828@gmail.com>
  *   Copyright (C) 2012-2014 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
+ *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2009 Uli Schlachter <psychon@inspircd.org>
  *   Copyright (C) 2008 Robin Burchell <robin+git@viroteck.net>
@@ -60,7 +61,7 @@ class SSLMode : public ModeHandler
 				{
 					if (!API)
 					{
-						source->WriteNumeric(ERR_ALLMUSTSSL, channel->name, "Unable to determine whether all members of the channel are connected via SSL");
+						source->WriteNumeric(ERR_ALLMUSTSSL, channel->name, "Unable to determine whether all members of the channel are connected via TLS (SSL)");
 						return MODEACTION_DENY;
 					}
 
@@ -75,7 +76,7 @@ class SSLMode : public ModeHandler
 
 					if (nonssl)
 					{
-						source->WriteNumeric(ERR_ALLMUSTSSL, channel->name, InspIRCd::Format("All members of the channel must be connected via SSL (%lu/%lu are non-SSL)",
+						source->WriteNumeric(ERR_ALLMUSTSSL, channel->name, InspIRCd::Format("All members of the channel must be connected via TLS (SSL) (%lu/%lu are non-TLS (SSL))",
 							nonssl, static_cast<unsigned long>(userlist.size())));
 						return MODEACTION_DENY;
 					}
@@ -167,13 +168,13 @@ class ModuleSSLModes
 		{
 			if (!api)
 			{
-				user->WriteNumeric(ERR_SECUREONLYCHAN, cname, "Cannot join channel; unable to determine if you are an SSL user (+z is set)");
+				user->WriteNumeric(ERR_SECUREONLYCHAN, cname, "Cannot join channel; unable to determine if you are a TLS (SSL) user (+z is set)");
 				return MOD_RES_DENY;
 			}
 
 			if (!api->GetCertificate(user))
 			{
-				user->WriteNumeric(ERR_SECUREONLYCHAN, cname, "Cannot join channel; SSL users only (+z is set)");
+				user->WriteNumeric(ERR_SECUREONLYCHAN, cname, "Cannot join channel; TLS (SSL) users only (+z is set)");
 				return MOD_RES_DENY;
 			}
 		}
@@ -188,7 +189,7 @@ class ModuleSSLModes
 
 		User* target = msgtarget.Get<User>();
 
-		/* If one or more of the parties involved is a ulined service, we wont stop it. */
+		/* If one or more of the parties involved is a ulined service, we won't stop it. */
 		if (user->server->IsULine() || target->server->IsULine())
 			return MOD_RES_PASSTHRU;
 
@@ -198,7 +199,7 @@ class ModuleSSLModes
 			if (!api || !api->GetCertificate(user))
 			{
 				/* The sending user is not on an SSL connection */
-				user->WriteNumeric(ERR_CANTSENDTOUSER, target->nick, "You are not permitted to send private messages to this user (+z is set)");
+				user->WriteNumeric(Numerics::CannotSendTo(target, "messages", &sslquery));
 				return MOD_RES_DENY;
 			}
 		}
@@ -207,7 +208,7 @@ class ModuleSSLModes
 		{
 			if (!api || !api->GetCertificate(target))
 			{
-				user->WriteNumeric(ERR_CANTSENDTOUSER, target->nick, "You must remove user mode 'z' before you are able to send private messages to a non-SSL user.");
+				user->WriteNumeric(Numerics::CannotSendTo(target, "messages", &sslquery, true));
 				return MOD_RES_DENY;
 			}
 		}
@@ -243,7 +244,7 @@ class ModuleSSLModes
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides user and channel mode +z to allow for SSL-only channels, queries and notices", VF_VENDOR);
+		return Version("Adds channel mode z (sslonly) which prevents users who are not connecting using TLS (SSL) from joining the channel and user mode z (sslqueries) to prevent messages from non-TLS (SSL) users.", VF_VENDOR);
 	}
 };
 
