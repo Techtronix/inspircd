@@ -1,6 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
+ *   Copyright (C) 2020 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2019 linuxdaemon <linuxdaemon.irc@gmail.com>
  *   Copyright (C) 2013, 2015-2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012-2013, 2017-2019 Sadie Powell <sadie@witchery.services>
@@ -365,6 +366,11 @@ class CoreExport StreamSocket : public EventHandler
 	 * @return IOHook belonging to the module or NULL if the module haven't attached an IOHook to this socket
 	 */
 	IOHook* GetModHook(Module* mod) const;
+
+	/** Get the last IOHook attached to this socket
+	 * @return The last IOHook attached to this socket or NULL if no IOHooks are attached
+	 */
+	IOHook* GetLastHook() const;
 };
 /**
  * BufferedSocket is an extendable socket class which modules

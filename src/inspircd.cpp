@@ -1,6 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
+ *   Copyright (C) 2020 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2018 Chris Novakovic <chrisnovakovic@users.noreply.github.com>
  *   Copyright (C) 2013, 2017-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013 Adam <Adam@anope.org>
@@ -387,7 +388,7 @@ namespace
 
 			std::cout << con_bright << "Hints:" << con_reset << std::endl
 				<< "- For TCP/IP listeners try using a public IP address in <bind:address> instead" << std::endl
-				<< "  of * of leaving it blank." << std::endl
+				<< "  of * or leaving it blank." << std::endl
 				<< "- For UNIX socket listeners try enabling <bind:rewrite> to replace old sockets." << std::endl;
 		}
 	}

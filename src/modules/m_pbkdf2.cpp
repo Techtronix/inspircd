@@ -1,8 +1,8 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
+ *   Copyright (C) 2018, 2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2018 linuxdaemon <linuxdaemon.irc@gmail.com>
- *   Copyright (C) 2018 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2014, 2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2014 Daniel Vassdal <shutter@canternet.org>
  *
@@ -126,7 +126,7 @@ class PBKDF2Provider : public HashProvider
 			return false;
 
 		std::string cmp = PBKDF2(input, hs.salt, hs.iterations, hs.length);
-		return (cmp == hs.hash);
+		return InspIRCd::TimingSafeCompare(cmp, hs.hash);
 	}
 
 	std::string ToPrintable(const std::string& raw) CXX11_OVERRIDE

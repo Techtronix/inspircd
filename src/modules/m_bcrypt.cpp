@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2017-2018 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2017-2018, 2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2014 Daniel Vassdal <shutter@canternet.org>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
@@ -56,15 +56,9 @@ class BCryptProvider : public HashProvider
 		return Generate(data, Salt());
 	}
 
-	bool Compare(const std::string& input, const std::string& hash) CXX11_OVERRIDE
+	bool Compare(const std::string& input, const std::string& hash)  CXX11_OVERRIDE
 	{
-		std::string ret = Generate(input, hash);
-		if (ret.empty())
-			return false;
-
-		if (ret == hash)
-			return true;
-		return false;
+		return InspIRCd::TimingSafeCompare(Generate(input, hash), hash);
 	}
 
 	std::string ToPrintable(const std::string& raw) CXX11_OVERRIDE

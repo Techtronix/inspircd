@@ -2,7 +2,7 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2017 B00mX0r <b00mx0r@aureus.pw>
- *   Copyright (C) 2016, 2018-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2016, 2018-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2014 Adam <Adam@anope.org>
  *   Copyright (C) 2013-2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
@@ -144,7 +144,7 @@ static std::vector<std::string> GetMap(User* user, TreeServer* current, unsigned
 				if (j != child_map.begin())
 				{
 					// If this child is not my last child, then add |
-					// to be able to "link" the next server in my list to me, and to indent this children servers
+					// to be able to "link" the next server in my list to me, and to indent this child's servers
 					if (!last)
 						prefix = "| ";
 					// Otherwise this is my last child, so just use a space as there's nothing else linked to me below this

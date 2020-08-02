@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2017-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2017-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013-2015 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009 Uli Schlachter <psychon@inspircd.org>
@@ -46,6 +46,7 @@ ModeAction ModeChannelKey::OnModeChange(User* source, User*, Channel* channel, s
 		if (exists && (parameter != *key))
 		{
 			/* Key is currently set and the correct key wasn't given */
+			source->WriteNumeric(ERR_KEYSET, channel->name, "Channel key already set");
 			return MODEACTION_DENY;
 		}
 	} else {
