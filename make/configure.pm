@@ -45,6 +45,7 @@ use constant CONFIGURE_ERROR_PIPE    => $ENV{INSPIRCD_VERBOSE} ? '' : '1>/dev/nu
 
 our @EXPORT = qw(CONFIGURE_CACHE_FILE
                  CONFIGURE_CACHE_VERSION
+                 CONFIGURE_DIRECTORY
                  cmd_clean
                  cmd_help
                  cmd_update
@@ -177,6 +178,7 @@ FLAGS
 If you have any problems with configuring InspIRCd then visit our IRC channel
 at irc.inspircd.org #InspIRCd for support.
 
+Packagers: see https://docs.inspircd.org/packaging/ for packaging advice.
 EOH
 	exit 0;
 }
