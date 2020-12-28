@@ -6,7 +6,7 @@
  *   Copyright (C) 2016 Adam <Adam@anope.org>
  *   Copyright (C) 2014 Thomas Fargeix <t.fargeix@gmail.com>
  *   Copyright (C) 2013, 2018 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2013, 2016-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2016-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2011 jackmcbarn <jackmcbarn@inspircd.org>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
@@ -146,8 +146,16 @@ class CloakUser : public ModeHandler
 			if (!cloaks)
 			{
 				/* Force creation of missing cloak */
-				creator->OnUserConnect(user);
-				cloaks = ext.get(user);
+				try
+				{
+					creator->OnUserConnect(user);
+					cloaks = ext.get(user);
+				}
+				catch (CoreException& modexcept)
+				{
+					ServerInstance->Logs->Log(MODNAME, LOG_DEFAULT, "Exception caught when generating cloak: " + modexcept.GetReason());
+					return MODEACTION_DENY;
+				}
 			}
 
 			// If we have a cloak then set the hostname.
@@ -485,7 +493,7 @@ class ModuleCloaking : public Module
 	void OnSetUserIP(LocalUser* user) CXX11_OVERRIDE
 	{
 		// Connecting users are handled in OnUserConnect not here.
-		if (user->registered != REG_ALL)
+		if (user->registered != REG_ALL || user->quitting)
 			return;
 
 		// Remove the cloaks and generate new ones.

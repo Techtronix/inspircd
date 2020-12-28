@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2019-2020 Sadie Powell <sadie@witchery.services>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -68,6 +68,8 @@ class ModuleGeoClass
 
 		// A list of country codes were specified but the user didn't match
 		// any of them.
+		ServerInstance->Logs->Log("CONNECTCLASS", LOG_DEBUG, "The %s connect class is not suitable as the origin country (%s) is not any of %s",
+			myclass->GetName().c_str(), code.c_str(), country.c_str());
 		return MOD_RES_DENY;
 	}
 

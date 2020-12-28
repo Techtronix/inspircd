@@ -3,7 +3,7 @@
  *
  *   Copyright (C) 2018-2020 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2018-2019 linuxdaemon <linuxdaemon.irc@gmail.com>
- *   Copyright (C) 2013, 2016-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2016-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013, 2015-2016 Adam <Adam@anope.org>
  *   Copyright (C) 2012-2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2018 Robby <robby@chatbelgie.be>
@@ -279,6 +279,12 @@ class ModuleDNSBL : public Module, public Stats::EventListener
 		ServerInstance->SNO->EnableSnomask('d', "DNSBL");
 	}
 
+	void Prioritize() CXX11_OVERRIDE
+	{
+		Module* corexline = ServerInstance->Modules->Find("core_xline");
+		ServerInstance->Modules->SetPriority(this, I_OnSetUserIP, PRIORITY_AFTER, corexline);
+	}
+
 	Version GetVersion() CXX11_OVERRIDE
 	{
 		return Version("Allows the server administrator to check the IP address of connecting users against a DNSBL.", VF_VENDOR);
@@ -351,7 +357,7 @@ class ModuleDNSBL : public Module, public Stats::EventListener
 
 	void OnSetUserIP(LocalUser* user) CXX11_OVERRIDE
 	{
-		if ((user->exempt) || !DNS)
+		if (user->exempt || user->quitting || !DNS)
 			return;
 
 		// Clients can't be in a DNSBL if they aren't connected via IPv4 or IPv6.
@@ -364,7 +370,10 @@ class ModuleDNSBL : public Module, public Stats::EventListener
 				return;
 		}
 		else
+		{
 			ServerInstance->Logs->Log(MODNAME, LOG_DEBUG, "User has no connect class in OnSetUserIP");
+			return;
+		}
 
 		std::string reversedip;
 		if (user->client_sa.family() == AF_INET)
@@ -427,12 +436,20 @@ class ModuleDNSBL : public Module, public Stats::EventListener
 
 		std::string* match = nameExt.get(user);
 		if (!match)
+		{
+			ServerInstance->Logs->Log("CONNECTCLASS", LOG_DEBUG, "The %s connect class is not suitable as it requires a DNSBL mark",
+					myclass->GetName().c_str());
 			return MOD_RES_DENY;
+		}
 
-		if (InspIRCd::Match(*match, dnsbl))
-			return MOD_RES_PASSTHRU;
+		if (!InspIRCd::Match(*match, dnsbl))
+		{
+			ServerInstance->Logs->Log("CONNECTCLASS", LOG_DEBUG, "The %s connect class is not suitable as the DNSBL mark (%s) does not match %s",
+					myclass->GetName().c_str(), match->c_str(), dnsbl.c_str());
+			return MOD_RES_DENY;
+		}
 
-		return MOD_RES_DENY;
+		return MOD_RES_PASSTHRU;
 	}
 
 	ModResult OnCheckReady(LocalUser *user) CXX11_OVERRIDE

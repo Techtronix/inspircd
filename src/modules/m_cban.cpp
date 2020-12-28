@@ -1,6 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
+ *   Copyright (C) 2020 Michael <michaelhazell@hotmail.com>
  *   Copyright (C) 2019 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2018 linuxdaemon <linuxdaemon.irc@gmail.com>
  *   Copyright (C) 2013, 2017-2018, 2020 Sadie Powell <sadie@witchery.services>
@@ -36,6 +37,10 @@ enum
 	ERR_BADCHANNEL = 926
 };
 
+// Compatibility: Use glob matching?
+// InspIRCd versions 3.7.0 and below use only exact matching
+static bool glob = false;
+
 /** Holds a CBAN item
  */
 class CBan : public XLine
@@ -58,7 +63,10 @@ public:
 
 	bool Matches(const std::string& s) CXX11_OVERRIDE
 	{
-		return irc::equals(matchtext, s);
+		if (glob)
+			return InspIRCd::Match(s, matchtext);
+		else
+			return irc::equals(matchtext, s);
 	}
 
 	const std::string& Displayable() CXX11_OVERRIDE
@@ -94,7 +102,8 @@ class CommandCBan : public Command
  public:
 	CommandCBan(Module* Creator) : Command(Creator, "CBAN", 1, 3)
 	{
-		flags_needed = 'o'; this->syntax = "<channel> [<duration> [:<reason>]]";
+		flags_needed = 'o';
+		this->syntax = "<channelmask> [<duration> [:<reason>]]";
 	}
 
 	CmdResult Handle(User* user, const Params& parameters) CXX11_OVERRIDE
@@ -183,6 +192,14 @@ class ModuleCBan : public Module, public Stats::EventListener
 		ServerInstance->XLines->UnregisterFactory(&f);
 	}
 
+	void ReadConfig(ConfigStatus& status) CXX11_OVERRIDE
+	{
+		ConfigTag* tag = ServerInstance->Config->ConfValue("cban");
+
+		// XXX: Consider changing default behavior on the next major version
+		glob = tag->getBool("glob", false);
+	}
+
 	ModResult OnStats(Stats::Context& stats) CXX11_OVERRIDE
 	{
 		if (stats.GetSymbol() != 'C')
@@ -210,7 +227,7 @@ class ModuleCBan : public Module, public Stats::EventListener
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Adds the /CBAN command which allows server operators to prevent channels matching a glob from being created.", VF_COMMON | VF_VENDOR);
+		return Version("Adds the /CBAN command which allows server operators to prevent channels matching a glob from being created.", VF_COMMON | VF_VENDOR, glob ? "glob" : "");
 	}
 };
 

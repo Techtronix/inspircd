@@ -3,7 +3,7 @@
  *
  *   Copyright (C) 2019 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2014 Googolplexed <googol@googolplexed.net>
- *   Copyright (C) 2013, 2017-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2014 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
@@ -67,6 +67,12 @@ class ModuleConnectBan
 	{
 	}
 
+	void Prioritize() CXX11_OVERRIDE
+	{
+		Module* corexline = ServerInstance->Modules->Find("core_xline");
+		ServerInstance->Modules->SetPriority(this, I_OnSetUserIP, PRIORITY_AFTER, corexline);
+	}
+
 	Version GetVersion() CXX11_OVERRIDE
 	{
 		return Version("Z-lines IP addresses which make excessive connections to the server.", VF_VENDOR);
@@ -99,7 +105,7 @@ class ModuleConnectBan
 
 	void OnSetUserIP(LocalUser* u) CXX11_OVERRIDE
 	{
-		if (u->exempt)
+		if (u->exempt || u->quitting)
 			return;
 
 		irc::sockets::cidr_mask mask(u->client_sa, GetRange(u));

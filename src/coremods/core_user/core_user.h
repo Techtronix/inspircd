@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2017-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2017-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2014 Attila Molnar <attilamolnar@hush.com>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
@@ -23,6 +23,12 @@
 #include "inspircd.h"
 #include "listmode.h"
 #include "modules/away.h"
+
+enum
+{
+	// From RFC 1459.
+	ERR_NOORIGIN = 409
+};
 
 class MessageWrapper
 {

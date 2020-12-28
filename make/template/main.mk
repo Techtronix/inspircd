@@ -2,6 +2,7 @@
 #
 # InspIRCd -- Internet Relay Chat Daemon
 #
+#   Copyright (C) 2020 Nicole Kleinhoff <ilbelkyr@shalture.org>
 #   Copyright (C) 2018 Puck Meerburg <puck@puckipedia.com>
 #   Copyright (C) 2012-2020 Sadie Powell <sadie@witchery.services>
 #   Copyright (C) 2012, 2015-2016 Attila Molnar <attilamolnar@hush.com>
@@ -226,6 +227,7 @@ install: target
 	-$(INSTALL) -g @GID@ -o @UID@ -m $(INSTMODE_BIN) "$(BUILDPATH)/bin/inspircd" $(BINPATH)
 	-$(INSTALL) -g @GID@ -o @UID@ -m $(INSTMODE_BIN) "$(BUILDPATH)/modules/"*.so $(MODPATH)
 	-$(INSTALL) -g @GID@ -o @UID@ -m $(INSTMODE_BIN) @CONFIGURE_DIRECTORY@/inspircd $(SCRPATH) 2>/dev/null
+	-$(INSTALL) -g @GID@ -o @UID@ -m $(INSTMODE_TXT) @CONFIGURE_DIRECTORY@/apparmor $(SCRPATH) 2>/dev/null
 	-$(INSTALL) -g @GID@ -o @UID@ -m $(INSTMODE_TXT) @CONFIGURE_DIRECTORY@/logrotate $(SCRPATH) 2>/dev/null
 ifeq ($(SYSTEM), darwin)
 	-$(INSTALL) -g @GID@ -o @UID@ -m $(INSTMODE_BIN) @CONFIGURE_DIRECTORY@/org.inspircd.plist $(SCRPATH) 2>/dev/null

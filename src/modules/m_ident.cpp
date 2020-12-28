@@ -331,7 +331,7 @@ class ModuleIdent : public Module
 			return;
 
 		// We don't want to look this up once the user has connected.
-		if (user->registered == REG_ALL)
+		if (user->registered == REG_ALL || user->quitting)
 			return;
 
 		ConfigTag* tag = user->MyClass->config;
@@ -410,7 +410,11 @@ class ModuleIdent : public Module
 	ModResult OnSetConnectClass(LocalUser* user, ConnectClass* myclass) CXX11_OVERRIDE
 	{
 		if (myclass->config->getBool("requireident") && state.get(user) != IDENT_FOUND)
+		{
+			ServerInstance->Logs->Log("CONNECTCLASS", LOG_DEBUG, "The %s connect class is not suitable as it requires an identd response",
+				myclass->GetName().c_str());
 			return MOD_RES_DENY;
+		}
 		return MOD_RES_PASSTHRU;
 	}
 

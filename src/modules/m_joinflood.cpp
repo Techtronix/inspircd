@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2013, 2016-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2016-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2014 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009 Daniel De Graaf <danieldg@inspircd.org>
@@ -24,6 +24,7 @@
 
 
 #include "inspircd.h"
+#include "modules/server.h"
 
 enum
 {
@@ -131,13 +132,24 @@ class JoinFlood : public ParamMode<JoinFlood, SimpleExtItem<joinfloodsettings> >
 	}
 };
 
-class ModuleJoinFlood : public Module
+class ModuleJoinFlood
+	: public Module
+	, public ServerProtocol::LinkEventListener
 {
+ private:
 	JoinFlood jf;
+	time_t ignoreuntil;
+	unsigned long bootwait;
+	unsigned long splitwait;
 
  public:
+	// Stop GCC warnings about the deprecated OnServerSplit event.
+	using ServerProtocol::LinkEventListener::OnServerSplit;
+
 	ModuleJoinFlood()
-		: jf(this)
+		: ServerProtocol::LinkEventListener(this)
+		, jf(this)
+		, ignoreuntil(0)
 	{
 	}
 
@@ -145,6 +157,16 @@ class ModuleJoinFlood : public Module
 	{
 		ConfigTag* tag = ServerInstance->Config->ConfValue("joinflood");
 		duration = tag->getDuration("duration", 60, 10, 600);
+		bootwait = tag->getDuration("bootwait", 30);
+		splitwait = tag->getDuration("splitwait", 30);
+
+		ignoreuntil = ServerInstance->startup_time + bootwait;
+	}
+
+	void OnServerSplit(const Server* server, bool error) CXX11_OVERRIDE
+	{
+		if (splitwait)
+			ignoreuntil = ServerInstance->Time() + splitwait;
 	}
 
 	ModResult OnUserPreJoin(LocalUser* user, Channel* chan, const std::string& cname, std::string& privs, const std::string& keygiven) CXX11_OVERRIDE
@@ -164,7 +186,7 @@ class ModuleJoinFlood : public Module
 	void OnUserJoin(Membership* memb, bool sync, bool created, CUList& excepts) CXX11_OVERRIDE
 	{
 		/* We arent interested in JOIN events caused by a network burst */
-		if (sync)
+		if (sync || ignoreuntil > ServerInstance->Time())
 			return;
 
 		joinfloodsettings *f = jf.ext.get(memb->chan);
