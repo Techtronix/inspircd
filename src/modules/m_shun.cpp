@@ -4,7 +4,7 @@
  *   Copyright (C) 2019 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2018 linuxdaemon <linuxdaemon.irc@gmail.com>
  *   Copyright (C) 2017-2018 B00mX0r <b00mx0r@aureus.pw>
- *   Copyright (C) 2013, 2017-2018, 2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2018, 2020-2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2013, 2015-2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2018-2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2012 Jens Voss <DukePyrolator@anope.org>
@@ -156,11 +156,16 @@ class ModuleShun : public Module, public Stats::EventListener
 	insp::flat_set<std::string, irc::insensitive_swo> cleanedcommands;
 	insp::flat_set<std::string, irc::insensitive_swo> enabledcommands;
 	bool affectopers;
+	bool allowconnect;
 	bool allowtags;
 	bool notifyuser;
 
 	bool IsShunned(LocalUser* user)
 	{
+		// Exempt the user if they are not fully connected and allowconnect is enabled.
+		if (allowconnect && user->registered != REG_ALL)
+			return false;
+
 		// Exempt the user from shuns if they are an oper and affectopers is disabled.
 		if (!affectopers && user->IsOper())
 			return false;
@@ -222,6 +227,7 @@ class ModuleShun : public Module, public Stats::EventListener
 
 		affectopers = tag->getBool("affectopers", false);
 		allowtags = tag->getBool("allowtags");
+		allowconnect = tag->getBool("allowconnect");
 		notifyuser = tag->getBool("notifyuser", true);
 	}
 

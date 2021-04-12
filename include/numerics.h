@@ -3,7 +3,7 @@
  *
  *   Copyright (C) 2017 B00mX0r <b00mx0r@aureus.pw>
  *   Copyright (C) 2016 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2013, 2015-2018, 2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2015-2018, 2020-2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013 Adam <Adam@anope.org>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009 Uli Schlachter <psychon@inspircd.org>
@@ -49,6 +49,7 @@ enum
 	RPL_MAP                         = 15, // ircu
 	RPL_ENDMAP                      = 17, // ircu
 	RPL_MAPUSERS                    = 18, // insp-specific
+	RPL_SAVENICK                    = 43, // From irc2.
 
 	RPL_STATS                       = 210, // From aircd.
 	RPL_UMODEIS                     = 221,
@@ -112,6 +113,8 @@ enum
 	ERR_CANNOTSENDTOCHAN            = 404,
 	ERR_TOOMANYCHANNELS             = 405,
 	ERR_WASNOSUCHNICK               = 406,
+	ERR_NOSUCHSERVICE               = 408, // From RFC 2812.
+	ERR_NORECIPIENT                 = 411,
 	ERR_NOTEXTTOSEND                = 412,
 	ERR_UNKNOWNCOMMAND              = 421,
 	ERR_NOMOTD                      = 422,

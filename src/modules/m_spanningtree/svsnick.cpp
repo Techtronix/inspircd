@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2018-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2018-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013-2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
@@ -67,6 +67,7 @@ CmdResult CommandSVSNick::Handle(User* user, Params& parameters)
 		if (!u->ChangeNick(nick, NickTS))
 		{
 			// Changing to 'nick' failed (it may already be in use), change to the uuid
+			u->WriteNumeric(RPL_SAVENICK, u->uuid, "Your nickname is in use by an older user on a new server.");
 			u->ChangeNick(u->uuid);
 		}
 	}

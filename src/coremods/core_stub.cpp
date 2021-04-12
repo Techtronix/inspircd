@@ -2,7 +2,7 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2019 Robby <robby@chatbelgie.be>
- *   Copyright (C) 2017-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2017-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2014-2016 Attila Molnar <attilamolnar@hush.com>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
@@ -28,6 +28,29 @@ enum
 	ERR_USERSDISABLED = 446
 };
 
+class CommandCapab : public Command
+{
+ public:
+	CommandCapab(Module* parent)
+		: Command(parent, "CAPAB")
+	{
+		works_before_reg = true;
+	}
+
+	CmdResult Handle(User* user, const Params& parameters) CXX11_OVERRIDE
+	{
+		if (user->registered == REG_NONE)
+		{
+			// The CAPAB command is used in the server protocol for negotiating
+			// the protocol version when initiating a server connection. There
+			// is no legitimate reason for a user to send this so we disconnect
+			// users who sent it in order to help out server admins who have
+			// misconfigured their server.
+			ServerInstance->Users->QuitUser(user, "You can not connect a server to a client port. Read " INSPIRCD_DOCS "modules/spanningtree for docs on how to link a server.");
+		}
+		return CMD_FAILURE;
+	}
+};
 
 /** Handle /CONNECT.
  */
@@ -77,41 +100,9 @@ class CommandLinks : public Command
 	 */
 	CmdResult Handle(User* user, const Params& parameters) CXX11_OVERRIDE
 	{
-		user->WriteNumeric(RPL_LINKS, ServerInstance->Config->ServerName, ServerInstance->Config->ServerName, InspIRCd::Format("0 %s", ServerInstance->Config->ServerDesc.c_str()));
+		user->WriteNumeric(RPL_LINKS, ServerInstance->Config->GetServerName(), ServerInstance->Config->GetServerName(), InspIRCd::Format("0 %s", ServerInstance->Config->GetServerDesc().c_str()));
 		user->WriteNumeric(RPL_ENDOFLINKS, '*', "End of /LINKS list.");
 		return CMD_SUCCESS;
-	}
-};
-
-/** Handle /SERVER.
- */
-class CommandServer : public Command
-{
- public:
-	/** Constructor for server.
-	 */
-	CommandServer(Module* parent)
-		: Command(parent, "SERVER")
-	{
-		works_before_reg = true;
-	}
-
-	/** Handle command.
-	 * @param parameters The parameters to the command
-	 * @param user The user issuing the command
-	 * @return A value from CmdResult to indicate command success or failure.
-	 */
-	CmdResult Handle(User* user, const Params& parameters) CXX11_OVERRIDE
-	{
-		if (user->registered == REG_ALL)
-		{
-			user->WriteNumeric(ERR_ALREADYREGISTERED, "You are already registered. (Perhaps your IRC client does not have a /SERVER command).");
-		}
-		else
-		{
-			user->WriteNumeric(ERR_NOTREGISTERED, "SERVER", "You may not register as a server (servers have separate ports from clients, change your config)");
-		}
-		return CMD_FAILURE;
 	}
 };
 
@@ -175,18 +166,19 @@ class CommandUsers
 
 class CoreModStub : public Module
 {
+ private:
+ 	CommandCapab cmdcapab;
 	CommandConnect cmdconnect;
 	CommandLinks cmdlinks;
-	CommandServer cmdserver;
 	CommandSquit cmdsquit;
 	CommandSummon cmdsummon;
 	CommandUsers cmdusers;
 
  public:
 	CoreModStub()
-		: cmdconnect(this)
+		: cmdcapab(this)
+		, cmdconnect(this)
 		, cmdlinks(this)
-		, cmdserver(this)
 		, cmdsquit(this)
 		, cmdsummon(this)
 		, cmdusers(this)

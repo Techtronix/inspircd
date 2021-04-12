@@ -1,7 +1,7 @@
 #
 # InspIRCd -- Internet Relay Chat Daemon
 #
-#   Copyright (C) 2016-2020 Sadie Powell <sadie@witchery.services>
+#   Copyright (C) 2016-2021 Sadie Powell <sadie@witchery.services>
 #
 # This file is part of InspIRCd.  InspIRCd is free software: you can
 # redistribute it and/or modify it under the terms of the GNU General Public
@@ -19,11 +19,7 @@
 
 package make::directive;
 
-BEGIN {
-	require 5.10.0;
-}
-
-use feature ':5.10';
+use v5.10.0;
 use strict;
 use warnings FATAL => qw(all);
 
@@ -131,7 +127,8 @@ sub __error {
 	push @message, '';
 
 	push @message, 'If you would like help with fixing this problem then visit our IRC';
-	push @message, 'channel at irc.inspircd.org #InspIRCd for support.';
+	push @message, 'channel at irc.inspircd.org #InspIRCd or create a support discussion';
+	push @message, 'at https://github.com/inspircd/inspircd/discussions.';
 	push @message, '';
 
 	print_error @message;
@@ -148,7 +145,7 @@ sub __function_execute {
 	# Try to execute the command...
 	chomp(my $result = `$command ${\DIRECTIVE_ERROR_PIPE}`);
 	unless ($?) {
-		print_format "Execution of `<|GREEN $command|>` succeeded: <|BOLD $result|>\n";
+		say console_format "Execution of `<|GREEN $command|>` succeeded: <|BOLD $result|>";
 		return $result;
 	}
 
@@ -156,14 +153,14 @@ sub __function_execute {
 	if (defined $environment && $environment ne '') {
 		$environment = __environment 'INSPIRCD_', $environment;
 		if (defined $ENV{$environment}) {
-			print_format "Execution of `<|GREEN $command|>` failed; using the environment: <|BOLD $ENV{$environment}|>\n";
+			say console_format "Execution of `<|GREEN $command|>` failed; using the environment: <|BOLD $ENV{$environment}|>";
 			return $ENV{$environment};
 		}
 	}
 
 	# If all else fails then look for the defaults..
 	if (defined $defaults) {
-		print_format "Execution of `<|GREEN $command|>` failed; using the defaults: <|BOLD $defaults|>\n";
+		say console_format "Execution of `<|GREEN $command|>` failed; using the defaults: <|BOLD $defaults|>";
 		return $defaults;
 	}
 
@@ -177,20 +174,20 @@ sub __function_find_compiler_flags {
 	# Try to look up the compiler flags with pkg-config...
 	chomp(my $flags = `pkg-config --cflags $name ${\DIRECTIVE_ERROR_PIPE}`);
 	unless ($?) {
-		print_format "Found the <|GREEN $name|> compiler flags for <|GREEN ${\module_shrink $file}|> using pkg-config: <|BOLD $flags|>\n";
+		say console_format "Found the <|GREEN $name|> compiler flags for <|GREEN ${\module_shrink $file}|> using pkg-config: <|BOLD $flags|>";
 		return $flags;
 	}
 
 	# If looking up with pkg-config fails then check the environment...
 	my $key = __environment 'INSPIRCD_CXXFLAGS_', $name;
 	if (defined $ENV{$key}) {
-		print_format "Found the <|GREEN $name|> compiler flags for <|GREEN ${\module_shrink $file}|> using the environment: <|BOLD $ENV{$key}|>\n";
+		say console_format "Found the <|GREEN $name|> compiler flags for <|GREEN ${\module_shrink $file}|> using the environment: <|BOLD $ENV{$key}|>";
 		return $ENV{$key};
 	}
 
 	# If all else fails then look for the defaults..
 	if (defined $defaults) {
-		print_format "Using the default <|GREEN $name|> compiler flags for <|GREEN ${\module_shrink $file}|>: <|BOLD $defaults|>\n";
+		say console_format "Using the default <|GREEN $name|> compiler flags for <|GREEN ${\module_shrink $file}|>: <|BOLD $defaults|>";
 		return $defaults;
 	}
 
@@ -204,20 +201,20 @@ sub __function_find_linker_flags {
 	# Try to look up the linker flags with pkg-config...
 	chomp(my $flags = `pkg-config --libs $name ${\DIRECTIVE_ERROR_PIPE}`);
 	unless ($?) {
-		print_format "Found the <|GREEN $name|> linker flags for <|GREEN ${\module_shrink $file}|> using pkg-config: <|BOLD $flags|>\n";
+		say console_format "Found the <|GREEN $name|> linker flags for <|GREEN ${\module_shrink $file}|> using pkg-config: <|BOLD $flags|>";
 		return $flags;
 	}
 
 	# If looking up with pkg-config fails then check the environment...
 	my $key = __environment 'INSPIRCD_CXXFLAGS_', $name;
 	if (defined $ENV{$key}) {
-		print_format "Found the <|GREEN $name|> linker flags for <|GREEN ${\module_shrink $file}|> using the environment: <|BOLD $ENV{$key}|>\n";
+		say console_format "Found the <|GREEN $name|> linker flags for <|GREEN ${\module_shrink $file}|> using the environment: <|BOLD $ENV{$key}|>";
 		return $ENV{$key};
 	}
 
 	# If all else fails then look for the defaults..
 	if (defined $defaults) {
-		print_format "Using the default <|GREEN $name|> linker flags for <|GREEN ${\module_shrink $file}|>: <|BOLD $defaults|>\n";
+		say console_format "Using the default <|GREEN $name|> linker flags for <|GREEN ${\module_shrink $file}|>: <|BOLD $defaults|>";
 		return $defaults;
 	}
 
@@ -290,13 +287,13 @@ sub __function_vendor_directory {
 	# Try to look the directory up in the environment...
 	my $key = __environment 'INSPIRCD_VENDOR_', $name;
 	if (defined $ENV{$key}) {
-		print_format "Found the <|GREEN $name|> vendor directory for <|GREEN ${\module_shrink $file}|> using the environment: <|BOLD $ENV{$key}|>\n";
+		say console_format "Found the <|GREEN $name|> vendor directory for <|GREEN ${\module_shrink $file}|> using the environment: <|BOLD $ENV{$key}|>";
 		return $ENV{$key};
 	}
 
 	my $directory = catdir(VENDOR_DIRECTORY, $name);
 	if (-d $directory) {
-		print_format "Using the default <|GREEN $name|> vendor directory for <|GREEN ${\module_shrink $file}|>: <|BOLD $directory|>\n";
+		say console_format "Using the default <|GREEN $name|> vendor directory for <|GREEN ${\module_shrink $file}|>: <|BOLD $directory|>";
 		return $directory;
 	}
 

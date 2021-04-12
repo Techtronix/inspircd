@@ -2,8 +2,8 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2018-2019 linuxdaemon <linuxdaemon.irc@gmail.com>
- *   Copyright (C) 2013-2016, 2018 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2013, 2015-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013-2015, 2018 Attila Molnar <attilamolnar@hush.com>
+ *   Copyright (C) 2013, 2015-2019, 2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2009 Matt Smith <dz@inspircd.org>
@@ -286,17 +286,18 @@ class ModuleAlias : public Module
 
 		if (!a->RequiredNick.empty())
 		{
+			int numeric = a->ULineOnly ? ERR_NOSUCHSERVICE : ERR_NOSUCHNICK;
 			User* u = ServerInstance->FindNickOnly(a->RequiredNick);
 			if (!u)
 			{
-				user->WriteNumeric(ERR_NOSUCHNICK, a->RequiredNick, "is currently unavailable. Please try again later.");
+				user->WriteNumeric(numeric, a->RequiredNick, "is currently unavailable. Please try again later.");
 				return 1;
 			}
 
 			if ((a->ULineOnly) && (!u->server->IsULine()))
 			{
 				ServerInstance->SNO->WriteToSnoMask('a', "NOTICE -- Service "+a->RequiredNick+" required by alias "+a->AliasedCommand+" is not on a U-lined server, possibly underhanded antics detected!");
-				user->WriteNumeric(ERR_NOSUCHNICK, a->RequiredNick, "is not a network service! Please inform a server operator as soon as possible.");
+				user->WriteNumeric(numeric, a->RequiredNick, "is not a network service! Please inform a server operator as soon as possible.");
 				return 1;
 			}
 		}

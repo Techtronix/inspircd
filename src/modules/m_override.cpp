@@ -1,6 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
+ *   Copyright (C) 2020 satmd <satmd@users.noreply.github.com>
  *   Copyright (C) 2017 B00mX0r <b00mx0r@aureus.pw>
  *   Copyright (C) 2017 Adam <Adam@anope.org>
  *   Copyright (C) 2016 Sheogorath <sheogorath@shivering-isles.com>
@@ -170,7 +171,7 @@ class ModuleOverride : public Module
 
 		if (CanOverride(source, "MODE"))
 		{
-			std::string msg = source->nick + " overriding modes: ";
+			std::string msg = source->nick + " used oper override to set modes on " + channel->name + ": ";
 
 			// Construct a MODE string in the old format for sending it as a snotice
 			std::string params;

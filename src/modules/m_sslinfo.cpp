@@ -3,12 +3,11 @@
  *
  *   Copyright (C) 2020 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2019 linuxdaemon <linuxdaemon.irc@gmail.com>
- *   Copyright (C) 2013, 2017-2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2010 Adam <Adam@anope.org>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
- *   Copyright (C) 2008 Robin Burchell <robin+git@viroteck.net>
  *   Copyright (C) 2007 Dennis Friis <peavey@inspircd.org>
  *   Copyright (C) 2006-2007, 2009-2010 Craig Edwards <brain@inspircd.org>
  *
@@ -144,53 +143,109 @@ class UserCertificateAPIImpl : public UserCertificateAPIBase
 	}
 };
 
-class CommandSSLInfo : public Command
+class CommandSSLInfo : public SplitCommand
 {
- public:
-	UserCertificateAPIImpl sslapi;
+ private:
+	ChanModeReference sslonlymode;
 
-	CommandSSLInfo(Module* Creator)
-		: Command(Creator, "SSLINFO", 1)
-		, sslapi(Creator)
+	void HandleUserInternal(LocalUser* source, User* target, bool verbose)
 	{
-		syntax = "<nick>";
-	}
-
-	CmdResult Handle(User* user, const Params& parameters) CXX11_OVERRIDE
-	{
-		User* target = ServerInstance->FindNickOnly(parameters[0]);
-
-		if ((!target) || (target->registered != REG_ALL))
-		{
-			user->WriteNumeric(Numerics::NoSuchNick(parameters[0]));
-			return CMD_FAILURE;
-		}
-
-		bool operonlyfp = ServerInstance->Config->ConfValue("sslinfo")->getBool("operonly");
-		if (operonlyfp && !user->IsOper() && target != user)
-		{
-			user->WriteNotice("*** You cannot view TLS (SSL) client certificate information for other users");
-			return CMD_FAILURE;
-		}
-
 		ssl_cert* cert = sslapi.GetCertificate(target);
 		if (!cert)
 		{
-			user->WriteNotice(InspIRCd::Format("*** %s is not connected using TLS (SSL).", target->nick.c_str()));
+			source->WriteNotice(InspIRCd::Format("*** %s is not connected using TLS (SSL).", target->nick.c_str()));
 		}
 		else if (cert->GetError().length())
 		{
-			user->WriteNotice(InspIRCd::Format("*** %s is connected using TLS (SSL) but has not specified a valid client certificate (%s).",
+			source->WriteNotice(InspIRCd::Format("*** %s is connected using TLS (SSL) but has not specified a valid client certificate (%s).",
 				target->nick.c_str(), cert->GetError().c_str()));
+		}
+		else if (!verbose)
+		{
+			source->WriteNotice(InspIRCd::Format("*** %s is connected using TLS (SSL) with a valid client certificate (%s).",
+				target->nick.c_str(), cert->GetFingerprint().c_str()));
 		}
 		else
 		{
-			user->WriteNotice("*** Distinguished Name: " + cert->GetDN());
-			user->WriteNotice("*** Issuer:             " + cert->GetIssuer());
-			user->WriteNotice("*** Key Fingerprint:    " + cert->GetFingerprint());
+			source->WriteNotice("*** Distinguished Name: " + cert->GetDN());
+			source->WriteNotice("*** Issuer:             " + cert->GetIssuer());
+			source->WriteNotice("*** Key Fingerprint:    " + cert->GetFingerprint());
+		}
+	}
+
+	CmdResult HandleUser(LocalUser* source, const std::string& nick)
+	{
+		User* target = ServerInstance->FindNickOnly(nick);
+		if (!target || target->registered != REG_ALL)
+		{
+			source->WriteNumeric(Numerics::NoSuchNick(nick));
+			return CMD_FAILURE;
 		}
 
+		if (operonlyfp && !source->IsOper() && source != target)
+		{
+			source->WriteNumeric(ERR_NOPRIVILEGES, "You must be a server operator to view TLS (SSL) client certificate information for other users.");
+			return CMD_FAILURE;
+		}
+
+		HandleUserInternal(source, target, true);
 		return CMD_SUCCESS;
+	}
+
+	CmdResult HandleChannel(LocalUser* source, const std::string& channel)
+	{
+		Channel* chan = ServerInstance->FindChan(channel);
+		if (!chan)
+		{
+			source->WriteNumeric(Numerics::NoSuchChannel(channel));
+			return CMD_FAILURE;
+		}
+
+		if (operonlyfp && !source->IsOper())
+		{
+			source->WriteNumeric(ERR_NOPRIVILEGES, "You must be a server operator to view TLS (SSL) client certificate information for channels.");
+			return CMD_FAILURE;
+		}
+
+		if (!source->IsOper() && chan->GetPrefixValue(source) < OP_VALUE)
+		{
+			source->WriteNumeric(ERR_CHANOPRIVSNEEDED, chan->name, "You must be a channel operator.");
+			return CMD_FAILURE;
+		}
+
+		if (sslonlymode)
+		{
+			source->WriteNotice(InspIRCd::Format("*** %s %s have channel mode +%c (%s) set.",
+				chan->name.c_str(), chan->IsModeSet(sslonlymode) ? "does" : "does not",
+				sslonlymode->GetModeChar(), sslonlymode->name.c_str()));
+		}
+
+		const Channel::MemberMap& userlist = chan->GetUsers();
+		for (Channel::MemberMap::const_iterator i = userlist.begin(); i != userlist.end(); ++i)
+			HandleUserInternal(source, i->first, false);
+
+		return CMD_SUCCESS;
+	}
+
+ public:
+	UserCertificateAPIImpl sslapi;
+	bool operonlyfp;
+
+	CommandSSLInfo(Module* Creator)
+		: SplitCommand(Creator, "SSLINFO", 1)
+		, sslonlymode(Creator, "sslonly")
+		, sslapi(Creator)
+	{
+		allow_empty_last_param = false;
+		syntax = "<channel|nick>";
+	}
+
+	CmdResult HandleLocal(LocalUser* user, const Params& parameters) CXX11_OVERRIDE
+	{
+		if (ServerInstance->IsChannel(parameters[0]))
+			return HandleChannel(user, parameters[0]);
+		else
+			return HandleUser(user, parameters[0]);
 	}
 };
 
@@ -217,6 +272,12 @@ class ModuleSSLInfo
 	{
 	}
 
+	void ReadConfig(ConfigStatus& status) CXX11_OVERRIDE
+	{
+		ConfigTag* tag = ServerInstance->Config->ConfValue("sslinfo");
+		cmd.operonlyfp = tag->getBool("operonly");
+	}
+
 	Version GetVersion() CXX11_OVERRIDE
 	{
 		return Version("Adds user facing TLS (SSL) information, various TLS (SSL) configuration options, and the /SSLINFO command to look up TLS (SSL) certificate information for other users.", VF_VENDOR);
@@ -228,8 +289,7 @@ class ModuleSSLInfo
 		if (cert)
 		{
 			whois.SendLine(RPL_WHOISSECURE, "is using a secure connection");
-			bool operonlyfp = ServerInstance->Config->ConfValue("sslinfo")->getBool("operonly");
-			if ((!operonlyfp || whois.IsSelfWhois() || whois.GetSource()->IsOper()) && !cert->fingerprint.empty())
+			if ((!cmd.operonlyfp || whois.IsSelfWhois() || whois.GetSource()->IsOper()) && !cert->fingerprint.empty())
 				whois.SendLine(RPL_WHOISCERTFP, InspIRCd::Format("has TLS (SSL) client certificate fingerprint %s", cert->fingerprint.c_str()));
 		}
 	}
@@ -294,7 +354,7 @@ class ModuleSSLInfo
 
 		std::string text = "*** You are connected to ";
 		if (!ssliohook->GetServerName(text))
-			text.append(ServerInstance->Config->ServerName);
+			text.append(ServerInstance->Config->GetServerName());
 		text.append(" using TLS (SSL) cipher '");
 		ssliohook->GetCiphersuite(text);
 		text.push_back('\'');

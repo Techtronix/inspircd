@@ -2,7 +2,7 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2014 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2013, 2016 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2016, 2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
  *
@@ -33,9 +33,27 @@ struct ParseStack
 	ParseStack(ServerConfig* conf)
 		: output(conf->config_data), FilesOutput(conf->Files), errstr(conf->errstr)
 	{
-		vars["amp"] = "&";
+		// Special character escapes.
+		vars["newline"] = "\n";
+		vars["nl"]      = "\n";
+
+		// XML escapes.
+		vars["amp"]  = "&";
+		vars["apos"] = "'";
+		vars["gt"]   = ">";
+		vars["lt"]   = "<";
 		vars["quot"] = "\"";
-		vars["newline"] = vars["nl"] = "\n";
+
+		// IRC formatting codes.
+		vars["irc.bold"]          = "\x02";
+		vars["irc.color"]         = "\x03";
+		vars["irc.colour"]        = "\x03";
+		vars["irc.italic"]        = "\x1D";
+		vars["irc.monospace"]     = "\x11";
+		vars["irc.reset"]         = "\x0F";
+		vars["irc.reverse"]       = "\x16";
+		vars["irc.strikethrough"] = "\x1E";
+		vars["irc.underline"]     = "\x1F";
 	}
 	bool ParseFile(const std::string& name, int flags, const std::string& mandatory_tag = std::string(), bool isexec = false);
 	void DoInclude(ConfigTag* includeTag, int flags);

@@ -6,8 +6,7 @@
 #   Copyright (C) 2020 Daniel Vassdal <shutter@canternet.org>
 #   Copyright (C) 2019 Matt Schatz <genius3000@g3k.solutions>
 #   Copyright (C) 2019 Anatole Denis <natolumin@rezel.net>
-#   Copyright (C) 2017 emerson <github@emersonveenstra.net>
-#   Copyright (C) 2013-2020 Sadie Powell <sadie@witchery.services>
+#   Copyright (C) 2013-2021 Sadie Powell <sadie@witchery.services>
 #   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
 #   Copyright (C) 2012 ChrisTX <xpipe@hotmail.de>
 #   Copyright (C) 2010 Daniel De Graaf <danieldg@inspircd.org>
@@ -30,11 +29,7 @@
 #
 
 
-BEGIN {
-	require 5.10.0;
-}
-
-use feature ':5.10';
+use v5.10.0;
 use strict;
 use warnings FATAL => qw(all);
 
@@ -66,6 +61,7 @@ my ($opt_binary_dir,
     $opt_module_dir,
     $opt_portable,
     $opt_prefix,
+    $opt_runtime_dir,
     $opt_script_dir,
     $opt_socketengine,
     $opt_system,
@@ -99,6 +95,7 @@ exit 1 unless GetOptions(
 	'module-dir=s'         => \$opt_module_dir,
 	'portable'             => \$opt_portable,
 	'prefix=s'             => \$opt_prefix,
+	'runtime-dir=s'        => \$opt_runtime_dir,
 	'script-dir=s'         => \$opt_script_dir,
 	'socketengine=s'       => \$opt_socketengine,
 	'system'               => \$opt_system,
@@ -137,6 +134,7 @@ our $interactive = !(
 	defined $opt_module_dir ||
 	defined $opt_portable ||
 	defined $opt_prefix ||
+	defined $opt_runtime_dir ||
 	defined $opt_script_dir ||
 	defined $opt_socketengine ||
 	defined $opt_system ||
@@ -144,7 +142,7 @@ our $interactive = !(
 );
 
 my %version = get_version $opt_distribution_label;
-print_format "<|BOLD Configuring InspIRCd $version{FULL} on $^O.|>\n";
+say console_format "<|BOLD Configuring InspIRCd $version{FULL} on $^O.|>";
 
 my %config;
 if ($interactive) {
@@ -203,17 +201,19 @@ if (defined $opt_portable) {
 	$config{LOG_DIR}     = $opt_log_dir     // 'logs';
 	$config{MANUAL_DIR}  = $opt_manual_dir  // 'manuals';
 	$config{MODULE_DIR}  = $opt_module_dir  // 'modules';
+	$config{RUNTIME_DIR} = $opt_runtime_dir // $config{DATA_DIR};
 	$config{SCRIPT_DIR}  = $opt_script_dir  // $config{BASE_DIR};
 } elsif (defined $opt_system) {
-	$config{BASE_DIR}    = $opt_prefix      // '/var/lib/inspircd';
+	$config{BASE_DIR}    = $opt_prefix      // '/';
 	$config{BINARY_DIR}  = $opt_binary_dir  // '/usr/sbin';
 	$config{CONFIG_DIR}  = $opt_config_dir  // '/etc/inspircd';
-	$config{DATA_DIR}    = $opt_data_dir    // '/var/inspircd';
+	$config{DATA_DIR}    = $opt_data_dir    // '/var/lib/inspircd';
 	$config{EXAMPLE_DIR} = $opt_example_dir // '/usr/share/doc/inspircd';
 	$config{LOG_DIR}     = $opt_log_dir     // '/var/log/inspircd';
 	$config{MANUAL_DIR}  = $opt_manual_dir  // '/usr/share/man/man1';
 	$config{MODULE_DIR}  = $opt_module_dir  // '/usr/lib/inspircd';
-	$config{SCRIPT_DIR}  = $opt_script_dir  // '/usr/share/inspircd'
+	$config{RUNTIME_DIR} = $opt_runtime_dir // '/var/run';
+	$config{SCRIPT_DIR}  = $opt_script_dir  // '/usr/share/inspircd';
 } else {
 	$config{BASE_DIR}    = rel2abs $opt_prefix // $config{BASE_DIR}    // catdir $RealDir,            'run';
 	$config{BINARY_DIR}  = $opt_binary_dir     // $config{BINARY_DIR}  // catdir $config{BASE_DIR},   'bin';
@@ -223,6 +223,7 @@ if (defined $opt_portable) {
 	$config{LOG_DIR}     = $opt_log_dir        // $config{LOG_DIR}     // catdir $config{BASE_DIR},   'logs';
 	$config{MANUAL_DIR}  = $opt_manual_dir     // $config{MANUAL_DIR}  // catdir $config{BASE_DIR},   'manuals';
 	$config{MODULE_DIR}  = $opt_module_dir     // $config{MODULE_DIR}  // catdir $config{BASE_DIR},   'modules';
+	$config{RUNTIME_DIR} = $opt_runtime_dir    // $config{RUNTIME_DIR} // $config{DATA_DIR};
 	$config{SCRIPT_DIR}  = $opt_script_dir     // $config{SCRIPT_DIR}  // $config{BASE_DIR};
 }
 
@@ -320,7 +321,6 @@ EOW
 my $question = <<"EOQ";
 Currently, InspIRCd is configured with the following paths:
 
-<|BOLD Base:|>   $config{BASE_DIR}
 <|BOLD Binary:|> $config{BINARY_DIR}
 <|BOLD Config:|> $config{CONFIG_DIR}
 <|BOLD Data:|>   $config{DATA_DIR}
@@ -334,7 +334,7 @@ EOQ
 if (prompt_bool $interactive, $question, 0) {
 	my $original_base_dir = $config{BASE_DIR};
 	$config{BASE_DIR} = prompt_dir $interactive, 'In what directory do you wish to install the InspIRCd base?', $config{BASE_DIR};
-	foreach my $key (qw(BINARY_DIR CONFIG_DIR DATA_DIR LOG_DIR MANUAL_DIR MODULE_DIR SCRIPT_DIR)) {
+	for my $key (qw(BINARY_DIR CONFIG_DIR DATA_DIR LOG_DIR MANUAL_DIR MODULE_DIR SCRIPT_DIR)) {
 		$config{$key} =~ s/^\Q$original_base_dir\E/$config{BASE_DIR}/;
 	}
 	$config{BINARY_DIR} = prompt_dir $interactive, 'In what directory should the InspIRCd binary be placed?', $config{BINARY_DIR};
@@ -345,6 +345,7 @@ if (prompt_bool $interactive, $question, 0) {
 	$config{MODULE_DIR} = prompt_dir $interactive, 'In what directory are modules to be placed?',             $config{MODULE_DIR};
 	$config{SCRIPT_DIR} = prompt_dir $interactive, 'In what directory are scripts to be placed?',             $config{SCRIPT_DIR};
 	$config{EXAMPLE_DIR} = $config{CONFIG_DIR} . '/examples';
+	$config{RUNTIME_DIR} = $config{DATA_DIR};
 }
 
 # Configure module settings.
@@ -354,7 +355,7 @@ Currently, InspIRCd is configured to automatically enable all available extra mo
 Would you like to enable extra modules manually?
 EOQ
 if (prompt_bool $interactive, $question, 0) {
-	foreach my $extra (<$RealDir/src/modules/extra/m_*.cpp>) {
+	for my $extra (<$RealDir/src/modules/extra/m_*.cpp>) {
 		my $module_name = module_shrink $extra;
 		if (prompt_bool $interactive, "Would you like to enable the <|BOLD $module_name|> module?", 0) {
 			enable_extras $module_name;
@@ -430,7 +431,7 @@ $config{DISTRIBUTION} = $opt_distribution_label if $opt_distribution_label;
 write_configure_cache %config;
 parse_templates \%config, \%compiler, \%version;
 
-print_format <<"EOM";
+print console_format <<"EOM";
 
 Configuration is complete! You have chosen to build with the following settings:
 
@@ -450,10 +451,9 @@ my @makeargs;
 push @makeargs, "-C${\abs2rel $RealDir}" unless getcwd eq $RealDir;
 push @makeargs, "-j${\(get_cpu_count() + 1)}";
 
-print_format <<"EOM";
+print console_format <<"EOM";
 
 <|GREEN Paths:|>
-  <|GREEN Base:|>    $config{BASE_DIR}
   <|GREEN Binary:|>  $config{BINARY_DIR}
   <|GREEN Config:|>  $config{CONFIG_DIR}
   <|GREEN Data:|>    $config{DATA_DIR}
@@ -461,6 +461,7 @@ print_format <<"EOM";
   <|GREEN Log:|>     $config{LOG_DIR}
   <|GREEN Manual:|>  $config{MANUAL_DIR}
   <|GREEN Module:|>  $config{MODULE_DIR}
+  <|GREEN Runtime:|> $config{RUNTIME_DIR}
   <|GREEN Script:|>  $config{SCRIPT_DIR}
 
 <|GREEN Execution Group:|> $config{GROUP} ($config{GID})
@@ -592,7 +593,7 @@ sub enable_extras(@) {
 		if (-e $modulepath) {
 			print_error "unable to symlink <|GREEN ${\abs2rel $modulepath}|> to <|GREEN ${\abs2rel $extrapath}|>: the target exists and is not a symlink.";
 		} else {
-			print_format "Enabling the <|GREEN $shortname|> module ...\n";
+			say console_format "Enabling the <|GREEN $shortname|> module ...";
 			symlink $extrapath, $modulepath or print_error "unable to symlink <|GREEN ${\abs2rel $modulepath}|> to <|GREEN ${\abs2rel $extrapath}|>: $!";
 		}
 	}
@@ -615,7 +616,7 @@ sub disable_extras(@) {
 		} elsif ((-e $modulepath && !-e $extrapath) || !-l $modulepath) {
 			print_error "the <|GREEN $shortname|> module is not an extra module!";
 		} else {
-			print_format "Disabling the <|GREEN $shortname|> module ...\n";
+			say console_format "Disabling the <|GREEN $shortname|> module ...";
 			unlink $modulepath or print_error "unable to unlink <|GREEN $extrapath|>: $!";
 		}
 	}

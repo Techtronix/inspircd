@@ -3,8 +3,8 @@
  *
  *   Copyright (C) 2018, 2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2018 linuxdaemon <linuxdaemon.irc@gmail.com>
+ *   Copyright (C) 2014, 2020 Daniel Vassdal <shutter@canternet.org>
  *   Copyright (C) 2014, 2016 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2014 Daniel Vassdal <shutter@canternet.org>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -207,6 +207,14 @@ class ModulePBKDF2 : public Module
 	~ModulePBKDF2()
 	{
 		stdalgo::delete_all(providers);
+	}
+
+	void init() CXX11_OVERRIDE
+	{
+		// Let ourself know about any existing services.
+		const ModuleManager::DataProviderMap& dataproviders = ServerInstance->Modules->DataProviders;
+		for (ModuleManager::DataProviderMap::const_iterator it = dataproviders.begin(); it != dataproviders.end(); ++it)
+			OnServiceAdd(*it->second);
 	}
 
 	void OnServiceAdd(ServiceProvider& provider) CXX11_OVERRIDE

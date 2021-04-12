@@ -1,7 +1,8 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2017-2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2020 Christos Triantafyllidis <ctria@users.noreply.github.com>
+ *   Copyright (C) 2018-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2014, 2018 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2013-2014 Adam <Adam@anope.org>
  *
@@ -222,8 +223,7 @@ class ModuleLDAPOper : public Module
 				return MOD_RES_PASSTHRU;
 
 			std::string acceptedhosts = tag->getString("host");
-			std::string hostname = user->ident + "@" + user->GetRealHost();
-			if (!InspIRCd::MatchMask(acceptedhosts, hostname, user->GetIPString()))
+			if (!InspIRCd::MatchMask(acceptedhosts, user->MakeHost(), user->MakeHostIP()))
 				return MOD_RES_PASSTHRU;
 
 			if (!LDAP)

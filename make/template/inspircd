@@ -6,9 +6,8 @@
 #   Copyright (C) 2015 Steven Van Acker <steven@singularity.be>
 #   Copyright (C) 2015 Attila Molnar <attilamolnar@hush.com>
 #   Copyright (C) 2014 Dan Parsons <dparsons@nyip.net>
-#   Copyright (C) 2013-2014, 2016-2019 Sadie Powell <sadie@witchery.services>
+#   Copyright (C) 2013-2014, 2016-2021 Sadie Powell <sadie@witchery.services>
 #   Copyright (C) 2012 Robby <robby@chatbelgie.be>
-#   Copyright (C) 2012 Adam <Adam@anope.org>
 #   Copyright (C) 2011 DjSlash <djslash@djslash.org>
 #   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
 #   Copyright (C) 2008-2009 Robin Burchell <robin+git@viroteck.net>
@@ -62,12 +61,10 @@ use constant {
 };
 
 my $scriptpath = "@SCRIPT_DIR@";
-my $basepath	=	"@BASE_DIR@";
 my $confpath	=	"@CONFIG_DIR@";
 my $binpath	=	"@BINARY_DIR@";
-my $runpath	=	"@BASE_DIR@";
-my $datadir	=       "@DATA_DIR@";
-my $valgrindlogpath	=	"$basepath/valgrindlogs";
+my $runtimedir = "@RUNTIME_DIR@";
+my $valgrindlogpath = "@LOG_DIR@/valgrind";
 my $executable	=	"inspircd";
 my $version	=	"@VERSION_FULL@";
 my $uid = "@UID@";
@@ -149,8 +146,8 @@ sub cmd_help()
 	my @cmds = grep /^cmd_/, @subs;
 	my @devs = grep /^dev_/, @subs;
 	local $_;
-	$_ =~ s/^(cmd|dev)_// foreach (@cmds, @devs);
-	$_ =~ s/_/-/g foreach (@cmds, @devs);
+	$_ =~ s/^(cmd|dev)_// for (@cmds, @devs);
+	$_ =~ s/_/-/g for (@cmds, @devs);
 	print STDERR "Usage: ./inspircd (" . join("|", @cmds) . ")\n";
 	print STDERR "Developer arguments: (" . join("|", @devs) . ")\n";
 	exit GENERIC_EXIT_SUCCESS;
@@ -172,7 +169,7 @@ sub cmd_rehash()
 {
 	if (getstatus() == 1) {
 		my $pid = getprocessid();
-		system("kill -HUP $pid >/dev/null 2>&1");
+		kill HUP => $pid;
 		print "InspIRCd rehashed (pid: $pid).\n";
 		exit GENERIC_EXIT_SUCCESS;
 	} else {
@@ -211,8 +208,8 @@ sub cmd_start(@)
 {
 	# Check to see its not 'running' already.
 	if (getstatus() == 1) { print "InspIRCd is already running.\n"; exit GENERIC_EXIT_SUCCESS; }
+
 	# If we are still alive here.. Try starting the IRCd..
-	chdir $runpath;
 	print "$binpath/$executable doesn't exist\n" and return 0 unless(-e "$binpath/$executable");
 	print "$binpath/$executable is not executable\n" and return 0 unless(-f "$binpath/$executable" && -x "$binpath/$executable");
 
@@ -225,7 +222,6 @@ sub dev_debug(@)
 	# Check to see its not 'running' already.
 	if (getstatus() == 1) { print "InspIRCd is already running.\n"; return 0; }
 
-	chdir $runpath;
 	print "$binpath/$executable doesn't exist\n" and return 0 unless(-e "$binpath/$executable");
 	print "$binpath/$executable is not executable\n" and return 0 unless(-f "$binpath/$executable" && -x "$binpath/$executable");
 
@@ -242,7 +238,6 @@ sub dev_screendebug(@)
 	# Check to see its not 'running' already.
 	if (getstatus() == 1) { print "InspIRCd is already running.\n"; return 0; }
 
-	chdir $runpath;
 	print "$binpath/$executable doesn't exist\n" and return 0 unless(-e "$binpath/$executable");
 
 	#Check we have gdb
@@ -261,7 +256,6 @@ sub dev_valdebug(@)
 	# Check to see its not 'running' already.
 	if (getstatus() == 1) { print "InspIRCd is already running.\n"; return 0; }
 
-	chdir $runpath;
 	print "$binpath/$executable doesn't exist\n" and return 0 unless(-e "$binpath/$executable");
 	print "$binpath/$executable is not executable\n" and return 0 unless(-f "$binpath/$executable" && -x "$binpath/$executable");
 
@@ -282,7 +276,6 @@ sub dev_valdebug_unattended(@)
 	# Check to see its not 'running' already.
 	if (getstatus() == 1) { print "InspIRCd is already running.\n"; return 0; }
 
-	chdir $runpath;
 	print "$binpath/$executable doesn't exist\n" and return 0 unless(-e "$binpath/$executable");
 	print "$binpath/$executable is not executable\n" and return 0 unless(-f "$binpath/$executable" && -x "$binpath/$executable");
 
@@ -319,7 +312,6 @@ sub dev_screenvaldebug(@)
 	# Check to see its not 'running' already.
 	if (getstatus() == 1) { print "InspIRCd is already running.\n"; return 0; }
 
-	chdir $runpath;
 	print "$binpath/$executable doesn't exist\n" and return 0 unless(-e "$binpath/$executable");
 	print "$binpath/$executable is not executable\n" and return 0 unless(-f "$binpath/$executable" && -x "$binpath/$executable");
 
@@ -359,18 +351,6 @@ sub cmd_stop()
 # Generic Helper Functions.
 ###
 
-# GetPidfile Version 2 - Now With Include Support..
-# I beg for months for include support in insp, then..
-# when it is added, it comes around and BITES ME IN THE ASS,
-# because i then have to code support into this script.. Evil.
-
-# Craig got bitten in the ass again --
-# in 1.1 beta the include file is manditory, therefore
-# if we cant find it, default to %conf%/inspircd.pid.
-# Note, this also contains a fix for when the pid file is
-# defined, but defined in a comment (line starts with #)
-# -- Brain
-
 my %filesparsed;
 
 sub getpidfile
@@ -404,7 +384,7 @@ sub getpidfile
 		if (($i =~ /<pid file=\"(\S+)\">/i) && ($i !~ /^#/))
 		{
 			# Set the PID file and return.
-			$pidfile = expand_fragment $datadir, $1;
+			$pidfile = expand_fragment $runtimedir, $1;
 			return;
 		}
 	}
@@ -426,7 +406,7 @@ sub getpidfile
 	}
 
 	# End of includes / No includes found. Using default.
-	$pidfile = $datadir . "/inspircd.pid";
+	$pidfile = $runtimedir . "/inspircd.pid";
 }
 
 sub getstatus {

@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2014, 2016, 2018-2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2014, 2016, 2018-2021 Sadie Powell <sadie@witchery.services>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -29,7 +29,7 @@
 #define INSPIRCD_VERSION_BEFORE(MAJOR, MINOR) (((@VERSION_MAJOR@ << 8) | @VERSION_MINOR@) < ((MAJOR << 8) | (MINOR)))
 
 /** Determines whether this version of InspIRCd is equal to or newer than the requested version. */
-#define INSPIRCD_VERSION_SINCE(MAJOR, MINOR) (((@VERSION_MAJOR@ << 16) | @VERSION_MINOR@) >= ((MAJOR << 8) | (MINOR)))
+#define INSPIRCD_VERSION_SINCE(MAJOR, MINOR) (((@VERSION_MAJOR@ << 8) | @VERSION_MINOR@) >= ((MAJOR << 8) | (MINOR)))
 
 /** The default location that config files are stored in. */
 #define INSPIRCD_CONFIG_PATH "@CONFIG_DIR@"
@@ -42,6 +42,12 @@
 
 /** The default location that module files are stored in. */
 #define INSPIRCD_MODULE_PATH "@MODULE_DIR@"
+
+/** The default location that runtime files are stored in. */
+#define INSPIRCD_RUNTIME_PATH "@RUNTIME_DIR@"
+
+/** The URL of the InspIRCd docs site. */
+#define INSPIRCD_DOCS "https://docs.inspircd.org/@VERSION_MAJOR@/"
 
 #ifndef _WIN32
  %target include/config.h

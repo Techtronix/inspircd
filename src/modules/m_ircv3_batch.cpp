@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2018-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2018-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2018 Attila Molnar <attilamolnar@hush.com>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
@@ -26,7 +26,7 @@ class BatchMessage : public ClientProtocol::Message
 {
  public:
 	BatchMessage(const IRCv3::Batch::Batch& batch, bool start)
-		: ClientProtocol::Message("BATCH", ServerInstance->Config->ServerName)
+		: ClientProtocol::Message("BATCH", ServerInstance->Config->GetServerName())
 	{
 		char c = (start ? '+' : '-');
 		PushParam(std::string(1, c) + batch.GetRefTagStr());

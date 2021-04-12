@@ -4,7 +4,7 @@
  *   Copyright (C) 2019 iwalkalone <iwalkalone69@gmail.com>
  *   Copyright (C) 2019 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2013-2016, 2018 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2013, 2018-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2018-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013, 2015 Adam <Adam@anope.org>
  *   Copyright (C) 2013 Daniel Vassdal <shutter@canternet.org>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
@@ -369,7 +369,7 @@ void UserManager::ServerNoticeAll(const char* text, ...)
 {
 	std::string message;
 	VAFORMAT(message, text, text);
-	ClientProtocol::Messages::Privmsg msg(ClientProtocol::Messages::Privmsg::nocopy, ServerInstance->FakeClient, ServerInstance->Config->ServerName, message, MSG_NOTICE);
+	ClientProtocol::Messages::Privmsg msg(ClientProtocol::Messages::Privmsg::nocopy, ServerInstance->FakeClient, ServerInstance->Config->GetServerName(), message, MSG_NOTICE);
 	ClientProtocol::Event msgevent(ServerInstance->GetRFCEvents().privmsg, msg);
 
 	for (LocalList::const_iterator i = local_users.begin(); i != local_users.end(); ++i)

@@ -2,7 +2,7 @@
 #
 # InspIRCd -- Internet Relay Chat Daemon
 #
-#   Copyright (C) 2020 Sadie Powell <sadie@witchery.services>
+#   Copyright (C) 2020-2021 Sadie Powell <sadie@witchery.services>
 #
 # This file is part of InspIRCd.  InspIRCd is free software: you can
 # redistribute it and/or modify it under the terms of the GNU General Public
@@ -37,6 +37,7 @@
 	@MODULE_DIR@/core_*.so mr,
 	@MODULE_DIR@/m_*.so mr,
 	@LOG_DIR@/** w,
+	@RUNTIME_DIR@/** rw,
 
 	# Required by the ldap module:
 	#include <abstractions/ldapclient>

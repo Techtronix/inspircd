@@ -167,6 +167,26 @@ void ServiceProvider::DisableAutoRegister()
 		stdalgo::erase(*ServerInstance->Modules->NewServices, this);
 }
 
+const char* ServiceProvider::GetTypeString() const
+{
+	switch (service)
+	{
+		case SERVICE_COMMAND:
+			return "command";
+		case SERVICE_MODE:
+			return "mode";
+		case SERVICE_METADATA:
+			return "metadata";
+		case SERVICE_IOHOOK:
+			return "iohook";
+		case SERVICE_DATA:
+			return "data service";
+		case SERVICE_CUSTOM:
+			return "module service";
+	}
+	return "unknown service";
+}
+
 ModuleManager::ModuleManager()
 {
 }
@@ -405,11 +425,14 @@ void ModuleManager::DoSafeUnload(Module* mod)
 		user->doUnhookExtensions(items);
 	}
 
-	for(std::multimap<std::string, ServiceProvider*>::iterator i = DataProviders.begin(); i != DataProviders.end(); )
+	for (DataProviderMap::iterator i = DataProviders.begin(); i != DataProviders.end(); )
 	{
-		std::multimap<std::string, ServiceProvider*>::iterator curr = i++;
+		DataProviderMap::iterator curr = i++;
 		if (curr->second->creator == mod)
+		{
 			DataProviders.erase(curr);
+			FOREACH_MOD(OnServiceDel, (*curr->second));
+		}
 	}
 
 	dynamic_reference_base::reset_all();
@@ -562,6 +585,8 @@ void ModuleManager::AddServices(const ServiceList& list)
 
 void ModuleManager::AddService(ServiceProvider& item)
 {
+	ServerInstance->Logs->Log("SERVICE", LOG_DEBUG, "Adding %s %s provided by %s", item.name.c_str(),
+		item.GetTypeString(), item.creator ? item.creator->ModuleSourceFile.c_str() : "the core");
 	switch (item.service)
 	{
 		case SERVICE_DATA:
@@ -589,6 +614,8 @@ void ModuleManager::AddService(ServiceProvider& item)
 
 void ModuleManager::DelService(ServiceProvider& item)
 {
+	ServerInstance->Logs->Log("SERVICE", LOG_DEBUG, "Deleting %s %s provided by %s", item.name.c_str(),
+		item.GetTypeString(), item.creator ? item.creator->ModuleSourceFile.c_str() : "the core");
 	switch (item.service)
 	{
 		case SERVICE_MODE:
@@ -599,7 +626,7 @@ void ModuleManager::DelService(ServiceProvider& item)
 		case SERVICE_IOHOOK:
 		{
 			DelReferent(&item);
-			return;
+			break;
 		}
 		default:
 			throw ModuleException("Cannot delete unknown service type");
@@ -615,7 +642,7 @@ ServiceProvider* ModuleManager::FindService(ServiceType type, const std::string&
 		case SERVICE_DATA:
 		case SERVICE_IOHOOK:
 		{
-			std::multimap<std::string, ServiceProvider*>::iterator i = DataProviders.find(name);
+			DataProviderMap::iterator i = DataProviders.find(name);
 			if (i != DataProviders.end() && i->second->service == type)
 				return i->second;
 			return NULL;
@@ -669,7 +696,7 @@ void dynamic_reference_base::resolve()
 {
 	// Because find() may return any element with a matching key in case count(key) > 1 use lower_bound()
 	// to ensure a dynref with the same name as another one resolves to the same object
-	std::multimap<std::string, ServiceProvider*>::iterator i = ServerInstance->Modules.DataProviders.lower_bound(name);
+	ModuleManager::DataProviderMap::iterator i = ServerInstance->Modules.DataProviders.lower_bound(name);
 	if ((i != ServerInstance->Modules.DataProviders.end()) && (i->first == this->name))
 	{
 		ServiceProvider* newvalue = i->second;
@@ -702,7 +729,7 @@ void ModuleManager::AddReferent(const std::string& name, ServiceProvider* servic
 
 void ModuleManager::DelReferent(ServiceProvider* service)
 {
-	for (std::multimap<std::string, ServiceProvider*>::iterator i = DataProviders.begin(); i != DataProviders.end(); )
+	for (DataProviderMap::iterator i = DataProviders.begin(); i != DataProviders.end(); )
 	{
 		ServiceProvider* curr = i->second;
 		if (curr == service)

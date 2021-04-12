@@ -3,12 +3,12 @@
  *
  *   Copyright (C) 2020 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2018 Chris Novakovic <chrisnovakovic@users.noreply.github.com>
- *   Copyright (C) 2013, 2017-2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2018-2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013 Adam <Adam@anope.org>
  *   Copyright (C) 2012-2014, 2016, 2018 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2012 William Pitcock <nenolod@dereferenced.org>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2012 ChrisTX <xpipe@hotmail.de>
+ *   Copyright (C) 2012 Ariadne Conill <ariadne@dereferenced.org>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2009 Uli Schlachter <psychon@inspircd.org>
  *   Copyright (C) 2008 Thomas Stagner <aquanight@inspircd.org>
@@ -332,7 +332,7 @@ namespace
 
 		if (do_version)
 		{
-			std::cout << std::endl << INSPIRCD_VERSION << std::endl;
+			std::cout << INSPIRCD_VERSION << std::endl;
 			ServerInstance->Exit(EXIT_STATUS_NOERROR);
 		}
 
@@ -445,7 +445,7 @@ void InspIRCd::WritePID(const std::string& filename, bool exitonfail)
 		return;
 	}
 
-	std::string fname = ServerInstance->Config->Paths.PrependData(filename.empty() ? "inspircd.pid" : filename);
+	std::string fname = ServerInstance->Config->Paths.PrependRuntime(filename.empty() ? "inspircd.pid" : filename);
 	std::ofstream outfile(fname.c_str());
 	if (outfile.is_open())
 	{
@@ -490,6 +490,7 @@ InspIRCd::InspIRCd(int argc, char** argv)
 
 	this->Config->cmdline.argv = argv;
 	this->Config->cmdline.argc = argc;
+	ParseOptions();
 
 #ifdef _WIN32
 	// Initialize the console values
@@ -521,10 +522,10 @@ InspIRCd::InspIRCd(int argc, char** argv)
 		<< "See " << con_green << "/INFO" << con_reset << " for contributors & authors" << std::endl
 		<< std::endl;
 
-	ParseOptions();
 	if (Config->cmdline.forcedebug)
 	{
-		FileWriter* fw = new FileWriter(stdout, 1);
+		FILE* newstdout = fdopen(dup(STDOUT_FILENO), "w");
+		FileWriter* fw = new FileWriter(newstdout, 1);
 		FileLogStream* fls = new FileLogStream(LOG_RAWIO, fw);
 		Logs->AddLogTypes("*", fls, true);
 	}

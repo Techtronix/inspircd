@@ -3,7 +3,7 @@
 # InspIRCd -- Internet Relay Chat Daemon
 #
 #   Copyright (C) 2014-2015 Attila Molnar <attilamolnar@hush.com>
-#   Copyright (C) 2013, 2015-2019 Sadie Powell <sadie@witchery.services>
+#   Copyright (C) 2013, 2015-2019, 2021 Sadie Powell <sadie@witchery.services>
 #   Copyright (C) 2012 Robby <robby@chatbelgie.be>
 #   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
 #
@@ -21,20 +21,13 @@
 #
 
 
-BEGIN {
-	push @INC, $ENV{SOURCEPATH};
-	require 5.10.0;
-	unless (-f 'configure') {
-		print "Error: $0 must be run from the main source directory!\n";
-		exit 1;
-	}
-}
-
 use strict;
 use warnings FATAL => qw(all);
 
-use File::Basename qw(basename);
+use File::Basename qw(basename dirname);
+use FindBin        qw($RealDir);
 
+use lib dirname $RealDir;
 use make::common;
 
 use constant {
@@ -97,7 +90,7 @@ END
 		push @core_deps, $out;
 	}
 
-	foreach my $directory (qw(coremods modules)) {
+	for my $directory (qw(coremods modules)) {
 		opendir(my $moddir, $directory);
 		for my $file (sort readdir $moddir) {
 			next if $file =~ /^\./;

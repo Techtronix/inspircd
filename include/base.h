@@ -3,7 +3,7 @@
  *
  *   Copyright (C) 2020 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2013, 2015 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2012-2013, 2017 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2012-2013, 2017, 2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2012 ChrisTX <xpipe@hotmail.de>
  *   Copyright (C) 2011-2012 Adam <Adam@anope.org>
@@ -258,6 +258,9 @@ class CoreExport ServiceProvider : public classbase
 	const ServiceType service;
 	ServiceProvider(Module* Creator, const std::string& Name, ServiceType Type);
 	virtual ~ServiceProvider();
+
+	/** Retrieves a string that represents the type of this service. */
+	const char* GetTypeString() const;
 
 	/** Register this service in the appropriate registrar
 	 */

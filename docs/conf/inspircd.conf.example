@@ -121,21 +121,10 @@
 
 #-#-#-#-#-#-#-#-#-#-#-#-   PORT CONFIGURATION   -#-#-#-#-#-#-#-#-#-#-#-
 #                                                                     #
-#   Enter the port and address bindings here.                         #
+#   Configure the port and address bindings here.                     #
 #                                                                     #
-#                                                                     #
-#    ____                _   _____ _     _       ____  _ _   _        #
-#   |  _ \ ___  __ _  __| | |_   _| |__ (_)___  | __ )(_) |_| |       #
-#   | |_) / _ \/ _` |/ _` |   | | | '_ \| / __| |  _ \| | __| |       #
-#   |  _ <  __/ (_| | (_| |   | | | | | | \__ \ | |_) | | |_|_|       #
-#   |_| \_\___|\__,_|\__,_|   |_| |_| |_|_|___/ |____/|_|\__(_)       #
-#                                                                     #
-#  If you want to link servers to InspIRCd you must load the          #
-#  spanningtree module! Please see the modules list for               #
-#  information on how to load this module! If you do not load this    #
-#  module, server ports will NOT work!                                #
 
-# Listener that binds on a TCP/IP endpoint:
+# TLS (SSL) listener that binds on a TCP/IP endpoint:
 <bind
       # address: IP address to bind to if the box that you are hosting
       # on has more than one IP, else the ircd will try to bind to all
@@ -152,14 +141,17 @@
       # to this bind section.
       type="clients"
 
-      # ssl: If you want the port(s) in this bind tag to use TLS (SSL), set this to
-      # the name of a custom <sslprofile> tag that you have defined or one
-      # of "openssl", "gnutls", "mbedtls" if you have not defined any. See the
-      # docs page for the TLS (SSL) module you are using for more details.
+      # ssl: If you want the port(s) in this bind tag to use TLS (SSL), set this
+      # to the name of a custom <sslprofile> tag that you have defined. See the
+      # docs page for the TLS (SSL) module you are using for more details:
+      #
+      # GnuTLS:  https://docs.inspircd.org/3/modules/ssl_gnutls#sslprofile
+      # mbedTLS: https://docs.inspircd.org/3/modules/ssl_mbedtls#sslprofile
+      # OpenSSL: https://docs.inspircd.org/3/modules/ssl_openssl#sslprofile
       #
       # You will need to load the ssl_openssl module for OpenSSL, ssl_gnutls
       # for GnuTLS and ssl_mbedtls for mbedTLS.
-      ssl="gnutls"
+      ssl="Clients"
 
       # defer: When this is non-zero, connections will not be handed over to
       # the daemon from the operating system before data is ready.
@@ -177,6 +169,10 @@
       # is useful for if you are starting InspIRCd on boot when the server may
       # not have brought the network interfaces up yet.
       free="no">
+
+# Plaintext listener that binds on a TCP/IP endpoint:
+<bind address="" port="6667" type="clients">
+
 
 # Listener that binds on a UNIX endpoint (not supported on Windows):
 #<bind
@@ -203,15 +199,15 @@
     # shut down cleanly and left a zombie socket behind.
     #replace="yes">
 
-<bind address="" port="6667" type="clients">
 
 # Listener accepting HTML5 WebSocket connections.
 # Requires the websocket module and SHA-1 hashing support (provided by the sha1
 # module).
 #<bind address="" port="7002" type="clients" hook="websocket">
 
+
 # You can define a custom <sslprofile> tag which defines the TLS (SSL) configuration
-# for this listener. See the docs page for the TLS (SSL) module you are using for
+# for these listeners. See the docs page for the TLS (SSL) module you are using for
 # more details.
 #
 # Alternatively, you can use one of the default TLS (SSL) profiles which are created
@@ -223,9 +219,6 @@
 # When linking servers, the OpenSSL, GnuTLS, and mbedTLS implementations are
 # completely link-compatible and can be used alongside each other on each end
 # of the link without any significant issues.
-
-<bind address="" port="7000,7001" type="servers">
-<bind address="1.2.3.4" port="7005" type="servers" ssl="openssl">
 
 
 #-#-#-#-#-#-#-#-#-#-  CONNECTIONS CONFIGURATION  -#-#-#-#-#-#-#-#-#-#-#
@@ -304,12 +297,20 @@
          # globalmax: Maximum global (network-wide) connections per IP (or CIDR mask, see below).
          globalmax="3"
 
-         # maxconnwarn: Enable warnings when localmax or globalmax are reached (defaults to on)
-         maxconnwarn="off"
+         # maxconnwarn: Enable warnings when localmax or globalmax are reached (defaults to yes)
+         maxconnwarn="no"
 
          # resolvehostnames: If disabled, no DNS lookups will be performed on connecting users
          # in this class. This can save a lot of resources on very busy servers.
          resolvehostnames="yes"
+
+         # useconnectban: Defines if users in this class should be exempt from connectban limits.
+         # This setting only has effect when the connectban module is loaded.
+         #useconnectban="yes"
+
+         # useconnflood: Defines if users in this class should be exempt from connflood limits.
+         # This setting only has effect when the connflood module is loaded.
+         #useconnflood="yes"
 
          # usednsbl: Defines whether or not users in this class are subject to DNSBL. Default is yes.
          # This setting only has effect when the dnsbl module is loaded.
@@ -435,7 +436,7 @@
          # immediately killing them; their commands are held in the recvq and processed later
          # as the user's command penalty drops. Note that if this is enabled, flooders will
          # quit with "RecvQ exceeded" rather than "Excess Flood".
-         fakelag="on"
+         fakelag="yes"
 
          # localmax: Maximum local connections per IP.
          localmax="3"
@@ -538,8 +539,8 @@
 # rehash the ircd from the shell or to terminate the ircd from the    #
 # shell using shell scripts, perl scripts, etc... and to monitor the  #
 # ircd's state via cron jobs. If this is a relative path, it will be  #
-# relative to the configuration directory, and if it is not defined,  #
-# the default of 'inspircd.pid' is used.                              #
+# relative to the runtime directory, and if it is not defined, the    #
+# default of 'inspircd.pid' is used.                                  #
 #                                                                     #
 
 #<pid file="/path/to/inspircd.pid">
@@ -695,8 +696,9 @@
          #  - stripcolor      Channel mode +S - strips formatting codes from
          #                    messages (requires the stripcolor module).
          #  - topiclock       Channel mode +t - limits changing the topic to (half)ops
-         # You can also configure this on a per-channel basis with a channel mode.
-         # See m_exemptchanops in modules.conf.example for more details.
+         # You can also configure this on a per-channel basis with a channel mode and
+         # even negate the configured exemptions below.
+         # See exemptchanops in modules.conf.example for more details.
          exemptchanops="censor:o filter:o nickflood:o nonick:v regmoderated:o"
 
          # invitebypassmodes: This allows /INVITE to bypass other channel modes.
@@ -728,13 +730,13 @@
              # connections. If defined, it sets a soft max connections value.
              softlimit="12800"
 
-             # clonesonconnect: If this is set to false, we won't check for clones
+             # clonesonconnect: If this is set to no, we won't check for clones
              # on initial connection, but only after the DNS check is done.
              # This can be useful where your main class is more restrictive
              # than some other class a user can be assigned after DNS lookup is complete.
              # Turning this option off will make the server spend more time on users we may
              # potentially not want. Normally this should be negligible, though.
-             # Default value is true
+             # Default value is yes
              clonesonconnect="yes"
 
              # timeskipwarn: The time period that a server clock can jump by before
@@ -972,10 +974,10 @@
 
 <badnick
          # nick: Nick to disallow. Wildcards are supported.
-         nick="ChanServ"
+         nick="Tr0ll123"
 
          # reason: Reason to display on /NICK.
-         reason="Reserved for a network service">
+         reason="Don't use this nick.">
 
 <badhost
          # host: ident@hostname to ban.

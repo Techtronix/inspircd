@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2018-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2018-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2014, 2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
@@ -37,7 +37,6 @@ CmdResult CommandTime::Handle(User* user, const Params& parameters)
 	if (parameters.size() > 0 && !irc::equals(parameters[0], ServerInstance->Config->ServerName))
 		return CMD_SUCCESS;
 
-	user->WriteRemoteNumeric(RPL_TIME, ServerInstance->Config->ServerName, InspIRCd::TimeString(ServerInstance->Time()));
-
+	user->WriteRemoteNumeric(RPL_TIME, ServerInstance->Config->GetServerName(), InspIRCd::TimeString(ServerInstance->Time()));
 	return CMD_SUCCESS;
 }

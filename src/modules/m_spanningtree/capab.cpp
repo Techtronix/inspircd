@@ -2,7 +2,7 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2019 linuxdaemon <linuxdaemon.irc@gmail.com>
- *   Copyright (C) 2014, 2017-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2014, 2017-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2014 Daniel Vassdal <shutter@canternet.org>
  *   Copyright (C) 2012-2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
@@ -198,6 +198,14 @@ void TreeSocket::SendCapabilities(int phase)
 			.append(" USERMODES="+ServerInstance->Modes->GiveModeList(MODETYPE_USER))
 			.append(" PREFIX="+ ServerInstance->Modes->BuildPrefixes());
 	}
+
+	// HACK: Allow services to know what extbans exist. This will be
+	// replaced by CAPAB EXTBANS in the next protocol version.
+	std::map<std::string, std::string> tokens;
+	FOREACH_MOD(On005Numeric, (tokens));
+	std::map<std::string, std::string>::const_iterator eiter = tokens.find("EXTBAN");
+	if (eiter != tokens.end())
+		extra.append(" EXTBANS=" + eiter->second);
 
 	this->WriteLine("CAPAB CAPABILITIES " /* Preprocessor does this one. */
 			":NICKMAX="+ConvToStr(ServerInstance->Config->Limits.NickMax)+

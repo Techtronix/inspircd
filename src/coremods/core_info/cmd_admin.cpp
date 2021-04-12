@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2018-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2018-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2014, 2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
@@ -39,7 +39,7 @@ CmdResult CommandAdmin::Handle(User* user, const Params& parameters)
 {
 	if (parameters.size() > 0 && !irc::equals(parameters[0], ServerInstance->Config->ServerName))
 		return CMD_SUCCESS;
-	user->WriteRemoteNumeric(RPL_ADMINME, ServerInstance->Config->ServerName, "Administrative info");
+	user->WriteRemoteNumeric(RPL_ADMINME, ServerInstance->Config->GetServerName(), "Administrative info");
 	if (!AdminName.empty())
 		user->WriteRemoteNumeric(RPL_ADMINLOC1, InspIRCd::Format("Name: %s", AdminName.c_str()));
 	user->WriteRemoteNumeric(RPL_ADMINLOC2, InspIRCd::Format("Nickname: %s", AdminNick.c_str()));

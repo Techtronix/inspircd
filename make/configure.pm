@@ -2,7 +2,7 @@
 # InspIRCd -- Internet Relay Chat Daemon
 #
 #   Copyright (C) 2020 Nicole Kleinhoff <ilbelkyr@shalture.org>
-#   Copyright (C) 2013-2020 Sadie Powell <sadie@witchery.services>
+#   Copyright (C) 2013-2021 Sadie Powell <sadie@witchery.services>
 #   Copyright (C) 2012 Robby <robby@chatbelgie.be>
 #   Copyright (C) 2007-2008 Craig Edwards <brain@inspircd.org>
 #   Copyright (C) 2007 Dennis Friis <peavey@inspircd.org>
@@ -21,13 +21,9 @@
 #
 
 
-BEGIN {
-	require 5.10.0;
-}
-
 package make::configure;
 
-use feature ':5.10';
+use v5.10.0;
 use strict;
 use warnings FATAL => qw(all);
 
@@ -62,7 +58,7 @@ our @EXPORT = qw(CONFIGURE_CACHE_FILE
 
 sub __get_socketengines {
 	my @socketengines;
-	foreach (<${\CONFIGURE_ROOT}/src/socketengines/socketengine_*.cpp>) {
+	for (<${\CONFIGURE_ROOT}/src/socketengines/socketengine_*.cpp>) {
 		s/src\/socketengines\/socketengine_(\w+)\.cpp/$1/;
 		push @socketengines, $1;
 	}
@@ -110,76 +106,82 @@ sub cmd_clean {
 
 sub cmd_help {
 	my $SELIST = join ', ', __get_socketengines();
-	print <<EOH;
-Usage: $0 [options]
+	print console_format <<EOH;
+<|GREEN Usage:|> <|BOLD $0 [OPTIONS|>]
 
 When no options are specified, configure runs in interactive mode and you must
 specify any required values manually. If one or more options are specified,
 non-interactive configuration is started and any omitted values are defaulted.
 
-PATH OPTIONS
+<|GREEN PATH OPTIONS|>
 
-  --system                      Automatically set up the installation paths
-                                for system-wide installation.
-  --prefix=[dir]                The root install directory. If this is set then
+  <|BOLD --portable|>                    Automatically set up the installation paths for
+                                portable installation.
+  <|BOLD --system|>                      Automatically set up the installation paths for
+                                system-wide installation.
+  <|BOLD --prefix <DIR>|>                The root install directory. If this is set then
                                 all subdirectories will be adjusted accordingly.
                                 [${\CONFIGURE_ROOT}/run]
-  --binary-dir=[dir]            The location where the main server binary is
+  <|BOLD --binary-dir <DIR>|>            The location where the main server binary is
                                 stored.
                                 [${\CONFIGURE_ROOT}/run/bin]
-  --config-dir=[dir]            The location where the configuration files and
+  <|BOLD --config-dir <DIR>|>            The location where the configuration files and
                                 SSL certificates are stored.
                                 [${\CONFIGURE_ROOT}/run/conf]
-  --data-dir=[dir]              The location where the data files, such as the
-                                pid file, are stored.
+  <|BOLD --data-dir <DIR>|>              The location where the data files, such as the
+                                xline database, are stored.
                                 [${\CONFIGURE_ROOT}/run/data]
-  --example-dir=[dir]           The location where the example configuration files
-                                and SQL schemas are stored.
+  <|BOLD --example-dir <DIR>|>           The location where the example configuration
+                                files and SQL schemas are stored.
                                 [${\CONFIGURE_ROOT}/run/conf/examples]
-  --log-dir=[dir]               The location where the log files are stored.
+  <|BOLD --log-dir <DIR>|>               The location where the log files are stored.
                                 [${\CONFIGURE_ROOT}/run/logs]
-  --manual-dir=[dir]            The location where the manual files are stored.
+  <|BOLD --manual-dir <DIR>|>            The location where the manual files are stored.
                                 [${\CONFIGURE_ROOT}/run/manuals]
-  --module-dir=[dir]            The location where the loadable modules are
+  <|BOLD --module-dir <DIR>|>            The location where the loadable modules are
                                 stored.
                                 [${\CONFIGURE_ROOT}/run/modules]
-  --script-dir=[dir]            The location where the scripts, such as the
+  <|BOLD --runtime-dir <DIR>|>            The location where the runtime files, such as
+                                the pid file, are stored.
+                                [${\CONFIGURE_ROOT}/run/data]
+  <|BOLD --script-dir <DIR>|>            The location where the scripts, such as the
                                 init scripts, are stored.
                                 [${\CONFIGURE_ROOT}/run]
 
-EXTRA MODULE OPTIONS
+<|GREEN EXTRA MODULE OPTIONS|>
 
-  --enable-extras=[extras]      Enables a comma separated list of extra modules.
-  --disable-extras=[extras]     Disables a comma separated list of extra modules.
-  --list-extras                 Shows the availability status of all extra
+  <|BOLD --enable-extras <MODULE>|>      Enables a comma separated list of extra modules.
+  <|BOLD --disable-extras <MODULE>|>     Disables a comma separated list of extra modules.
+  <|BOLD --list-extras|>                 Shows the availability status of all extra
                                 modules.
 
-MISC OPTIONS
+<|GREEN MISC OPTIONS|>
 
-  --clean                       Remove the configuration cache file and start
+  <|BOLD --clean|>                       Remove the configuration cache file and start
                                 the interactive configuration wizard.
-  --disable-auto-extras         Disables automatically enabling extra modules
+  <|BOLD --disable-auto-extras|>         Disables automatically enabling extra modules
                                 for which the dependencies are available.
-  --disable-interactive         Disables the interactive configuration wizard.
-  --distribution-label=[text]   Sets a distribution specific version label in
+  <|BOLD --disable-interactive|>         Disables the interactive configuration wizard.
+  <|BOLD --distribution-label <TEXT>|>   Sets a distribution specific version label in
                                 the build configuration.
-  --gid=[id|name]               Sets the group to run InspIRCd as.
-  --help                        Show this message and exit.
-  --socketengine=[name]         Sets the socket engine to be used. Possible
+  <|BOLD --gid <ID|NAME>|>               Sets the group to run InspIRCd as.
+  <|BOLD --help|>                        Show this message and exit.
+  <|BOLD --socketengine <NAME>|>         Sets the socket engine to be used. Possible
                                 values are $SELIST.
-  --uid=[id|name]               Sets the user to run InspIRCd as.
-  --update                      Updates the build environment with the settings
+  <|BOLD --uid [ID|NAME]|>               Sets the user to run InspIRCd as.
+  <|BOLD --update|>                      Updates the build environment with the settings
                                 from the cache.
 
+<|GREEN FLAGS|>
 
-FLAGS
-
-  CXX=[name]                    Sets the C++ compiler to use when building the
+  <|BOLD CXX=<NAME>|>                    Sets the C++ compiler to use when building the
                                 server. If not specified then the build system
                                 will search for c++, g++, clang++ or icpc.
+  <|BOLD INSPIRCD_VERBOSE=<0|1>|>        Shows additional information for debugging.
 
 If you have any problems with configuring InspIRCd then visit our IRC channel
-at irc.inspircd.org #InspIRCd for support.
+at irc.inspircd.org #InspIRCd or create a support discussion at
+https://github.com/inspircd/inspircd/discussions.
 
 Packagers: see https://docs.inspircd.org/packaging/ for packaging advice.
 EOH
@@ -190,6 +192,8 @@ sub cmd_update {
 	print_error "You have not run $0 before. Please do this before trying to update the generated files." unless -f CONFIGURE_CACHE_FILE;
 	say 'Updating...';
 	my %config = read_config_file(CONFIGURE_CACHE_FILE);
+	$config{EXAMPLE_DIR} //= catdir $config{CONFIG_DIR}, 'examples';
+	$config{RUNTIME_DIR} //= $config{DATA_DIR};
 	my %compiler = get_compiler_info($config{CXX});
 	my %version = get_version $config{DISTRIBUTION};
 	parse_templates(\%config, \%compiler, \%version);
@@ -200,8 +204,8 @@ sub cmd_update {
 sub run_test($$;$) {
 	my ($what, $result, $adjective) = @_;
 	$adjective //= 'available';
-	print_format "Checking whether <|GREEN $what|> is $adjective ... ";
-	print_format $result ? "<|GREEN yes|>\n" : "<|RED no|>\n";
+	print console_format "Checking whether <|GREEN $what|> is $adjective ... ";
+	say console_format($result ? "<|GREEN yes|>" : "<|RED no|>");
 	return $result;
 }
 
@@ -238,11 +242,11 @@ sub module_shrink($) {
 
 sub write_configure_cache(%) {
 	unless (-e CONFIGURE_DIRECTORY) {
-		print_format "Creating <|GREEN ${\abs2rel CONFIGURE_DIRECTORY, CONFIGURE_ROOT}|> ...\n";
+		say console_format "Creating <|GREEN ${\abs2rel CONFIGURE_DIRECTORY, CONFIGURE_ROOT}|> ...";
 		create_directory CONFIGURE_DIRECTORY, 0750 or print_error "unable to create ${\CONFIGURE_DIRECTORY}: $!";
 	}
 
-	print_format "Writing <|GREEN ${\abs2rel CONFIGURE_CACHE_FILE, CONFIGURE_ROOT}|> ...\n";
+	say console_format "Writing <|GREEN ${\abs2rel CONFIGURE_CACHE_FILE, CONFIGURE_ROOT}|> ...";
 	my %config = @_;
 	write_config_file CONFIGURE_CACHE_FILE, %config;
 }
@@ -262,7 +266,7 @@ sub get_compiler_info($) {
 
 sub find_compiler {
 	my @compilers = qw(c++ g++ clang++ icpc);
-	foreach my $compiler (shift // @compilers) {
+	for my $compiler (shift // @compilers) {
 		return $compiler if __test_compiler $compiler;
 		return "xcrun $compiler" if $^O eq 'darwin' && __test_compiler "xcrun $compiler";
 	}
@@ -277,8 +281,8 @@ sub parse_templates($$$) {
 	my %settings = __get_template_settings($config, $compiler, $version);
 
 	# Iterate through files in make/template.
-	foreach my $template (<${\CONFIGURE_ROOT}/make/template/*>) {
-		print_format "Parsing <|GREEN ${\abs2rel $template, CONFIGURE_ROOT}|> ...\n";
+	for my $template (<${\CONFIGURE_ROOT}/make/template/*>) {
+		say console_format "Parsing <|GREEN ${\abs2rel $template, CONFIGURE_ROOT}|> ...";
 		open(my $fh, $template) or print_error "unable to read $template: $!";
 		my (@lines, $mode, @platforms, @targets);
 
@@ -337,14 +341,14 @@ sub parse_templates($$$) {
 				# Create the directory if it doesn't already exist.
 				my $directory = dirname $target;
 				unless (-e $directory) {
-					print_format "Creating <|GREEN ${\abs2rel $directory, CONFIGURE_ROOT}|> ...\n";
+					say console_format "Creating <|GREEN ${\abs2rel $directory, CONFIGURE_ROOT}|> ...";
 					create_directory $directory, 0750 or print_error "unable to create $directory: $!";
 				};
 
 				# Write the template file.
-				print_format "Writing <|GREEN ${\abs2rel $target, CONFIGURE_ROOT}|> ...\n";
+				say console_format "Writing <|GREEN ${\abs2rel $target, CONFIGURE_ROOT}|> ...";
 				open(my $fh, '>', $target) or print_error "unable to write $target: $!";
-				foreach (@lines) {
+				for (@lines) {
 					say $fh $_;
 				}
 				close $fh;

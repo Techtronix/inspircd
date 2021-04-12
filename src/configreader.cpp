@@ -3,7 +3,7 @@
  *
  *   Copyright (C) 2019 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2013-2016 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2013-2014, 2016-2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013-2014, 2016-2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013 Daniel Vassdal <shutter@canternet.org>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2012 Justin Crawford <Justasic@Gmail.com>
@@ -57,6 +57,7 @@ ServerConfig::ServerPaths::ServerPaths(ConfigTag* tag)
 	, Data(tag->getString("datadir", INSPIRCD_DATA_PATH, 1))
 	, Log(tag->getString("logdir", INSPIRCD_LOG_PATH, 1))
 	, Module(tag->getString("moduledir", INSPIRCD_MODULE_PATH, 1))
+	, Runtime(tag->getString("runtimedir", INSPIRCD_RUNTIME_PATH, 1))
 {
 }
 
@@ -335,7 +336,7 @@ void ServerConfig::CrossCheckConnectBlocks(ServerConfig* current)
 	}
 }
 
-static std::string GetServerName()
+static std::string GetServerHost()
 {
 #ifndef _WIN32
 	char hostname[256];
@@ -359,7 +360,7 @@ void ServerConfig::Fill()
 	ConfigTag* server = ConfValue("server");
 	if (sid.empty())
 	{
-		ServerName = server->getString("name", GetServerName(), InspIRCd::IsHost);
+		ServerName = server->getString("name", GetServerHost(), InspIRCd::IsHost);
 
 		sid = server->getString("id");
 		if (!sid.empty() && !InspIRCd::IsSID(sid))
@@ -524,7 +525,7 @@ void ServerConfig::Apply(ServerConfig* old, const std::string &useruid)
 		// On first run, ports are bound later on
 		FailedPortList pl;
 		ServerInstance->BindPorts(pl);
-		if (pl.size())
+		if (!pl.empty())
 		{
 			std::cout << "Warning! Some of your listener" << (pl.size() == 1 ? "s" : "") << " failed to bind:" << std::endl;
 			for (FailedPortList::const_iterator iter = pl.begin(); iter != pl.end(); ++iter)

@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2018-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2018-2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2015-2016, 2018 Attila Molnar <attilamolnar@hush.com>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
@@ -304,6 +304,12 @@ namespace Cap
 		{
 		}
 
+		/** Retrieves the underlying cap. */
+		operator const Cap::Capability*() const
+		{
+			return ref ? *ref : NULL;
+		}
+
 		/** Check whether a user has the referenced capability turned on.
 		 * @param user User to check
 		 * @return True if the user is using the referenced capability, false otherwise
@@ -320,7 +326,7 @@ namespace Cap
 	{
 	 public:
 		MessageBase(const std::string& subcmd)
-			: ClientProtocol::Message("CAP", ServerInstance->Config->ServerName)
+			: ClientProtocol::Message("CAP", ServerInstance->Config->GetServerName())
 		{
 			PushParamPlaceholder();
 			PushParam(subcmd);

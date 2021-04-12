@@ -3,7 +3,7 @@
  *
  *   Copyright (C) 2019 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2014 Googolplexed <googol@googolplexed.net>
- *   Copyright (C) 2013, 2017-2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2014 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
@@ -61,6 +61,16 @@ class ModuleConnectBan
 		return 0;
 	}
 
+	static bool IsExempt(LocalUser* user)
+	{
+		// E-lined and already banned users shouldn't be hit.
+		if (user->exempt || user->quitting)
+			return true;
+
+		// Users in an exempt class shouldn't be hit.
+		return user->GetClass() && !user->GetClass()->config->getBool("useconnectban", true);
+	}
+
  public:
 	ModuleConnectBan()
 		: WebIRC::EventListener(this)
@@ -91,7 +101,7 @@ class ModuleConnectBan
 
 	void OnWebIRCAuth(LocalUser* user, const WebIRC::FlagMap* flags) CXX11_OVERRIDE
 	{
-		if (user->exempt)
+		if (IsExempt(user))
 			return;
 
 		// HACK: Lower the connection attempts for the gateway IP address. The user
@@ -105,7 +115,7 @@ class ModuleConnectBan
 
 	void OnSetUserIP(LocalUser* u) CXX11_OVERRIDE
 	{
-		if (u->exempt || u->quitting)
+		if (IsExempt(u))
 			return;
 
 		irc::sockets::cidr_mask mask(u->client_sa, GetRange(u));

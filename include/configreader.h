@@ -5,7 +5,7 @@
  *   Copyright (C) 2018 Chris Novakovic <chrisnovakovic@users.noreply.github.com>
  *   Copyright (C) 2013-2014, 2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2013 Daniel Vassdal <shutter@canternet.org>
- *   Copyright (C) 2012-2014, 2016-2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2012-2014, 2016-2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2008 Thomas Stagner <aquanight@inspircd.org>
@@ -250,12 +250,16 @@ class CoreExport ServerConfig
 		/** Module path */
 		std::string Module;
 
+		/** Runtime path */
+		std::string Runtime;
+
 		ServerPaths(ConfigTag* tag);
 
 		std::string PrependConfig(const std::string& fn) const { return FileSystem::ExpandPath(Config, fn); }
 		std::string PrependData(const std::string& fn) const { return FileSystem::ExpandPath(Data, fn); }
 		std::string PrependLog(const std::string& fn) const { return FileSystem::ExpandPath(Log, fn); }
 		std::string PrependModule(const std::string& fn) const { return FileSystem::ExpandPath(Module, fn); }
+		std::string PrependRuntime(const std::string& fn) const { return FileSystem::ExpandPath(Runtime, fn); }
 	};
 
 	/** Holds a complete list of all connect blocks
@@ -450,6 +454,12 @@ class CoreExport ServerConfig
 	/** Get server ID as string with required leading zeroes
 	 */
 	const std::string& GetSID() const { return sid; }
+
+	/** Retrieves the server name which should be shown to users. */
+	const std::string& GetServerName() const { return HideServer.empty() ? ServerName : HideServer; }
+
+	/** Retrieves the server description which should be shown to users. */
+	const std::string& GetServerDesc() const { return HideServer.empty() ? ServerDesc : HideServer; }
 
 	/** Read the entire configuration into memory
 	 * and initialize this class. All other methods

@@ -1,6 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
+ *   Copyright (C) 2020 Elizabeth Myers <elizabeth@interlinked.me>
  *   Copyright (C) 2020 Daniel Vassdal <shutter@canternet.org>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
@@ -18,7 +19,7 @@
 
 /// $CompilerFlags: find_compiler_flags("libargon2" "")
 
-/// $LinkerFlags: find_linker_flags("libargon2" "-llibargon2")
+/// $LinkerFlags: find_linker_flags("libargon2" "-largon2")
 
 /// $PackageInfo: require_system("arch") argon2 pkgconf
 /// $PackageInfo: require_system("darwin") argon2 pkg-config

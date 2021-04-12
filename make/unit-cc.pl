@@ -4,7 +4,7 @@
 #
 #   Copyright (C) 2019 iwalkalone <iwalkalone69@gmail.com>
 #   Copyright (C) 2014 Attila Molnar <attilamolnar@hush.com>
-#   Copyright (C) 2013, 2015-2016, 2018 Sadie Powell <sadie@witchery.services>
+#   Copyright (C) 2013, 2015-2016, 2018, 2021 Sadie Powell <sadie@witchery.services>
 #   Copyright (C) 2012 Robby <robby@chatbelgie.be>
 #   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
 #
@@ -22,16 +22,15 @@
 #
 
 
-BEGIN {
-	push @INC, $ENV{SOURCEPATH};
-	require 5.10.0;
-}
-
+use v5.10.0;
 use strict;
 use warnings FATAL => qw(all);
 
+use File::Basename        qw(dirname);
 use File::Spec::Functions qw(abs2rel);
+use FindBin               qw($RealDir);
 
+use lib dirname $RealDir;
 use make::console;
 use make::directive;
 
@@ -58,9 +57,9 @@ exit 1;
 sub message($$$) {
 	my ($type, $file, $command) = @_;
 	if ($ENV{INSPIRCD_VERBOSE}) {
-		print "$command\n";
+		say $command;
 	} else {
-		print_format "\t<|GREEN $type:|>\t\t$file\n";
+		say console_format "\t<|GREEN $type:|>\t\t$file";
 	}
 }
 

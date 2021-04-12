@@ -1,8 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2019 linuxdaemon <linuxdaemon.irc@gmail.com>
- *   Copyright (C) 2013, 2017-2018 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2018, 2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013, 2015 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
@@ -39,10 +38,10 @@ class ModuleHttpConfig : public Module, public HTTPRequestEventListener
 
 	ModResult OnHTTPRequest(HTTPRequest& request) CXX11_OVERRIDE
 	{
-		if ((request.GetPath() != "/config") && (request.GetPath() != "/config/"))
+		if (request.GetPath() != "/config")
 			return MOD_RES_PASSTHRU;
 
-		ServerInstance->Logs->Log(MODNAME, LOG_DEBUG, "Handling request for the HTTP /config route");
+		ServerInstance->Logs->Log(MODNAME, LOG_DEBUG, "Handling HTTP request for %s", request.GetPath().c_str());
 		std::stringstream buffer;
 
 		ConfigDataHash& config = ServerInstance->Config->config_data;

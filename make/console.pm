@@ -1,7 +1,7 @@
 #
 # InspIRCd -- Internet Relay Chat Daemon
 #
-#   Copyright (C) 2014-2017, 2019 Sadie Powell <sadie@witchery.services>
+#   Copyright (C) 2014-2017, 2019-2021 Sadie Powell <sadie@witchery.services>
 #
 # This file is part of InspIRCd.  InspIRCd is free software: you can
 # redistribute it and/or modify it under the terms of the GNU General Public
@@ -19,11 +19,7 @@
 
 package make::console;
 
-BEGIN {
-	require 5.10.0;
-}
-
-use feature ':5.10';
+use v5.10.0;
 use strict;
 use warnings FATAL => qw(all);
 
@@ -34,7 +30,7 @@ use File::Spec::Functions qw(rel2abs);
 
 our @EXPORT = qw(command
                  execute_command
-                 print_format
+                 console_format
                  print_error
                  print_warning
                  prompt_bool
@@ -59,34 +55,31 @@ struct 'command' => {
 	'description' => '$',
 };
 
-sub __console_format($$) {
-	my ($name, $data) = @_;
-	return $data unless -t STDOUT;
-	return $FORMAT_CODES{uc $name} . $data . $FORMAT_CODES{DEFAULT};
-}
-
-sub print_format($;$) {
+sub console_format($) {
 	my $message = shift;
-	my $stream = shift // *STDOUT;
 	while ($message =~ /(<\|(\S+)\s(.*?)\|>)/) {
-		my $formatted = __console_format $2, $3;
-		$message =~ s/\Q$1\E/$formatted/;
+		my ($match, $type, $text) = ($1, uc $2, $3);
+		if (-t STDOUT && exists $FORMAT_CODES{$type}) {
+			$message =~ s/\Q$match\E/$FORMAT_CODES{$type}$text$FORMAT_CODES{DEFAULT}/;
+		} else {
+			$message =~ s/\Q$match\E/$text/;
+		}
 	}
-	print { $stream } $message;
+	return $message;
 }
 
 sub print_error {
-	print_format "<|RED Error:|> ", *STDERR;
+	print STDERR console_format "<|RED Error:|> ";
 	for my $line (@_) {
-		print_format "$line\n", *STDERR;
+		say STDERR console_format $line;
 	}
 	exit 1;
 }
 
 sub print_warning {
-	print_format "<|YELLOW Warning:|> ", *STDERR;
+	print STDERR console_format "<|YELLOW Warning:|> ";
 	for my $line (@_) {
-		print_format "$line\n", *STDERR;
+		print STDERR console_format $line;
 	}
 }
 
@@ -119,8 +112,8 @@ sub prompt_dir($$$;$) {
 sub prompt_string($$$) {
 	my ($interactive, $question, $default) = @_;
 	return $default unless $interactive;
-	print_format "$question\n";
-	print_format "[<|GREEN $default|>] => ";
+	say console_format $question;
+	print console_format "[<|GREEN $default|>] => ";
 	chomp(my $answer = <STDIN>);
 	say '';
 	return $answer ? $answer : $default;
@@ -143,13 +136,14 @@ sub command_alias($$) {
 sub execute_command(@) {
 	my $command = defined $_[0] ? lc shift : 'help';
 	if ($command eq 'help') {
-		print_format "<|GREEN Usage:|> $0 <<|UNDERLINE COMMAND|>> [<|UNDERLINE OPTIONS...|>]\n\n";
-		print_format "<|GREEN Commands:|>\n";
+		say console_format "<|GREEN Usage:|> $0 <<|UNDERLINE COMMAND|>> [<|UNDERLINE OPTIONS...|>]";
+		say '';
+		say console_format "<|GREEN Commands:|>";
 		for my $key (sort keys %commands) {
 			next unless defined $commands{$key}->description;
 			my $name = sprintf "%-15s", $key;
 			my $description = $commands{$key}->description;
-			print_format "  <|BOLD $name|> # $description\n";
+			say console_format "  <|BOLD $name|> # $description";
 		}
 		exit 0;
 	} elsif (!$commands{$command}) {

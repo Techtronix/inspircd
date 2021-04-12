@@ -2,7 +2,7 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2015 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2013 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2011 jackmcbarn <jackmcbarn@inspircd.org>
  *   Copyright (C) 2009 Uli Schlachter <psychon@inspircd.org>
@@ -73,7 +73,7 @@ void CullList::Apply()
 		classbase* c = queue[i];
 		delete c;
 	}
-	if (list.size())
+	if (!list.empty())
 	{
 		ServerInstance->Logs->Log("CULLLIST", LOG_DEBUG, "WARNING: Objects added to cull list in a destructor");
 		Apply();

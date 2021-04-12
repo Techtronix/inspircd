@@ -3,7 +3,7 @@
  *
  *   Copyright (C) 2019 linuxdaemon <linuxdaemon.irc@gmail.com>
  *   Copyright (C) 2014 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2013, 2017-2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013 Daniel Vassdal <shutter@canternet.org>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009-2011 Daniel De Graaf <danieldg@inspircd.org>
@@ -105,7 +105,7 @@ size_t InspIRCd::BindPorts(FailedPortList& failed_ports)
 		if (!path.empty())
 		{
 			// Expand the path relative to the config directory.
-			const std::string fullpath = ServerInstance->Config->Paths.PrependData(path);
+			const std::string fullpath = ServerInstance->Config->Paths.PrependRuntime(path);
 
 			// UNIX socket paths are length limited to less than PATH_MAX.
 			irc::sockets::sockaddrs bindspec;
