@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2013, 2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012, 2014 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2010 Craig Edwards <brain@inspircd.org>
@@ -30,7 +30,7 @@ class ModuleServerBan : public Module
  public:
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Adds the s: extended ban which check whether users are on a server matching the specified glob pattern.", VF_OPTCOMMON|VF_VENDOR);
+		return Version("Adds extended ban s: which check whether users are on a server matching the specified glob pattern.", VF_OPTCOMMON|VF_VENDOR);
 	}
 
 	ModResult OnCheckBan(User *user, Channel *c, const std::string& mask) CXX11_OVERRIDE

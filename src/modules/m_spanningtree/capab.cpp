@@ -2,7 +2,7 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2019 linuxdaemon <linuxdaemon.irc@gmail.com>
- *   Copyright (C) 2014, 2017-2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2014, 2017-2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2014 Daniel Vassdal <shutter@canternet.org>
  *   Copyright (C) 2012-2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
@@ -218,6 +218,7 @@ void TreeSocket::SendCapabilities(int phase)
 			" MAXREAL="+ConvToStr(ServerInstance->Config->Limits.MaxReal)+
 			" MAXAWAY="+ConvToStr(ServerInstance->Config->Limits.MaxAway)+
 			" MAXHOST="+ConvToStr(ServerInstance->Config->Limits.MaxHost)+
+			" MAXLINE="+ConvToStr(ServerInstance->Config->Limits.MaxLine)+
 			extra+
 			" CASEMAPPING="+ServerInstance->Config->CaseMapping+
 			// XXX: Advertise the presence or absence of m_globops in CAPAB CAPABILITIES.

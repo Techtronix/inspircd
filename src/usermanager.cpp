@@ -4,7 +4,7 @@
  *   Copyright (C) 2019 iwalkalone <iwalkalone69@gmail.com>
  *   Copyright (C) 2019 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2013-2016, 2018 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2013, 2018-2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2018-2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013, 2015 Adam <Adam@anope.org>
  *   Copyright (C) 2013 Daniel Vassdal <shutter@canternet.org>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
@@ -161,7 +161,7 @@ void UserManager::AddUser(int socket, ListenSocket* via, irc::sockets::sockaddrs
 			{
 				ServerInstance->Logs->Log("USERS", LOG_DEBUG, "Non-existent I/O hook '%s' in <bind:%s> tag at %s",
 					iohookprovref.GetProvider().c_str(),
-					i == via->iohookprovs.begin() ? "hook" : "ssl",
+					i == via->iohookprovs.begin() ? "hook" : "sslprofile",
 					via->bind_tag->getTagLocation().c_str());
 				this->QuitUser(New, "Internal error handling connection");
 				return;

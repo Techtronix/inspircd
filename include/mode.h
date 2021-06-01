@@ -2,7 +2,7 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2013-2016 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2012-2013, 2017-2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2012-2013, 2017-2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2008 Thomas Stagner <aquanight@inspircd.org>
@@ -99,7 +99,7 @@ class ParamModeBase;
 class CoreExport ModeHandler : public ServiceProvider
 {
  public:
-  	typedef size_t Id;
+	typedef size_t Id;
 
 	enum Class
 	{
@@ -274,6 +274,7 @@ class CoreExport ModeHandler : public ServiceProvider
 	 * @return MODEACTION_ALLOW to allow the mode, or MODEACTION_DENY to prevent the mode, also see the description of 'parameter'.
 	 */
 	virtual ModeAction OnModeChange(User* source, User* dest, Channel* channel, std::string &parameter, bool adding); /* Can change the mode parameter as its a ref */
+
 	/**
 	 * If your mode is a listmode, then this method will be called for displaying an item list, e.g. on MODE \#channel +modechar
 	 * without any parameter or other modes in the command.
@@ -289,6 +290,15 @@ class CoreExport ModeHandler : public ServiceProvider
 	 * @param channel For channel mode changes, the target of the mode. For user mode changes, NULL.
 	 */
 	virtual void OnParameterMissing(User* user, User* dest, Channel* channel);
+
+	/** Called when a user attempts to set a mode and the parameter is invalid.
+	 * @param user The user issuing the mode change
+	 * @param targetchannel Either the channel target or NULL if changing a user mode.
+	 * @param targetuser Either the user target or NULL if changing a channel mode.
+	 * @param parameter The invalid parameter.
+	 */
+	virtual void OnParameterInvalid(User* user, Channel* targetchannel, User* targetuser, const std::string& parameter);
+
 
 	/**
 	 * If your mode is a listmode, this method will be called to display an empty list (just the end of list numeric)
@@ -569,7 +579,7 @@ class CoreExport ModeParser : public fakederef<ModeParser>
  private:
 	/** Type of the container that maps mode names to ModeWatchers
 	 */
- 	typedef insp::flat_multimap<std::string, ModeWatcher*> ModeWatcherMap;
+	typedef insp::flat_multimap<std::string, ModeWatcher*> ModeWatcherMap;
 
 	/** Last item in the ModeType enum
 	 */
@@ -671,7 +681,7 @@ class CoreExport ModeParser : public fakederef<ModeParser>
 	 *
 	 * host.name -> *!*\@host.name
 	 *
-	 * ident@host.name -> *!ident\@host.name
+	 * ident\@host.name -> *!ident\@host.name
 	 *
 	 * This method can be used on both IPV4 and IPV6 user masks.
 	 */

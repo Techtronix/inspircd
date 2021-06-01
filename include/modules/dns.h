@@ -162,12 +162,12 @@ namespace DNS
 		/* Use result cache if available */
 		bool use_cache;
 		/* Request id */
-	 	RequestId id;
-	 	/* Creator of this request */
+		RequestId id;
+		/* Creator of this request */
 		Module* const creator;
 
-		Request(Manager* mgr, Module* mod, const std::string& addr, QueryType qt, bool usecache = true)
-			: Timer(ServerInstance->Config->ConfValue("dns")->getDuration("timeout", 5, 1))
+		Request(Manager* mgr, Module* mod, const std::string& addr, QueryType qt, bool usecache = true, unsigned int timeout = 0)
+			: Timer(timeout ? timeout : ServerInstance->Config->ConfValue("dns")->getDuration("timeout", 5, 1))
 			, manager(mgr)
 			, question(addr, qt)
 			, use_cache(usecache)
@@ -182,12 +182,12 @@ namespace DNS
 		}
 
 		/** Called when this request succeeds
-		 * @param r The query sent back from the nameserver
+		 * @param req The query sent back from the nameserver
 		 */
 		virtual void OnLookupComplete(const Query* req) = 0;
 
 		/** Called when this request fails or times out.
-		 * @param r The query sent back from the nameserver, check the error code.
+		 * @param req The query sent back from the nameserver, check the error code.
 		 */
 		virtual void OnError(const Query* req) { }
 

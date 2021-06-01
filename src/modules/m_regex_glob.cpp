@@ -1,9 +1,9 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2013 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
+ *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2009 Uli Schlachter <psychon@inspircd.org>
  *   Copyright (C) 2008 Thomas Stagner <aquanight@inspircd.org>
@@ -23,8 +23,8 @@
  */
 
 
-#include "modules/regex.h"
 #include "inspircd.h"
+#include "modules/regex.h"
 
 class GlobRegex : public Regex
 {
@@ -61,7 +61,7 @@ public:
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides a regular expression engine which uses the built-in glob matching system.", VF_VENDOR);
+		return Version("Provides the glob regular expression engine which uses the built-in glob matching system.", VF_VENDOR);
 	}
 };
 

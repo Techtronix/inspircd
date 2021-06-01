@@ -2,7 +2,7 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2019 iwalkalone <iwalkalone69@gmail.com>
- *   Copyright (C) 2017-2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2017-2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2016-2017 Attila Molnar <attilamolnar@hush.com>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
@@ -25,7 +25,8 @@
 #include "iohook.h"
 #include "modules/hash.h"
 
-#include <utf8.h>
+#define UTF_CPP_CPLUSPLUS 199711L
+#include <unchecked.h>
 
 static const char MagicGUID[] = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 static const char whitespace[] = " \t\r\n";
@@ -339,6 +340,11 @@ class WebSocketHook : public IOHookMiddle
 				}
 			}
 		}
+		else
+		{
+			FailHandshake(sock, "HTTP/1.1 400 Bad Request\r\nConnection: close\r\n\r\n", "WebSocket: Received HTTP request that did not send the Origin header");
+			return -1;
+		}
 
 		if (!allowedorigin)
 		{
@@ -439,7 +445,7 @@ class WebSocketHook : public IOHookMiddle
 					{
 						// If we send messages as text then we need to ensure they are valid UTF-8.
 						std::string encoded;
-						utf8::replace_invalid(message.begin(), message.end(), std::back_inserter(encoded));
+						utf8::unchecked::replace_invalid(message.begin(), message.end(), std::back_inserter(encoded));
 
 						mysendq.push_back(PrepareSendQElem(encoded.length(), OP_TEXT));
 						mysendq.push_back(encoded);

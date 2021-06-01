@@ -1,9 +1,8 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2013 Sadie Powell <sadie@witchery.services>
- *   Copyright (C) 2013 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012-2013 ChrisTX <xpipe@hotmail.de>
+ *   Copyright (C) 2012-2013 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2008 Craig Edwards <brain@inspircd.org>
  *
@@ -21,7 +20,6 @@
  */
 
 
-#include "config.h"
 #include "inspircd.h"
 #include "exitcodes.h"
 #include <windows.h>
@@ -121,7 +119,7 @@ VOID ServiceMain(DWORD argc, LPCSTR *argv)
 		g_ServiceData.argc = argc;
 
 		// Note: since this memory is going to stay allocated for the rest of the execution,
-		//		 it doesn't make sense to free it, as it's going to be "freed" on process termination
+		// it doesn't make sense to free it, as it's going to be "freed" on process termination
 		try {
 			g_ServiceData.argv = new char*[argc];
 

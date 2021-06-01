@@ -10,8 +10,8 @@
  *   Copyright (C) 2009 Uli Schlachter <psychon@inspircd.org>
  *   Copyright (C) 2008 Thomas Stagner <aquanight@inspircd.org>
  *   Copyright (C) 2007, 2009-2010 Craig Edwards <brain@inspircd.org>
+ *   Copyright (C) 2007, 2009 Dennis Friis <peavey@inspircd.org>
  *   Copyright (C) 2007 Robin Burchell <robin+git@viroteck.net>
- *   Copyright (C) 2007 Dennis Friis <peavey@inspircd.org>
  *   Copyright (C) 2006 Oliver Lupton <om@inspircd.org>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
@@ -186,7 +186,7 @@ class SQLConn : public SQL::Provider, public EventHandler
  public:
 	reference<ConfigTag> conf;	/* The <database> entry */
 	std::deque<QueueItem> queue;
-	PGconn* 		sql;		/* PgSQL database connection handle */
+	PGconn*			sql;		/* PgSQL database connection handle */
 	SQLstatus		status;		/* PgSQL database connection status */
 	QueueItem		qinprog;	/* If there is currently a query in progress */
 

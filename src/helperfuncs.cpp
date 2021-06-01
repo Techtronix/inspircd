@@ -10,9 +10,9 @@
  *   Copyright (C) 2012, 2018 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2012 ChrisTX <xpipe@hotmail.de>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
- *   Copyright (C) 2007, 2010 Craig Edwards <brain@inspircd.org>
  *   Copyright (C) 2007 Dennis Friis <peavey@inspircd.org>
  *   Copyright (C) 2006-2008 Robin Burchell <robin+git@viroteck.net>
+ *   Copyright (C) 2005, 2007, 2010 Craig Edwards <brain@inspircd.org>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -35,8 +35,6 @@
 
 #include "inspircd.h"
 #include "xline.h"
-#include "exitcodes.h"
-#include <iostream>
 
 /* Find a user record by nickname and return a pointer to it */
 User* InspIRCd::FindNick(const std::string &nick)
@@ -340,7 +338,7 @@ bool InspIRCd::IsSID(const std::string &str)
 	 */
 	return ((str.length() == 3) && isdigit(str[0]) &&
 			((str[1] >= 'A' && str[1] <= 'Z') || isdigit(str[1])) &&
-			 ((str[2] >= 'A' && str[2] <= 'Z') || isdigit(str[2])));
+			((str[2] >= 'A' && str[2] <= 'Z') || isdigit(str[2])));
 }
 
 /** A lookup table of values for multiplier characters used by

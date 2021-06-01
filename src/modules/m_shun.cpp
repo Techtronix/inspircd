@@ -6,10 +6,9 @@
  *   Copyright (C) 2017-2018 B00mX0r <b00mx0r@aureus.pw>
  *   Copyright (C) 2013, 2017-2018, 2020-2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2013, 2015-2016 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2012, 2018-2019 Robby <robby@chatbelgie.be>
+ *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2012 Jens Voss <DukePyrolator@anope.org>
  *   Copyright (C) 2009 Uli Schlachter <psychon@inspircd.org>
- *   Copyright (C) 2009 John Brooks <special@inspircd.org>
  *   Copyright (C) 2009 Dennis Friis <peavey@inspircd.org>
  *   Copyright (C) 2009 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2008-2010 Craig Edwards <brain@inspircd.org>
@@ -44,7 +43,7 @@ class ShunFactory : public XLineFactory
 	ShunFactory() : XLineFactory("SHUN") { }
 
 	/** Generate a shun
- 	*/
+	*/
 	XLine* Generate(time_t set_time, unsigned long duration, const std::string& source, const std::string& reason, const std::string& xline_specific_mask) CXX11_OVERRIDE
 	{
 		return new Shun(set_time, duration, source, reason, xline_specific_mask);

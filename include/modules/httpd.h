@@ -2,8 +2,8 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2019 linuxdaemon <linuxdaemon.irc@gmail.com>
+ *   Copyright (C) 2013, 2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013, 2015 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2013 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2007 John Brooks <special@inspircd.org>
@@ -186,17 +186,18 @@ class HTTPRequest
 	/** Initialize HTTPRequest.
 	 * This constructor is called by m_httpd.so to initialize the class.
 	 * @param request_type The request type, e.g. GET, POST, HEAD
+	 * @param parsed_uri The URI which was requested by the client.
 	 * @param hdr The headers sent with the request
-	 * @param opaque An opaque pointer used internally by m_httpd, which you must pass back to the module in your reply.
+	 * @param socket The server socket which this request came in via.
 	 * @param ip The IP address making the web request.
 	 * @param pdata The post data (content after headers) received with the request, up to Content-Length in size
 	 */
-	HTTPRequest(const std::string& request_type, const HTTPRequestURI& Parseduri,
-		HTTPHeaders* hdr, HttpServerSocket* socket, const std::string &ip, const std::string &pdata)
+	HTTPRequest(const std::string& request_type, const HTTPRequestURI& parsed_uri, HTTPHeaders* hdr,
+			HttpServerSocket* socket, const std::string& ip, const std::string& pdata)
 		: type(request_type)
 		, ipaddr(ip)
 		, postdata(pdata)
-		, parseduri(Parseduri)
+		, parseduri(parsed_uri)
 		, headers(hdr)
 		, sock(socket)
 	{

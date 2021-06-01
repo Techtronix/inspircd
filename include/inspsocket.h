@@ -4,13 +4,14 @@
  *   Copyright (C) 2020 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2019 linuxdaemon <linuxdaemon.irc@gmail.com>
  *   Copyright (C) 2013, 2015-2016 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2012-2013, 2017-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2012-2013, 2017-2019, 2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009 Uli Schlachter <psychon@inspircd.org>
  *   Copyright (C) 2009 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2007-2009 Robin Burchell <robin+git@viroteck.net>
  *   Copyright (C) 2007 Dennis Friis <peavey@inspircd.org>
  *   Copyright (C) 2006, 2010 Craig Edwards <brain@inspircd.org>
+ *   Copyright (C) 2006 Oliver Lupton <om@inspircd.org>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -215,7 +216,7 @@ class CoreExport StreamSocket : public EventHandler
 		}
 
 	 private:
-	 	/** Private send queue. Note that individual strings may be shared.
+		/** Private send queue. Note that individual strings may be shared.
 		 */
 		Container data;
 
@@ -275,7 +276,7 @@ class CoreExport StreamSocket : public EventHandler
 	 * @param hook Next IOHook in the chain, can be NULL
 	 * @param rq Receive queue to put incoming data into
 	 * @return < 0 on error or close, 0 if no new data is ready (but the socket is still connected), > 0 if data was read from
-	 the socket and put into the recvq
+	 * the socket and put into the recvq
 	 */
 	int HookChainRead(IOHook* hook, std::string& rq);
 

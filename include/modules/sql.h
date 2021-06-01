@@ -3,7 +3,7 @@
  *
  *   Copyright (C) 2015 Daniel Vassdal <shutter@canternet.org>
  *   Copyright (C) 2014 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2013, 2017-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2019, 2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2010 Daniel De Graaf <danieldg@inspircd.org>
  *
@@ -129,9 +129,9 @@ class SQL::Result : public classbase
 	/**
 	 * Check if there's a column with the specified name in the result
 	 *
-	 * @param the column name
-	 * @param on success, this is the column index
-	 * @returns true, or false if the column is not found
+	 * @param column The column name.
+	 * @param index The place to store the column index if it exists.
+	 * @returns If the column exists then true; otherwise, false.
 	 */
 	virtual bool HasColumn(const std::string& column, size_t& index) = 0;
 };

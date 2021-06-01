@@ -2,7 +2,7 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2019 Robby <robby@chatbelgie.be>
- *   Copyright (C) 2013, 2016, 2018, 2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2016, 2018, 2020-2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012 ChrisTX <xpipe@hotmail.de>
  *
@@ -70,7 +70,7 @@ public:
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides a regular expression engine which uses the C++11 std::regex regular expression matching system.", VF_VENDOR);
+		return Version("Provides the stdregex regular expression engine which uses the C++11 std::regex regular expression matching system.", VF_VENDOR);
 	}
 
 	void ReadConfig(ConfigStatus& status) CXX11_OVERRIDE

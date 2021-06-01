@@ -5,12 +5,12 @@
  *   Copyright (C) 2013, 2017-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013 Adam <Adam@anope.org>
  *   Copyright (C) 2012-2014, 2016 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2012, 2018-2019 Robby <robby@chatbelgie.be>
+ *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009 Uli Schlachter <psychon@inspircd.org>
  *   Copyright (C) 2009 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2007-2009 Robin Burchell <robin+git@viroteck.net>
  *   Copyright (C) 2007 Dennis Friis <peavey@inspircd.org>
- *   Copyright (C) 2006-2008, 2010 Craig Edwards <brain@inspircd.org>
+ *   Copyright (C) 2004, 2006-2008, 2010 Craig Edwards <brain@inspircd.org>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -400,7 +400,7 @@ XLine* XLineManager::MatchesLine(const std::string &type, const std::string &pat
 
 	const time_t current = ServerInstance->Time();
 
-	 LookupIter safei;
+	LookupIter safei;
 
 	for (LookupIter i = x->second.begin(); i != x->second.end(); )
 	{

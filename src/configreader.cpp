@@ -15,6 +15,7 @@
  *   Copyright (C) 2007-2010 Robin Burchell <robin+git@viroteck.net>
  *   Copyright (C) 2007 Dennis Friis <peavey@inspircd.org>
  *   Copyright (C) 2006-2008 Craig Edwards <brain@inspircd.org>
+ *   Copyright (C) 2006 Oliver Lupton <om@inspircd.org>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -174,22 +175,23 @@ void ServerConfig::CrossCheckOperClassType()
 
 void ServerConfig::CrossCheckConnectBlocks(ServerConfig* current)
 {
-	typedef std::map<std::string, ConnectClass*> ClassMap;
+	typedef std::map<std::pair<std::string, char>, ConnectClass*> ClassMap;
 	ClassMap oldBlocksByMask;
 	if (current)
 	{
 		for(ClassVector::iterator i = current->Classes.begin(); i != current->Classes.end(); ++i)
 		{
 			ConnectClass* c = *i;
-			if (c->name.compare(0, 8, "unnamed-", 8))
+			switch (c->type)
 			{
-				oldBlocksByMask["n" + c->name] = c;
-			}
-			else if (c->type == CC_ALLOW || c->type == CC_DENY)
-			{
-				std::string typeMask = (c->type == CC_ALLOW) ? "a" : "d";
-				typeMask += c->host;
-				oldBlocksByMask[typeMask] = c;
+				case CC_ALLOW:
+				case CC_DENY:
+					oldBlocksByMask[std::make_pair(c->host, c->type)] = c;
+					break;
+
+				case CC_NAMED:
+					oldBlocksByMask[std::make_pair(c->name, c->type)] = c;
+					break;
 			}
 		}
 	}
@@ -237,24 +239,17 @@ void ServerConfig::CrossCheckConnectBlocks(ServerConfig* current)
 			}
 
 			std::string name = tag->getString("name");
-			std::string mask, typeMask;
+			std::string mask;
 			char type;
 
-			if (tag->readString("allow", mask, false))
-			{
+			if (tag->readString("allow", mask, false) && !mask.empty())
 				type = CC_ALLOW;
-				typeMask = 'a' + mask;
-			}
-			else if (tag->readString("deny", mask, false))
-			{
+			else if (tag->readString("deny", mask, false) && !mask.empty())
 				type = CC_DENY;
-				typeMask = 'd' + mask;
-			}
 			else if (!name.empty())
 			{
 				type = CC_NAMED;
 				mask = name;
-				typeMask = 'n' + mask;
 			}
 			else
 			{
@@ -262,13 +257,7 @@ void ServerConfig::CrossCheckConnectBlocks(ServerConfig* current)
 			}
 
 			if (name.empty())
-			{
 				name = "unnamed-" + ConvToStr(i);
-			}
-			else
-			{
-				typeMask = 'n' + name;
-			}
 
 			if (names.find(name) != names.end())
 				throw CoreException("Two connect classes with name \"" + name + "\" defined!");
@@ -322,7 +311,7 @@ void ServerConfig::CrossCheckConnectBlocks(ServerConfig* current)
 					me->ports.insert(port);
 			}
 
-			ClassMap::iterator oldMask = oldBlocksByMask.find(typeMask);
+			ClassMap::iterator oldMask = oldBlocksByMask.find(std::make_pair(me->name, me->type));
 			if (oldMask != oldBlocksByMask.end())
 			{
 				ConnectClass* old = oldMask->second;
@@ -517,8 +506,8 @@ void ServerConfig::Apply(ServerConfig* old, const std::string &useruid)
 
 	ConfigTagList binds = ConfTags("bind");
 	if (binds.first == binds.second)
-		 errstr << "Possible configuration error: you have not defined any <bind> blocks." << std::endl
-			 << "You will need to do this if you want clients to be able to connect!" << std::endl;
+		errstr << "Possible configuration error: you have not defined any <bind> blocks." << std::endl
+			<< "You will need to do this if you want clients to be able to connect!" << std::endl;
 
 	if (old && valid)
 	{
@@ -527,7 +516,7 @@ void ServerConfig::Apply(ServerConfig* old, const std::string &useruid)
 		ServerInstance->BindPorts(pl);
 		if (!pl.empty())
 		{
-			std::cout << "Warning! Some of your listener" << (pl.size() == 1 ? "s" : "") << " failed to bind:" << std::endl;
+			errstr << "Warning! Some of your listener" << (pl.size() == 1 ? "s" : "") << " failed to bind:" << std::endl;
 			for (FailedPortList::const_iterator iter = pl.begin(); iter != pl.end(); ++iter)
 			{
 				const FailedPort& fp = *iter;
@@ -618,16 +607,16 @@ void ServerConfig::ApplyModules(User* user)
 			ServerInstance->SNO->WriteGlobalSno('a', "*** REHASH UNLOADED MODULE: %s", modname.c_str());
 
 			if (user)
-				user->WriteNumeric(RPL_UNLOADEDMODULE, modname, InspIRCd::Format("Module %s successfully unloaded.", modname.c_str()));
+				user->WriteNumeric(RPL_UNLOADEDMODULE, modname, InspIRCd::Format("The %s module was unloaded.", modname.c_str()));
 			else
-				ServerInstance->SNO->WriteGlobalSno('a', "Module %s successfully unloaded.", modname.c_str());
+				ServerInstance->SNO->WriteGlobalSno('a', "The %s module was unloaded.", modname.c_str());
 		}
 		else
 		{
 			if (user)
-				user->WriteNumeric(ERR_CANTUNLOADMODULE, modname, InspIRCd::Format("Failed to unload module %s: %s", modname.c_str(), ServerInstance->Modules->LastError().c_str()));
+				user->WriteNumeric(ERR_CANTUNLOADMODULE, modname, InspIRCd::Format("Failed to unload the %s module: %s", modname.c_str(), ServerInstance->Modules->LastError().c_str()));
 			else
-				ServerInstance->SNO->WriteGlobalSno('a', "Failed to unload module %s: %s", modname.c_str(), ServerInstance->Modules->LastError().c_str());
+				ServerInstance->SNO->WriteGlobalSno('a', "Failed to unload the %s module: %s", modname.c_str(), ServerInstance->Modules->LastError().c_str());
 		}
 	}
 
@@ -641,16 +630,16 @@ void ServerConfig::ApplyModules(User* user)
 		{
 			ServerInstance->SNO->WriteGlobalSno('a', "*** REHASH LOADED MODULE: %s",adding->c_str());
 			if (user)
-				user->WriteNumeric(RPL_LOADEDMODULE, *adding, InspIRCd::Format("Module %s successfully loaded.", adding->c_str()));
+				user->WriteNumeric(RPL_LOADEDMODULE, *adding, InspIRCd::Format("The %s module was loaded.", adding->c_str()));
 			else
-				ServerInstance->SNO->WriteGlobalSno('a', "Module %s successfully loaded.", adding->c_str());
+				ServerInstance->SNO->WriteGlobalSno('a', "The %s module was loaded.", adding->c_str());
 		}
 		else
 		{
 			if (user)
-				user->WriteNumeric(ERR_CANTLOADMODULE, *adding, InspIRCd::Format("Failed to load module %s: %s", adding->c_str(), ServerInstance->Modules->LastError().c_str()));
+				user->WriteNumeric(ERR_CANTLOADMODULE, *adding, InspIRCd::Format("Failed to load the %s module: %s", adding->c_str(), ServerInstance->Modules->LastError().c_str()));
 			else
-				ServerInstance->SNO->WriteGlobalSno('a', "Failed to load module %s: %s", adding->c_str(), ServerInstance->Modules->LastError().c_str());
+				ServerInstance->SNO->WriteGlobalSno('a', "Failed to load the %s module: %s", adding->c_str(), ServerInstance->Modules->LastError().c_str());
 		}
 	}
 }

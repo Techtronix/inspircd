@@ -5,7 +5,6 @@
 #   Copyright (C) 2020 Nicole Kleinhoff <ilbelkyr@shalture.org>
 #   Copyright (C) 2020 Daniel Vassdal <shutter@canternet.org>
 #   Copyright (C) 2019 Matt Schatz <genius3000@g3k.solutions>
-#   Copyright (C) 2019 Anatole Denis <natolumin@rezel.net>
 #   Copyright (C) 2013-2021 Sadie Powell <sadie@witchery.services>
 #   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
 #   Copyright (C) 2012 ChrisTX <xpipe@hotmail.de>
@@ -101,7 +100,6 @@ exit 1 unless GetOptions(
 	'system'               => \$opt_system,
 	'uid=s'                => \$opt_uid,
 
-	# TODO: when the modulemanager rewrite is done these should be removed.
 	'disable-extras=s@' => \@opt_disableextras,
 	'enable-extras=s@'  => \@opt_enableextras,
 	'list-extras'       => sub { list_extras; exit 0; },
@@ -205,15 +203,15 @@ if (defined $opt_portable) {
 	$config{SCRIPT_DIR}  = $opt_script_dir  // $config{BASE_DIR};
 } elsif (defined $opt_system) {
 	$config{BASE_DIR}    = $opt_prefix      // '/';
-	$config{BINARY_DIR}  = $opt_binary_dir  // '/usr/sbin';
-	$config{CONFIG_DIR}  = $opt_config_dir  // '/etc/inspircd';
-	$config{DATA_DIR}    = $opt_data_dir    // '/var/lib/inspircd';
-	$config{EXAMPLE_DIR} = $opt_example_dir // '/usr/share/doc/inspircd';
-	$config{LOG_DIR}     = $opt_log_dir     // '/var/log/inspircd';
-	$config{MANUAL_DIR}  = $opt_manual_dir  // '/usr/share/man/man1';
-	$config{MODULE_DIR}  = $opt_module_dir  // '/usr/lib/inspircd';
-	$config{RUNTIME_DIR} = $opt_runtime_dir // '/var/run';
-	$config{SCRIPT_DIR}  = $opt_script_dir  // '/usr/share/inspircd';
+	$config{BINARY_DIR}  = $opt_binary_dir  // catdir $config{BASE_DIR}, 'usr/sbin';
+	$config{CONFIG_DIR}  = $opt_config_dir  // catdir $config{BASE_DIR}, 'etc/inspircd';
+	$config{DATA_DIR}    = $opt_data_dir    // catdir $config{BASE_DIR}, 'var/lib/inspircd';
+	$config{EXAMPLE_DIR} = $opt_example_dir // catdir $config{BASE_DIR}, 'usr/share/doc/inspircd';
+	$config{LOG_DIR}     = $opt_log_dir     // catdir $config{BASE_DIR}, 'var/log/inspircd';
+	$config{MANUAL_DIR}  = $opt_manual_dir  // catdir $config{BASE_DIR}, 'usr/share/man/man1';
+	$config{MODULE_DIR}  = $opt_module_dir  // catdir $config{BASE_DIR}, 'usr/lib/inspircd';
+	$config{RUNTIME_DIR} = $opt_runtime_dir // catdir $config{BASE_DIR}, 'var/run/inspircd';
+	$config{SCRIPT_DIR}  = $opt_script_dir  // catdir $config{BASE_DIR}, 'usr/share/inspircd';
 } else {
 	$config{BASE_DIR}    = rel2abs $opt_prefix // $config{BASE_DIR}    // catdir $RealDir,            'run';
 	$config{BINARY_DIR}  = $opt_binary_dir     // $config{BINARY_DIR}  // catdir $config{BASE_DIR},   'bin';
@@ -299,6 +297,29 @@ and crashes. Please consider using a different OS like FreeBSD/NetBSD instead.
 EOW
 }
 
+# Warn about Perl versions that will not be supported in the future.
+if ($^V lt 'v5.26.0') {
+	print_warning <<"EOW";
+You are building InspIRCd with Perl $^V. This is very old and will
+not be supported by the next major version of InspIRCd. Please consider updating
+to Perl v5.26 or newer.
+EOW
+}
+
+# Warn about compiler versions that will not be supported in the future.
+my %future_compilers = (
+	AppleClang => version->parse('10.0'),
+	Clang      => version->parse('5.0'),
+	GCC        => version->parse('7.0'),
+);
+if (exists $future_compilers{$compiler{NAME}} && $compiler{VERSION} lt $future_compilers{$compiler{NAME}}) {
+	print_warning <<"EOW";
+You are building InspIRCd with $compiler{NAME} v$compiler{VERSION}. This is very old and
+will not be supported by the next major version of InspIRCd. Please consider
+updating to $compiler{NAME} v$future_compilers{$compiler{NAME}} or newer.
+EOW
+}
+
 # Check that the user actually wants this version.
 if (defined $version{REAL_LABEL}) {
 	print_warning <<'EOW';
@@ -362,20 +383,20 @@ if (prompt_bool $interactive, $question, 0) {
 		}
 	}
 } elsif (!defined $opt_disable_auto_extras) {
-	# TODO: finish modulemanager rewrite and replace this code with:
-	# system './modulemanager', 'enable', '--auto';
 	my %modules = (
-		# Missing: m_ldap, m_regex_stdlib, m_ssl_mbedtls
 		'm_argon2.cpp'          => 'pkg-config --exists libargon2',
 		'm_geo_maxmind.cpp'     => 'pkg-config --exists libmaxminddb',
 		'm_mysql.cpp'           => 'mysql_config --version',
 		'm_pgsql.cpp'           => 'pg_config --version',
+		'm_ldap.cpp'            => "echo '#include <ldap.h>' | $config{CXX} -E -",
 		'm_regex_pcre.cpp'      => 'pcre-config --version',
 		'm_regex_posix.cpp'     => undef,
 		'm_regex_re2.cpp'       => 'pkg-config --exists re2',
+		'm_regex_stdlib.cpp'    => "$config{CXX} -o /dev/null -std=c++11 $RealDir/make/test/compiler.cpp",
 		'm_regex_tre.cpp'       => 'pkg-config --exists tre',
 		'm_sqlite3.cpp'         => 'pkg-config --exists sqlite3',
 		'm_ssl_gnutls.cpp'      => 'pkg-config --exists gnutls',
+		'm_ssl_mbedtls.cpp'     => "echo '#include <mbedtls/version.h>' | $config{CXX} -E -",
 		'm_ssl_openssl.cpp'     => 'pkg-config --exists openssl',
 		'm_sslrehashsignal.cpp' => undef,
 	);

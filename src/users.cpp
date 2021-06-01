@@ -12,13 +12,13 @@
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2012 DjSlash <djslash@djslash.org>
  *   Copyright (C) 2011 jackmcbarn <jackmcbarn@inspircd.org>
- *   Copyright (C) 2009-2011 Daniel De Graaf <danieldg@inspircd.org>
+ *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2009 Uli Schlachter <psychon@inspircd.org>
  *   Copyright (C) 2008 Thomas Stagner <aquanight@inspircd.org>
  *   Copyright (C) 2008 John Brooks <special@inspircd.org>
- *   Copyright (C) 2007-2009 Robin Burchell <robin+git@viroteck.net>
  *   Copyright (C) 2007, 2009 Dennis Friis <peavey@inspircd.org>
- *   Copyright (C) 2006-2009 Craig Edwards <brain@inspircd.org>
+ *   Copyright (C) 2006-2009 Robin Burchell <robin+git@viroteck.net>
+ *   Copyright (C) 2004, 2006-2009 Craig Edwards <brain@inspircd.org>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -469,7 +469,6 @@ void OperInfo::init()
 	}
 
 	// Compatibility for older configs that don't have the snomasks field.
-	// TODO: remove this before v4 is released.
 	if (defaultsnomasks)
 		AllowedSnomasks.set();
 }
@@ -1160,9 +1159,16 @@ void LocalUser::SetClass(const std::string &explicit_name)
 				continue;
 			}
 
-			/* check if host matches.. */
-			if (!InspIRCd::MatchCIDR(this->GetIPString(), c->GetHost(), NULL) &&
-				!InspIRCd::MatchCIDR(this->GetRealHost(), c->GetHost(), NULL))
+			bool hostmatches = false;
+			for (std::vector<std::string>::const_iterator host = c->GetHosts().begin(); host != c->GetHosts().end(); ++host)
+			{
+				if (InspIRCd::MatchCIDR(this->GetIPString(), *host) || InspIRCd::MatchCIDR(this->GetRealHost(), *host))
+				{
+					hostmatches = true;
+					break;
+				}
+			}
+			if (!hostmatches)
 			{
 				ServerInstance->Logs->Log("CONNECTCLASS", LOG_DEBUG, "The %s connect class is not suitable as neither the host (%s) nor the IP (%s) matches %s",
 					c->GetName().c_str(), this->GetRealHost().c_str(), this->GetIPString().c_str(), c->GetHost().c_str());
@@ -1267,6 +1273,9 @@ ConnectClass::ConnectClass(ConfigTag* tag, char t, const std::string& mask)
 	, limit(0)
 	, resolvehostnames(true)
 {
+	irc::spacesepstream hoststream(host);
+	for (std::string hostentry; hoststream.GetToken(hostentry); )
+		hosts.push_back(hostentry);
 }
 
 ConnectClass::ConnectClass(ConfigTag* tag, char t, const std::string& mask, const ConnectClass& parent)
@@ -1275,6 +1284,10 @@ ConnectClass::ConnectClass(ConfigTag* tag, char t, const std::string& mask, cons
 	name = "unnamed";
 	type = t;
 	host = mask;
+	hosts.clear();
+	irc::spacesepstream hoststream(host);
+	for (std::string hostentry; hoststream.GetToken(hostentry); )
+		hosts.push_back(hostentry);
 
 	// Connect classes can inherit from each other but this is problematic for modules which can't use
 	// ConnectClass::Update so we build a hybrid tag containing all of the values set on this class as
@@ -1310,6 +1323,7 @@ void ConnectClass::Update(const ConnectClass* src)
 	name = src->name;
 	registration_timeout = src->registration_timeout;
 	host = src->host;
+	hosts = src->hosts;
 	pingtime = src->pingtime;
 	softsendqmax = src->softsendqmax;
 	hardsendqmax = src->hardsendqmax;

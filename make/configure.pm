@@ -65,8 +65,6 @@ sub __get_socketengines {
 	return @socketengines;
 }
 
-# TODO: when buildtool is done this can be mostly removed with
-#       the remainder being merged into parse_templates.
 sub __get_template_settings($$$) {
 
 	# These are actually hash references
@@ -237,7 +235,8 @@ sub module_expand($) {
 
 sub module_shrink($) {
 	my $module = basename shift;
-	return $module =~ s/(?:^m_|\.cpp$)//gr;
+	$module =~ s/(?:^m_|\.cpp$)//g;
+	return $module;
 }
 
 sub write_configure_cache(%) {

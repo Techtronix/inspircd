@@ -3,7 +3,7 @@
  *
  *   Copyright (C) 2018 Puck Meerburg <puck@puckipedia.com>
  *   Copyright (C) 2018 Dylan Frank <b00mx0r@aureus.pw>
- *   Copyright (C) 2016-2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2016-2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2012 ChrisTX <xpipe@hotmail.de>
@@ -117,10 +117,21 @@ void CommandStats::DoStats(Stats::Context& stats)
 			for (std::vector<ListenSocket*>::const_iterator i = ServerInstance->ports.begin(); i != ServerInstance->ports.end(); ++i)
 			{
 				ListenSocket* ls = *i;
-				const std::string type = ls->bind_tag->getString("type", "clients", 1);
-				const std::string hook = ls->bind_tag->getString("ssl", "plaintext", 1);
+				std::stringstream portentry;
 
-				stats.AddRow(249, ls->bind_sa.str() + " (" + type + ", " + hook + ")");
+				const std::string type = ls->bind_tag->getString("type", "clients", 1);
+				portentry << ls->bind_sa.str() << " (type: " << type;
+
+				const std::string hook = ls->bind_tag->getString("hook");
+				if (!hook.empty())
+					portentry << ", hook: " << hook;
+
+				const std::string sslprofile = ls->bind_tag->getString("sslprofile", ls->bind_tag->getString("ssl"));
+				if (!sslprofile.empty())
+					portentry << ", ssl profile: " << sslprofile;
+
+				portentry << ')';
+				stats.AddRow(249, portentry.str());
 			}
 		}
 		break;
@@ -185,8 +196,9 @@ void CommandStats::DoStats(Stats::Context& stats)
 				if (!oper->server->IsULine())
 				{
 					LocalUser* lu = IS_LOCAL(oper);
-					stats.AddRow(249, oper->nick + " (" + oper->ident + "@" + oper->GetDisplayedHost() + ") Idle: " +
-							(lu ? ConvToStr(ServerInstance->Time() - lu->idle_lastmsg) + " secs" : "unavailable"));
+					const std::string idle = lu ? InspIRCd::DurationString(ServerInstance->Time() - lu->idle_lastmsg) : "unavailable";
+					stats.AddRow(249, InspIRCd::Format("%s (%s@%s) Idle: %s", oper->nick.c_str(),
+						oper->ident.c_str(), oper->GetDisplayedHost().c_str(), idle.c_str()));
 					idx++;
 				}
 			}

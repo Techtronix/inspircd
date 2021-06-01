@@ -1,8 +1,8 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2013, 2017, 2019-2020 Sadie Powell <sadie@witchery.services>
- *   Copyright (C) 2012, 2018-2019 Robby <robby@chatbelgie.be>
+ *   Copyright (C) 2013, 2017, 2019-2021 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2012, 2018 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009 Uli Schlachter <psychon@inspircd.org>
  *   Copyright (C) 2009 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2008, 2010 Craig Edwards <brain@inspircd.org>
@@ -46,7 +46,7 @@ class ModuleQuietBan
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Adds extended ban m which bans specific masks from speaking in a channel.", VF_OPTCOMMON|VF_VENDOR);
+		return Version("Adds extended ban m: which bans specific masks from speaking in a channel.", VF_OPTCOMMON|VF_VENDOR);
 	}
 
 	ModResult HandleMessage(User* user, const MessageTarget& target, bool& echo_original)

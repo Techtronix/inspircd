@@ -5,7 +5,7 @@
  *   Copyright (C) 2017, 2019 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2013, 2017-2018, 2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2013, 2016 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2012, 2018-2019 Robby <robby@chatbelgie.be>
+ *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2009 Uli Schlachter <psychon@inspircd.org>
  *   Copyright (C) 2008-2009 Robin Burchell <robin+git@viroteck.net>
@@ -37,15 +37,6 @@ static bool added_zline = false;
 class RLine : public XLine
 {
  public:
-
-	/** Create a R-line.
-	 * @param s_time The set time
-	 * @param d The duration of the xline
-	 * @param src The sender of the xline
-	 * @param re The reason of the xline
-	 * @param regex Pattern to match with
-	 * @
-	 */
 	RLine(time_t s_time, unsigned long d, const std::string& src, const std::string& re, const std::string& regexs, dynamic_reference<RegexFactory>& rxfactory)
 		: XLine(s_time, d, src, re, "R")
 		, matchtext(regexs)
@@ -56,8 +47,6 @@ class RLine : public XLine
 		regex = rxfactory->Create(regexs);
 	}
 
-	/** Destructor
-	 */
 	~RLine()
 	{
 		delete regex;

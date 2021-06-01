@@ -332,6 +332,26 @@ class ModuleCgiIRC
 		ServerInstance->SNO->EnableSnomask('w', "CGIIRC");
 	}
 
+	void On005Numeric(std::map<std::string, std::string>& tokens) CXX11_OVERRIDE
+	{
+		tokens["EXTBAN"].push_back('w');
+	}
+
+	ModResult OnCheckBan(User* user, Channel*, const std::string& mask) CXX11_OVERRIDE
+	{
+		if (mask.length() <= 2 || mask[0] != 'w' || mask[1] != ':')
+			return MOD_RES_PASSTHRU;
+
+		const std::string* gateway = cmdwebirc.gateway.get(user);
+		if (!gateway)
+			return MOD_RES_PASSTHRU;
+
+		if (InspIRCd::Match(*gateway, mask.substr(2)))
+			return MOD_RES_DENY;
+
+		return MOD_RES_PASSTHRU;
+	}
+
 	void ReadConfig(ConfigStatus& status) CXX11_OVERRIDE
 	{
 		std::vector<IdentHost> identhosts;
@@ -516,14 +536,16 @@ class ModuleCgiIRC
 
 	void OnWhois(Whois::Context& whois) CXX11_OVERRIDE
 	{
-		if (!whois.IsSelfWhois() && !whois.GetSource()->HasPrivPermission("users/auspex"))
-			return;
-
 		// If these fields are not set then the client is not using a gateway.
-		const std::string* realhost = cmdwebirc.realhost.get(whois.GetTarget());
-		const std::string* realip = cmdwebirc.realip.get(whois.GetTarget());
+		std::string* realhost = cmdwebirc.realhost.get(whois.GetTarget());
+		std::string* realip = cmdwebirc.realip.get(whois.GetTarget());
 		if (!realhost || !realip)
 			return;
+
+		// If the source doesn't have the right privs then only show the gateway name.
+		std::string hidden = "*";
+		if (!whois.GetSource()->HasPrivPermission("users/auspex"))
+			realhost = realip = &hidden;
 
 		const std::string* gateway = cmdwebirc.gateway.get(whois.GetTarget());
 		if (gateway)

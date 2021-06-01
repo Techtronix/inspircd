@@ -12,8 +12,9 @@
  *   Copyright (C) 2012 ChrisTX <xpipe@hotmail.de>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2008 Robin Burchell <robin+git@viroteck.net>
- *   Copyright (C) 2007-2008, 2010 Craig Edwards <brain@inspircd.org>
  *   Copyright (C) 2007 Dennis Friis <peavey@inspircd.org>
+ *   Copyright (C) 2006-2008, 2010 Craig Edwards <brain@inspircd.org>
+ *   Copyright (C) 2006 Oliver Lupton <om@inspircd.org>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -935,13 +936,13 @@ static int OpenSSL::BIOMethod::read(BIO* bio, char* buffer, int size)
 	return ret;
 }
 
-class OpenSSLIOHookProvider : public IOHookProvider
+class OpenSSLIOHookProvider : public SSLIOHookProvider
 {
 	OpenSSL::Profile profile;
 
  public:
 	OpenSSLIOHookProvider(Module* mod, const std::string& profilename, ConfigTag* tag)
-		: IOHookProvider(mod, "ssl/" + profilename, IOHookProvider::IOH_SSL)
+		: SSLIOHookProvider(mod, profilename)
 		, profile(profilename, tag)
 	{
 		ServerInstance->Modules->AddService(*this);
@@ -999,7 +1000,7 @@ class ModuleSSLOpenSSL : public Module
 		}
 		else
 		{
-			ServerInstance->Logs->Log(MODNAME, LOG_DEFAULT, "You have defined an <sslprofile> tag; you should use this in place of \"openssl\" when configuring TLS (SSL) connections in <bind:ssl> or <link:ssl>");
+			ServerInstance->Logs->Log(MODNAME, LOG_DEFAULT, "You have defined an <sslprofile> tag; you should use this in place of \"openssl\" when configuring TLS (SSL) connections in <bind:sslprofile> or <link:sslprofile>");
 			for (ConfigIter i = tags.first; i != tags.second; ++i)
 			{
 				ConfigTag* tag = i->second;

@@ -2,9 +2,9 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2019 Matt Schatz <genius3000@g3k.solutions>
- *   Copyright (C) 2013, 2017, 2020 Sadie Powell <sadie@witchery.services>
- *   Copyright (C) 2012, 2018 Robby <robby@chatbelgie.be>
+ *   Copyright (C) 2013, 2017, 2020-2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012 Shawn Smith <ShawnSmith0828@gmail.com>
+ *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2012 DjSlash <djslash@djslash.org>
  *   Copyright (C) 2012 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2009 Daniel De Graaf <danieldg@inspircd.org>
@@ -60,10 +60,15 @@ class ModuleBlockColor : public Module
 			bool modeset = c->IsModeSet(bc);
 			if (!c->GetExtBanStatus(user, 'c').check(!modeset))
 			{
-				for (std::string::iterator i = details.text.begin(); i != details.text.end(); i++)
+				std::string ctcpname; // Unused.
+				std::string message;
+				if (!details.IsCTCP(ctcpname, message))
+					message.assign(details.text);
+
+				for (std::string::iterator i = message.begin(); i != message.end(); ++i)
 				{
-					// Block all control codes except \001 for CTCP
-					if ((*i >= 0) && (*i < 32) && (*i != 1))
+					const unsigned char chr = static_cast<unsigned char>(*i);
+					if (chr < 32)
 					{
 						if (modeset)
 							user->WriteNumeric(Numerics::CannotSendTo(c, "messages containing formatting characters", &bc));

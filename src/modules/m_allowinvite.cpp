@@ -1,9 +1,9 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2013, 2017 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017, 2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2013, 2016 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
+ *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2010 Craig Edwards <brain@inspircd.org>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2009 Matt Smith <dz@inspircd.org>
@@ -63,7 +63,7 @@ class ModuleAllowInvite : public Module
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Adds channel mode A (allowinvite) which allows unprivileged users to use the /INVITE command and extended ban A which bans specific masks from using the /INVITE command.", VF_VENDOR);
+		return Version("Adds channel mode A (allowinvite) which allows unprivileged users to use the /INVITE command and extended ban A: which bans specific masks from using the /INVITE command.", VF_VENDOR);
 	}
 };
 

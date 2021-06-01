@@ -9,9 +9,9 @@
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009 John Brooks <special@inspircd.org>
  *   Copyright (C) 2009 Daniel De Graaf <danieldg@inspircd.org>
- *   Copyright (C) 2008 Robin Burchell <robin+git@viroteck.net>
  *   Copyright (C) 2007-2008 Dennis Friis <peavey@inspircd.org>
  *   Copyright (C) 2006, 2010 Craig Edwards <brain@inspircd.org>
+ *   Copyright (C) 2005, 2008 Robin Burchell <robin+git@viroteck.net>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -83,7 +83,7 @@ class CBanFactory : public XLineFactory
 	CBanFactory() : XLineFactory("CBAN") { }
 
 	/** Generate a CBAN
- 	*/
+	*/
 	XLine* Generate(time_t set_time, unsigned long duration, const std::string& source, const std::string& reason, const std::string& xline_specific_mask) CXX11_OVERRIDE
 	{
 		return new CBan(set_time, duration, source, reason, xline_specific_mask);
@@ -218,7 +218,7 @@ class ModuleCBan : public Module, public Stats::EventListener
 			// Channel is banned.
 			user->WriteNumeric(ERR_BADCHANNEL, cname, InspIRCd::Format("Channel %s is CBANed: %s", cname.c_str(), rl->reason.c_str()));
 			ServerInstance->SNO->WriteGlobalSno('a', "%s tried to join %s which is CBANed (%s)",
-				 user->nick.c_str(), cname.c_str(), rl->reason.c_str());
+				user->nick.c_str(), cname.c_str(), rl->reason.c_str());
 			return MOD_RES_DENY;
 		}
 

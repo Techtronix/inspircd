@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2013, 2017-2018, 2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2018, 2020-2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2014 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
@@ -9,6 +9,7 @@
  *   Copyright (C) 2008 Robin Burchell <robin+git@viroteck.net>
  *   Copyright (C) 2007 Dennis Friis <peavey@inspircd.org>
  *   Copyright (C) 2006, 2008-2009 Craig Edwards <brain@inspircd.org>
+ *   Copyright (C) 2006 Oliver Lupton <om@inspircd.org>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -33,8 +34,8 @@ class ModuleBlockCAPS : public Module
 	SimpleChannelModeHandler bc;
 	unsigned int percent;
 	unsigned int minlen;
-	std::bitset<UCHAR_MAX> lowercase;
-	std::bitset<UCHAR_MAX> uppercase;
+	std::bitset<UCHAR_MAX + 1> lowercase;
+	std::bitset<UCHAR_MAX + 1> uppercase;
 
 public:
 	ModuleBlockCAPS()

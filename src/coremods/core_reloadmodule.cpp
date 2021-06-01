@@ -31,10 +31,10 @@ static ClientProtocol::Serializer* dummyserializer;
 
 class DummySerializer : public ClientProtocol::Serializer
 {
- 	bool Parse(LocalUser* user, const std::string& line, ClientProtocol::ParseOutput& parseoutput) CXX11_OVERRIDE
- 	{
- 		return false;
- 	}
+	bool Parse(LocalUser* user, const std::string& line, ClientProtocol::ParseOutput& parseoutput) CXX11_OVERRIDE
+	{
+		return false;
+	}
 
 	ClientProtocol::SerializedMessage Serialize(const ClientProtocol::Message& msg, const ClientProtocol::TagSelection& tagwl) const CXX11_OVERRIDE
 	{
@@ -284,7 +284,7 @@ class DataKeeper
 
 	/** Restore all modes and extensions of all members on a channel
 	 * @param chan Channel whose members are being restored
-	 * @param memberdata Data to restore
+	 * @param memberdatalist Data to restore
 	 * @param modechange Mode change to populate with prefix modes
 	 */
 	void RestoreMemberData(Channel* chan, const std::vector<ChanData::MemberData>& memberdatalist, Modes::ChangeList& modechange);
@@ -729,16 +729,21 @@ class ReloadAction : public ActionBase
 		{
 			Module* newmod = ServerInstance->Modules->Find(name);
 			datakeeper.Restore(newmod);
+			ServerInstance->SNO->WriteGlobalSno('a', "The %s module was reloaded.", passedname.c_str());
 		}
 		else
+		{
 			datakeeper.Fail();
+			ServerInstance->SNO->WriteGlobalSno('a', "Failed to reload the %s module.", passedname.c_str());
+		}
 
-		ServerInstance->SNO->WriteGlobalSno('a', "RELOAD MODULE: %s %ssuccessfully reloaded", passedname.c_str(), result ? "" : "un");
 		User* user = ServerInstance->FindUUID(uuid);
 		if (user)
 		{
-			int numeric = result ? RPL_LOADEDMODULE : ERR_CANTUNLOADMODULE;
-			user->WriteNumeric(numeric, passedname, InspIRCd::Format("Module %ssuccessfully reloaded.", (result ? "" : "un")));
+			if (result)
+				user->WriteNumeric(RPL_LOADEDMODULE, passedname, InspIRCd::Format("The %s module was reloaded.", passedname.c_str()));
+			else
+				user->WriteNumeric(ERR_CANTUNLOADMODULE, passedname, InspIRCd::Format("Failed to reload the %s module.", passedname.c_str()));
 		}
 
 		ServerInstance->GlobalCulls.AddItem(this);
@@ -764,7 +769,7 @@ CmdResult CommandReloadmodule::Handle(User* user, const Params& parameters)
 	}
 	else
 	{
-		user->WriteNumeric(ERR_CANTUNLOADMODULE, parameters[0], "Could not find module by that name");
+		user->WriteNumeric(ERR_CANTUNLOADMODULE, parameters[0], "Could not find a loaded module by that name");
 		return CMD_FAILURE;
 	}
 }

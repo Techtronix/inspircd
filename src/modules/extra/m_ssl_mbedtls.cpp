@@ -817,13 +817,13 @@ class mbedTLSIOHook : public SSLIOHook
 	bool IsHandshakeDone() const { return (status == ISSL_HANDSHAKEN); }
 };
 
-class mbedTLSIOHookProvider : public IOHookProvider
+class mbedTLSIOHookProvider : public SSLIOHookProvider
 {
 	mbedTLS::Profile profile;
 
  public:
- 	mbedTLSIOHookProvider(Module* mod, mbedTLS::Profile::Config& config)
-		: IOHookProvider(mod, "ssl/" + config.name, IOHookProvider::IOH_SSL)
+	mbedTLSIOHookProvider(Module* mod, mbedTLS::Profile::Config& config)
+		: SSLIOHookProvider(mod, config.name)
 		, profile(config)
 	{
 		ServerInstance->Modules->AddService(*this);
@@ -888,7 +888,7 @@ class ModuleSSLmbedTLS : public Module
 		}
 		else
 		{
-			ServerInstance->Logs->Log(MODNAME, LOG_DEFAULT, "You have defined an <sslprofile> tag; you should use this in place of \"mbedtls\" when configuring TLS (SSL) connections in <bind:ssl> or <link:ssl>");
+			ServerInstance->Logs->Log(MODNAME, LOG_DEFAULT, "You have defined an <sslprofile> tag; you should use this in place of \"mbedtls\" when configuring TLS (SSL) connections in <bind:sslprofile> or <link:sslprofile>");
 			for (ConfigIter i = tags.first; i != tags.second; ++i)
 			{
 				ConfigTag* tag = i->second;

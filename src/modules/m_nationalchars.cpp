@@ -2,15 +2,15 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2019 Matt Schatz <genius3000@g3k.solutions>
- *   Copyright (C) 2013, 2015, 2017, 2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2015, 2017, 2020-2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2011 jackmcbarn <jackmcbarn@inspircd.org>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
+ *   Copyright (C) 2009-2010 Craig Edwards <brain@inspircd.org>
  *   Copyright (C) 2009 Uli Schlachter <psychon@inspircd.org>
  *   Copyright (C) 2009 Robin Burchell <robin+git@viroteck.net>
  *   Copyright (C) 2009 Dennis Friis <peavey@inspircd.org>
- *   Copyright (C) 2009 Craig Edwards <brain@inspircd.org>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -40,7 +40,6 @@ class lwbNickHandler
 	static bool Call(const std::string&);
 };
 
-								 /*,m_reverse_additionalUp[256];*/
 static unsigned char m_reverse_additional[256],m_additionalMB[256],m_additionalUtf8[256],m_additionalUtf8range[256],m_additionalUtf8interval[256];
 
 char utf8checkrest(unsigned char * mb, unsigned char cnt)
@@ -417,7 +416,7 @@ class ModuleNationalChars : public Module
 					if (*p == '0')
 					{
 						if (p[1] == 'x')
-							 /* hex with the leading "0x" */
+							/* hex with the leading "0x" */
 							chartable[i] = symtoi(p + 2, 16);
 						else
 							chartable[i] = symtoi(p + 1, 8);
@@ -426,12 +425,13 @@ class ModuleNationalChars : public Module
 					else if (*p == 'x')
 					{
 						chartable[i] = symtoi(p + 1, 16);
-					}else	 /* decimal form */
+					}
+					else /* decimal form */
 					{
 						chartable[i] = symtoi(p, 10);
 					}
 				}
-				else		 /* plain-text char between '' */
+				else /* plain-text char between '' */
 				{
 					if (*(p + 1) == '\\')
 					{

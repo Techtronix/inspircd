@@ -2,7 +2,7 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2014 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2013 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2008, 2010 Craig Edwards <brain@inspircd.org>
@@ -24,7 +24,8 @@
 #pragma once
 
 #include <pthread.h>
-#include "typedefs.h"
+
+class Thread;
 
 /** The ThreadEngine class has the responsibility of initialising
  * Thread derived classes. It does this by creating operating system

@@ -2,7 +2,7 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2018-2019 linuxdaemon <linuxdaemon.irc@gmail.com>
- *   Copyright (C) 2013, 2017-2018, 2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2018, 2020-2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013, 2015 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
@@ -48,7 +48,7 @@ class ModuleHTTPAccessList : public Module, public HTTPACLEventListener
 	HTTPdAPI API;
 
  public:
- 	ModuleHTTPAccessList()
+	ModuleHTTPAccessList()
 		: HTTPACLEventListener(this)
 		, API(this)
 	{
@@ -200,20 +200,30 @@ class ModuleHTTPAccessList : public Module, public HTTPACLEventListener
 										return true;
 									}
 									else
+									{
 										/* Invalid password */
+										ServerInstance->Logs->Log(MODNAME, LOG_DEBUG, "HTTP authorization: password and username do not match");
 										BlockAccess(http, 401, "WWW-Authenticate", "Basic realm=\"Restricted Object\"");
+									}
 								}
 								else
+								{
 									/* Malformed user:pass pair */
+									ServerInstance->Logs->Log(MODNAME, LOG_DEBUG, "HTTP authorization: password and username malformed");
 									BlockAccess(http, 401, "WWW-Authenticate", "Basic realm=\"Restricted Object\"");
+								}
 							}
 							else
+							{
 								/* Unsupported authentication type */
+								ServerInstance->Logs->Log(MODNAME, LOG_DEBUG, "HTTP authorization: unsupported auth type: %s", authtype.c_str());
 								BlockAccess(http, 401, "WWW-Authenticate", "Basic realm=\"Restricted Object\"");
+							}
 						}
 						else
 						{
 							/* No password given at all, access denied */
+							ServerInstance->Logs->Log(MODNAME, LOG_DEBUG, "HTTP authorization: password and username not sent");
 							BlockAccess(http, 401, "WWW-Authenticate", "Basic realm=\"Restricted Object\"");
 						}
 						return false;

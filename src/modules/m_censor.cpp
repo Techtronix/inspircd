@@ -2,14 +2,14 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2018 linuxdaemon <linuxdaemon.irc@gmail.com>
- *   Copyright (C) 2013, 2017-2018, 2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2018, 2020-2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2013 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2008 Thomas Stagner <aquanight@inspircd.org>
- *   Copyright (C) 2007-2008 Robin Burchell <robin+git@viroteck.net>
  *   Copyright (C) 2007 Dennis Friis <peavey@inspircd.org>
- *   Copyright (C) 2006, 2010 Craig Edwards <brain@inspircd.org>
+ *   Copyright (C) 2005, 2008 Robin Burchell <robin+git@viroteck.net>
+ *   Copyright (C) 2004, 2006, 2010 Craig Edwards <brain@inspircd.org>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -28,12 +28,12 @@
 #include "inspircd.h"
 #include "modules/exemption.h"
 
-typedef insp::flat_map<std::string, std::string, irc::insensitive_swo> censor_t;
+typedef insp::flat_map<std::string, std::string, irc::insensitive_swo> CensorMap;
 
 class ModuleCensor : public Module
 {
 	CheckExemption::EventProvider exemptionprov;
-	censor_t censors;
+	CensorMap censors;
 	SimpleUserModeHandler cu;
 	SimpleChannelModeHandler cc;
 
@@ -77,7 +77,7 @@ class ModuleCensor : public Module
 				return MOD_RES_PASSTHRU;
 		}
 
-		for (censor_t::iterator index = censors.begin(); index != censors.end(); index++)
+		for (CensorMap::const_iterator index = censors.begin(); index != censors.end(); ++index)
 		{
 			size_t censorpos;
 			while ((censorpos = irc::find(details.text, index->first)) != std::string::npos)
@@ -104,8 +104,7 @@ class ModuleCensor : public Module
 		 * reload our config file on rehash - we must destroy and re-allocate the classes
 		 * to call the constructor again and re-read our data.
 		 */
-		censor_t newcensors;
-
+		CensorMap newcensors;
 		ConfigTagList badwords = ServerInstance->Config->ConfTags("badword");
 		for (ConfigIter i = badwords.first; i != badwords.second; ++i)
 		{

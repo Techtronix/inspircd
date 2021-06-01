@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2013-2014, 2017-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013-2014, 2017-2019, 2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013 Adam <Adam@anope.org>
  *   Copyright (C) 2012-2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
@@ -274,7 +274,7 @@ void SpanningTreeUtilities::ReadConfiguration()
 		L->Fingerprint = tag->getString("fingerprint");
 		L->HiddenFromStats = tag->getBool("statshidden");
 		L->Timeout = tag->getDuration("timeout", 30);
-		L->Hook = tag->getString("ssl");
+		L->Hook = tag->getString("sslprofile", tag->getString("ssl"));
 		L->Bind = tag->getString("bind");
 		L->Hidden = tag->getBool("hidden");
 

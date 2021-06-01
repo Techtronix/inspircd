@@ -4,7 +4,7 @@
  *   Copyright (C) 2020 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2019 B00mX0r <b00mx0r@aureus.pw>
  *   Copyright (C) 2018 Dylan Frank <b00mx0r@aureus.pw>
- *   Copyright (C) 2013, 2017-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2019, 2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013, 2015-2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2012 ChrisTX <xpipe@hotmail.de>
@@ -151,6 +151,16 @@ class ssl_cert : public refcountbase
 	}
 };
 
+/** I/O hook provider for SSL modules. */
+class SSLIOHookProvider : public IOHookProvider
+{
+public:
+	SSLIOHookProvider(Module* mod, const std::string& Name)
+		: IOHookProvider(mod, "ssl/" + Name, IOH_SSL)
+	{
+	}
+};
+
 class SSLIOHook : public IOHook
 {
  protected:
@@ -240,7 +250,7 @@ class SSLIOHook : public IOHook
 class SSLClientCert
 {
  public:
- 	/**
+	/**
 	 * Get the client certificate from a socket
 	 * @param sock The socket to get the certificate from, the socket does not have to use TLS (SSL)
 	 * @return The TLS (SSL) client certificate information, NULL if the peer is not using TLS (SSL)
@@ -273,7 +283,7 @@ class SSLClientCert
 class UserCertificateAPIBase : public DataProvider
 {
  public:
- 	UserCertificateAPIBase(Module* parent)
+	UserCertificateAPIBase(Module* parent)
 		: DataProvider(parent, "m_sslinfo_api")
 	{
 	}

@@ -2,7 +2,7 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2019 linuxdaemon <linuxdaemon.irc@gmail.com>
- *   Copyright (C) 2013-2014, 2016-2017, 2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013-2014, 2016-2017, 2019, 2021 Sadie Powell <sadie@witchery.services>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/// $CompilerFlags: find_compiler_flags("re2" "")
+/// $CompilerFlags: find_compiler_flags("re2" "-std=c++11")
 /// $LinkerFlags: find_linker_flags("re2" "-lre2")
 
 /// $PackageInfo: require_system("arch") pkgconf re2
@@ -88,7 +88,7 @@ class ModuleRegexRE2 : public Module
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides a regular expression engine which uses the RE2 library.", VF_VENDOR);
+		return Version("Provides the re2 regular expression engine which uses the RE2 library.", VF_VENDOR);
 	}
 };
 

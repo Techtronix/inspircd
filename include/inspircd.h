@@ -13,7 +13,7 @@
  *   Copyright (C) 2007-2009 Dennis Friis <peavey@inspircd.org>
  *   Copyright (C) 2007-2008 Robin Burchell <robin+git@viroteck.net>
  *   Copyright (C) 2007 Oliver Lupton <om@inspircd.org>
- *   Copyright (C) 2006-2008, 2010 Craig Edwards <brain@inspircd.org>
+ *   Copyright (C) 2005-2008, 2010 Craig Edwards <brain@inspircd.org>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -538,7 +538,6 @@ class CoreExport InspIRCd
 	/** Attempt to write the process id to a given file
 	 * @param filename The PID file to attempt to write to
 	 * @param exitonfail If true and the PID fail cannot be written log to stdout and exit, otherwise only log on failure
-	 * @return This function may bail if the file cannot be written
 	 */
 	void WritePID(const std::string& filename, bool exitonfail = true);
 

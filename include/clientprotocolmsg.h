@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2018, 2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2018, 2020-2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2018 Attila Molnar <attilamolnar@hush.com>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
@@ -668,9 +668,10 @@ struct ClientProtocol::Messages::Pong : public ClientProtocol::Message
 	Pong(const std::string& cookie, const std::string& server = "")
 		: ClientProtocol::Message("PONG", ServerInstance->Config->GetServerName())
 	{
-		PushParamRef(ServerInstance->Config->GetServerName());
-		if (!server.empty())
-			PushParamRef(server);
+		if (server.empty())
+			PushParamRef(ServerInstance->Config->GetServerName());
+		else
+			PushParam(server);
 		PushParamRef(cookie);
 	}
 };

@@ -40,7 +40,7 @@
 /// $PackageInfo: require_system("centos") gnutls-devel pkgconfig
 /// $PackageInfo: require_system("darwin") gnutls pkg-config
 /// $PackageInfo: require_system("debian") gnutls-bin libgnutls28-dev pkg-config
-/// $PackageInfo: require_system("ubuntu") gnutls-bin libgnutls-dev pkg-config
+/// $PackageInfo: require_system("ubuntu") gnutls-bin libgnutls28-dev pkg-config
 
 #include "inspircd.h"
 #include "modules/ssl.h"
@@ -1243,13 +1243,13 @@ int GnuTLS::X509Credentials::cert_callback(gnutls_session_t sess, const gnutls_d
 	return 0;
 }
 
-class GnuTLSIOHookProvider : public IOHookProvider
+class GnuTLSIOHookProvider : public SSLIOHookProvider
 {
 	GnuTLS::Profile profile;
 
  public:
- 	GnuTLSIOHookProvider(Module* mod, GnuTLS::Profile::Config& config)
-		: IOHookProvider(mod, "ssl/" + config.name, IOHookProvider::IOH_SSL)
+	GnuTLSIOHookProvider(Module* mod, GnuTLS::Profile::Config& config)
+		: SSLIOHookProvider(mod, config.name)
 		, profile(config)
 	{
 		ServerInstance->Modules->AddService(*this);
@@ -1314,7 +1314,7 @@ class ModuleSSLGnuTLS : public Module
 		}
 		else
 		{
-			ServerInstance->Logs->Log(MODNAME, LOG_DEFAULT, "You have defined an <sslprofile> tag; you should use this in place of \"gnutls\" when configuring TLS (SSL) connections in <bind:ssl> or <link:ssl>");
+			ServerInstance->Logs->Log(MODNAME, LOG_DEFAULT, "You have defined an <sslprofile> tag; you should use this in place of \"gnutls\" when configuring TLS (SSL) connections in <bind:sslprofile> or <link:sslprofile>");
 			for (ConfigIter i = tags.first; i != tags.second; ++i)
 			{
 				ConfigTag* tag = i->second;

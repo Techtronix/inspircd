@@ -10,8 +10,9 @@
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2008 Thomas Stagner <aquanight@inspircd.org>
  *   Copyright (C) 2007-2008 Robin Burchell <robin+git@viroteck.net>
- *   Copyright (C) 2007-2008 Craig Edwards <brain@inspircd.org>
  *   Copyright (C) 2007 Dennis Friis <peavey@inspircd.org>
+ *   Copyright (C) 2006-2008 Craig Edwards <brain@inspircd.org>
+ *   Copyright (C) 2006 Oliver Lupton <om@inspircd.org>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -29,14 +30,7 @@
 
 #pragma once
 
-#include <sstream>
-#include <string>
-#include <vector>
-#include <map>
 #include "inspircd.h"
-#include "modules.h"
-#include "socketengine.h"
-#include "socket.h"
 #include "token_list.h"
 
 /** Structure representing a single \<tag> in config */
@@ -438,7 +432,7 @@ class CoreExport ServerConfig
 	 */
 	unsigned int OperMaxChans;
 
-	/** TS6-like server ID.
+	/** Unique server ID.
 	 * NOTE: 000...999 are usable for InspIRCd servers. This
 	 * makes code simpler. 0AA, 1BB etc with letters are reserved
 	 * for services use.

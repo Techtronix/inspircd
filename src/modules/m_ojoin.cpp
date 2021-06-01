@@ -2,7 +2,7 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2019 Robby <robby@chatbelgie.be>
- *   Copyright (C) 2013, 2017-2018, 2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2018, 2020-2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2014, 2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2010 Craig Edwards <brain@inspircd.org>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
@@ -49,7 +49,7 @@ class CommandOjoin : public SplitCommand
 		// Make sure the channel name is allowable.
 		if (!ServerInstance->IsChannel(parameters[0]))
 		{
-			user->WriteNotice("*** Invalid characters in channel name or name too long");
+			user->WriteNumeric(ERR_BADCHANMASK, parameters[0], "Invalid channel name");
 			return CMD_FAILURE;
 		}
 

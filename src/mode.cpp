@@ -3,7 +3,7 @@
  *
  *   Copyright (C) 2019 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2017 B00mX0r <b00mx0r@aureus.pw>
- *   Copyright (C) 2016-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2016-2019, 2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2016, 2018 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2012 Shawn Smith <ShawnSmith0828@gmail.com>
@@ -102,6 +102,14 @@ void ModeHandler::OnParameterMissing(User* user, User* dest, Channel* channel)
 		user->WriteNumeric(Numerics::InvalidModeParameter(channel, this, "*", message));
 	else
 		user->WriteNumeric(Numerics::InvalidModeParameter(dest, this, "*", message));
+}
+
+void ModeHandler::OnParameterInvalid(User* user, Channel* targetchannel, User* targetuser, const std::string& parameter)
+{
+	if (targetchannel)
+		user->WriteNumeric(Numerics::InvalidModeParameter(targetchannel, this, "*"));
+	else
+		user->WriteNumeric(Numerics::InvalidModeParameter(targetuser, this, "*"));
 }
 
 bool ModeHandler::ResolveModeConflict(std::string& theirs, const std::string& ours, Channel*)
@@ -380,7 +388,9 @@ void ModeParser::ModeParamsToChangeList(User* user, ModeType type, const std::ve
 		if (!mh)
 		{
 			/* No mode handler? Unknown mode character then. */
-			user->WriteNumeric(type == MODETYPE_CHANNEL ? ERR_UNKNOWNMODE : ERR_UNKNOWNSNOMASK, modechar, "is an unknown mode character");
+			int numeric = (type == MODETYPE_CHANNEL ? ERR_UNKNOWNMODE : ERR_UNKNOWNSNOMASK);
+			const char* typestr = (type == MODETYPE_CHANNEL ? "channel" : "user");
+			user->WriteNumeric(numeric, modechar, InspIRCd::Format("is not a recognised %s mode.", typestr));
 			continue;
 		}
 
@@ -403,7 +413,10 @@ static bool IsModeParamValid(User* user, Channel* targetchannel, User* targetuse
 
 	// The parameter cannot begin with a ':' character or contain a space
 	if ((item.param[0] == ':') || (item.param.find(' ') != std::string::npos))
+	{
+		item.mh->OnParameterInvalid(user, targetchannel, targetuser, item.param);
 		return false;
+	}
 
 	return true;
 }
@@ -562,7 +575,7 @@ void ModeParser::CleanMask(std::string &mask)
 	else if ((pos_of_pling == std::string::npos) && (pos_of_at != std::string::npos))
 	{
 		/* Has an @ but no !, its a user@host */
-		 mask = "*!" + mask;
+		mask = "*!" + mask;
 	}
 	else if ((pos_of_pling != std::string::npos) && (pos_of_at == std::string::npos))
 	{
@@ -746,9 +759,9 @@ std::string ModeParser::GiveModeList(ModeType mt)
 	for (unsigned char mode = 'A'; mode <= 'z'; mode++)
 	{
 		ModeHandler* mh = modehandlers[mt][mode-65];
-		 /* One parameter when adding */
 		if (mh)
 		{
+			/* One parameter when adding */
 			if (mh->NeedsParam(true))
 			{
 				PrefixMode* pm = mh->IsPrefixMode();

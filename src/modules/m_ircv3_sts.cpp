@@ -2,7 +2,7 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2020 Matt Schatz <genius3000@g3k.solutions>
- *   Copyright (C) 2017-2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2017-2021 Sadie Powell <sadie@witchery.services>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -142,7 +142,7 @@ class ModuleIRCv3STS : public Module
 				continue;
 
 			// Is this listener using TLS (SSL)?
-			if (ls->bind_tag->getString("ssl").empty())
+			if (ls->bind_tag->getString("sslprofile", ls->bind_tag->getString("ssl")).empty())
 				continue;
 
 			// TODO: Add a way to check if a listener's TLS cert is CA-verified.

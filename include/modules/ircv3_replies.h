@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2019-2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2019-2021 Sadie Powell <sadie@witchery.services>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -66,7 +66,10 @@ class IRCv3::Replies::Reply
 
 	void SendNoticeInternal(LocalUser* user, Command* command, const std::string& description)
 	{
-		user->WriteNotice(InspIRCd::Format("*** %s: %s", command->name.c_str(), description.c_str()));
+		if (command)
+			user->WriteNotice(InspIRCd::Format("*** %s: %s", command->name.c_str(), description.c_str()));
+		else
+			user->WriteNotice(InspIRCd::Format("*** %s", description.c_str()));
 	}
 
  protected:
@@ -91,7 +94,10 @@ class IRCv3::Replies::Reply
 	void Send(LocalUser* user, Command* command, const std::string& code, const std::string& description)
 	{
 		ClientProtocol::Message msg(cmd.c_str(), ServerInstance->Config->GetServerName());
-		msg.PushParamRef(command->name);
+		if (command)
+			msg.PushParamRef(command->name);
+		else
+			msg.PushParam("*");
 		msg.PushParam(code);
 		msg.PushParam(description);
 		SendInternal(user, msg);
@@ -101,7 +107,10 @@ class IRCv3::Replies::Reply
 	void Send(LocalUser* user, Command* command, const std::string& code, const T1& p1, const std::string& description)
 	{
 		ClientProtocol::Message msg(cmd.c_str(), ServerInstance->Config->GetServerName());
-		msg.PushParamRef(command->name);
+		if (command)
+			msg.PushParamRef(command->name);
+		else
+			msg.PushParam("*");
 		msg.PushParam(code);
 		msg.PushParam(ConvToStr(p1));
 		msg.PushParam(description);
@@ -113,7 +122,10 @@ class IRCv3::Replies::Reply
 		const std::string& description)
 	{
 		ClientProtocol::Message msg(cmd.c_str(), ServerInstance->Config->GetServerName());
-		msg.PushParamRef(command->name);
+		if (command)
+			msg.PushParamRef(command->name);
+		else
+			msg.PushParam("*");
 		msg.PushParam(code);
 		msg.PushParam(ConvToStr(p1));
 		msg.PushParam(ConvToStr(p2));
@@ -126,7 +138,10 @@ class IRCv3::Replies::Reply
 		const T3& p3, const std::string& description)
 	{
 		ClientProtocol::Message msg(cmd.c_str(), ServerInstance->Config->GetServerName());
-		msg.PushParamRef(command->name);
+		if (command)
+			msg.PushParamRef(command->name);
+		else
+			msg.PushParam("*");
 		msg.PushParam(code);
 		msg.PushParam(ConvToStr(p1));
 		msg.PushParam(ConvToStr(p2));
@@ -140,7 +155,10 @@ class IRCv3::Replies::Reply
 		const T3& p3, const T4& p4, const std::string& description)
 	{
 		ClientProtocol::Message msg(cmd.c_str(), ServerInstance->Config->GetServerName());
-		msg.PushParamRef(command->name);
+		if (command)
+			msg.PushParamRef(command->name);
+		else
+			msg.PushParam("*");
 		msg.PushParam(code);
 		msg.PushParam(ConvToStr(p1));
 		msg.PushParam(ConvToStr(p2));

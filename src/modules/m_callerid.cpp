@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2013, 2017-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2019, 2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013 Adam <Adam@anope.org>
  *   Copyright (C) 2012-2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
@@ -45,7 +45,7 @@ enum
 class callerid_data
 {
  public:
- 	typedef insp::flat_set<User*> UserSet;
+	typedef insp::flat_set<User*> UserSet;
 	typedef std::vector<callerid_data*> CallerIdDataSet;
 
 	time_t lastnotify;
@@ -67,8 +67,10 @@ class callerid_data
 		for (UserSet::const_iterator i = accepting.begin(); i != accepting.end(); ++i)
 		{
 			User* u = *i;
-			// Encode UIDs.
-			oss << "," << (human ? u->nick : u->uuid);
+			if (human)
+				oss << ' ' << u->nick;
+			else
+				oss << ',' << u->uuid;
 		}
 		return oss.str();
 	}
@@ -396,7 +398,7 @@ public:
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides user mode g (bot) which allows users to require that other users are on their whitelist before messaging them.", VF_COMMON | VF_VENDOR);
+		return Version("Provides user mode g (callerid) which allows users to require that other users are on their whitelist before messaging them.", VF_COMMON | VF_VENDOR);
 	}
 
 	void On005Numeric(std::map<std::string, std::string>& tokens) CXX11_OVERRIDE

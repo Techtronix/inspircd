@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2013 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2010 Craig Edwards <brain@inspircd.org>
@@ -25,7 +25,7 @@
 
 #pragma once
 
-#include "inspircd.h"
+#include "event.h"
 
 class Regex : public classbase
 {
@@ -59,9 +59,9 @@ class RegexFactory : public DataProvider
 class RegexException : public ModuleException
 {
  public:
-	 RegexException(const std::string& regex, const std::string& error)
-		 : ModuleException("Error in regex '" + regex + "': " + error) { }
+	RegexException(const std::string& regex, const std::string& error)
+		: ModuleException("Error in regex '" + regex + "': " + error) { }
 
-	 RegexException(const std::string& regex, const std::string& error, int offset)
-		 : ModuleException("Error in regex '" + regex + "' at offset " + ConvToStr(offset) + ": " + error) { }
+	RegexException(const std::string& regex, const std::string& error, int offset)
+		: ModuleException("Error in regex '" + regex + "' at offset " + ConvToStr(offset) + ": " + error) { }
 };

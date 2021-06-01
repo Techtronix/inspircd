@@ -5,17 +5,18 @@
  *   Copyright (C) 2019 linuxdaemon <linuxdaemon.irc@gmail.com>
  *   Copyright (C) 2013 Daniel Vassdal <shutter@canternet.org>
  *   Copyright (C) 2012-2016, 2018 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2012-2013, 2016-2020 Sadie Powell <sadie@witchery.services>
- *   Copyright (C) 2012, 2018-2019 Robby <robby@chatbelgie.be>
+ *   Copyright (C) 2012-2013, 2016-2021 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2012 DjSlash <djslash@djslash.org>
  *   Copyright (C) 2012 ChrisTX <xpipe@hotmail.de>
+ *   Copyright (C) 2011 jackmcbarn <jackmcbarn@inspircd.org>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2009 Uli Schlachter <psychon@inspircd.org>
  *   Copyright (C) 2008 Thomas Stagner <aquanight@inspircd.org>
  *   Copyright (C) 2008 John Brooks <special@inspircd.org>
- *   Copyright (C) 2007-2009 Robin Burchell <robin+git@viroteck.net>
  *   Copyright (C) 2007, 2009 Dennis Friis <peavey@inspircd.org>
- *   Copyright (C) 2006-2008 Craig Edwards <brain@inspircd.org>
+ *   Copyright (C) 2006-2009 Robin Burchell <robin+git@viroteck.net>
+ *   Copyright (C) 2003-2008 Craig Edwards <brain@inspircd.org>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -60,8 +61,8 @@ enum RegistrationState {
 
 	REG_USER = 1,		/* Has sent USER */
 	REG_NICK = 2,		/* Has sent NICK */
-	REG_NICKUSER = 3, 	/* Bitwise combination of REG_NICK and REG_USER */
-	REG_ALL = 7	  	/* REG_NICKUSER plus next bit along */
+	REG_NICKUSER = 3,	/* Bitwise combination of REG_NICK and REG_USER */
+	REG_ALL = 7			/* REG_NICKUSER plus next bit along */
 };
 
 enum UserType {
@@ -90,9 +91,11 @@ struct CoreExport ConnectClass : public refcountbase
 	 */
 	unsigned int registration_timeout;
 
-	/** Host mask for this line
-	 */
+	/** Hosts that this user can connect from as a string. */
 	std::string host;
+
+	/** Hosts that this user can connect from as a vector. */
+	std::vector<std::string> hosts;
 
 	/** Number of seconds between pings for this line
 	 */
@@ -165,8 +168,9 @@ struct CoreExport ConnectClass : public refcountbase
 	/** Update the settings in this block to match the given block */
 	void Update(const ConnectClass* newSettings);
 
-	const std::string& GetName() { return name; }
-	const std::string& GetHost() { return host; }
+	const std::string& GetName() const { return name; }
+	const std::string& GetHost() const { return host; }
+	const std::vector<std::string>& GetHosts() const { return hosts; }
 
 	/** Returns the registration timeout
 	 */
@@ -239,19 +243,19 @@ struct CoreExport ConnectClass : public refcountbase
 class CoreExport User : public Extensible
 {
  private:
-	/** Cached nick!ident@dhost value using the displayed hostname
+	/** Cached nick!ident\@dhost value using the displayed hostname
 	 */
 	std::string cached_fullhost;
 
-	/** Cached ident@ip value using the real IP address
+	/** Cached ident\@ip value using the real IP address
 	 */
 	std::string cached_hostip;
 
-	/** Cached ident@realhost value using the real hostname
+	/** Cached ident\@realhost value using the real hostname
 	 */
 	std::string cached_makehost;
 
-	/** Cached nick!ident@realhost value using the real hostname
+	/** Cached nick!ident\@realhost value using the real hostname
 	 */
 	std::string cached_fullrealhost;
 
@@ -708,7 +712,7 @@ class CoreExport User : public Extensible
 class CoreExport UserIOHandler : public StreamSocket
 {
  private:
-	 size_t checked_until;
+	size_t checked_until;
  public:
 	LocalUser* const user;
 	UserIOHandler(LocalUser* me)
@@ -846,7 +850,6 @@ class CoreExport LocalUser : public User, public insp::intrusive_list_node<Local
 
 	/** Set the connect class to which this user belongs to.
 	 * @param explicit_name Set this string to tie the user to a specific class name. Otherwise, the class is fitted by checking \<connect> tags from the configuration file.
-	 * @return A reference to this user's current connect class.
 	 */
 	void SetClass(const std::string &explicit_name = "");
 

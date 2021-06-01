@@ -2,17 +2,17 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2017 B00mX0r <b00mx0r@aureus.pw>
- *   Copyright (C) 2013, 2018, 2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2018, 2020-2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2014, 2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2012 Justin Crawford <Justasic@Gmail.com>
- *   Copyright (C) 2010 Craig Edwards <brain@inspircd.org>
  *   Copyright (C) 2009 Uli Schlachter <psychon@inspircd.org>
  *   Copyright (C) 2009 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2008 Thomas Stagner <aquanight@inspircd.org>
  *   Copyright (C) 2007 Robin Burchell <robin+git@viroteck.net>
  *   Copyright (C) 2007 Dennis Friis <peavey@inspircd.org>
  *   Copyright (C) 2006 Oliver Lupton <om@inspircd.org>
+ *   Copyright (C) 2005-2006, 2010 Craig Edwards <brain@inspircd.org>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -44,7 +44,7 @@ class RemoveBase : public Command
 	ChanModeReference& nokicksmode;
 
  public:
- 	unsigned int protectedrank;
+	unsigned int protectedrank;
 
 	RemoveBase(Module* Creator, bool& snk, ChanModeReference& nkm, const char* cmdn)
 		: Command(Creator, cmdn, 2, 3)
@@ -108,7 +108,7 @@ class RemoveBase : public Command
 		{
 			/* We'll let everyone remove their level and below, eg:
 			 * ops can remove ops, halfops, voices, and those with no mode (no moders actually are set to 1)
-			  a ulined target will get a higher level than it's possible for a /remover to get..so they're safe.
+			 * a ulined target will get a higher level than it's possible for a /remover to get..so they're safe.
 			 * Nobody may remove people with >= protectedrank rank.
 			 */
 			unsigned int ulevel = channel->GetPrefixValue(user);

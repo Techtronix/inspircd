@@ -3,7 +3,7 @@
  *
  *   Copyright (C) 2019 linuxdaemon <linuxdaemon.irc@gmail.com>
  *   Copyright (C) 2014 Adam <Adam@anope.org>
- *   Copyright (C) 2013, 2015, 2017-2018 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2015, 2017-2018, 2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
@@ -160,8 +160,9 @@ class ModuleHideOper
 			if (!oper->server->IsULine() && (stats.GetSource()->IsOper() || !oper->IsModeSet(hm)))
 			{
 				LocalUser* lu = IS_LOCAL(oper);
-				stats.AddRow(249, oper->nick + " (" + oper->ident + "@" + oper->GetDisplayedHost() + ") Idle: " +
-						(lu ? ConvToStr(ServerInstance->Time() - lu->idle_lastmsg) + " secs" : "unavailable"));
+				const std::string idle = lu ? InspIRCd::DurationString(ServerInstance->Time() - lu->idle_lastmsg) : "unavailable";
+				stats.AddRow(249, InspIRCd::Format("%s (%s@%s) Idle: %s", oper->nick.c_str(),
+					oper->ident.c_str(), oper->GetDisplayedHost().c_str(), idle.c_str()));
 				count++;
 			}
 		}

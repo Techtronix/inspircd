@@ -42,12 +42,14 @@ class DNSBLConfEntry : public refcountbase
 		EnumType type;
 		unsigned long duration;
 		unsigned int bitmask;
+		unsigned int timeout;
 		unsigned char records[256];
 		unsigned long stats_hits, stats_misses, stats_errors;
 		DNSBLConfEntry()
 			: type(A_BITMASK)
 			, duration(86400)
 			, bitmask(0)
+			, timeout(0)
 			, stats_hits(0)
 			, stats_misses(0)
 			, stats_errors(0)
@@ -69,7 +71,7 @@ class DNSBLResolver : public DNS::Request
 
  public:
 	DNSBLResolver(DNS::Manager *mgr, Module *me, LocalStringExt& match, LocalIntExt& ctr, const std::string &hostname, LocalUser* u, reference<DNSBLConfEntry> conf)
-		: DNS::Request(mgr, me, hostname, DNS::QUERY_A, true)
+		: DNS::Request(mgr, me, hostname, DNS::QUERY_A, true, conf->timeout)
 		, theirsa(u->client_sa)
 		, theiruid(u->uuid)
 		, nameExt(match)
@@ -84,7 +86,10 @@ class DNSBLResolver : public DNS::Request
 		/* Check the user still exists */
 		LocalUser* them = IS_LOCAL(ServerInstance->FindUUID(theiruid));
 		if (!them || them->client_sa != theirsa)
+		{
+			ConfEntry->stats_misses++;
 			return;
+		}
 
 		int i = countExt.get(them);
 		if (i)
@@ -242,6 +247,20 @@ class DNSBLResolver : public DNS::Request
 
 	void OnError(const DNS::Query *q) CXX11_OVERRIDE
 	{
+		bool is_miss = true;
+		switch (q->error)
+		{
+			case DNS::ERROR_NO_RECORDS:
+			case DNS::ERROR_DOMAIN_NOT_FOUND:
+				ConfEntry->stats_misses++;
+				break;
+
+			default:
+				ConfEntry->stats_errors++;
+				is_miss = false;
+				break;
+		}
+
 		LocalUser* them = IS_LOCAL(ServerInstance->FindUUID(theiruid));
 		if (!them || them->client_sa != theirsa)
 			return;
@@ -250,13 +269,9 @@ class DNSBLResolver : public DNS::Request
 		if (i)
 			countExt.set(them, i - 1);
 
-		if (q->error == DNS::ERROR_NO_RECORDS || q->error == DNS::ERROR_DOMAIN_NOT_FOUND)
-		{
-			ConfEntry->stats_misses++;
+		if (is_miss)
 			return;
-		}
 
-		ConfEntry->stats_errors++;
 		ServerInstance->SNO->WriteGlobalSno('d', "An error occurred whilst checking whether %s (%s) is on the '%s' DNS blacklist: %s",
 			them->GetFullRealHost().c_str(), them->GetIPString().c_str(), ConfEntry->name.c_str(), this->manager->GetErrorStr(q->error).c_str());
 	}
@@ -330,6 +345,7 @@ class ModuleDNSBL : public Module, public Stats::EventListener
 			e->host = tag->getString("host");
 			e->reason = tag->getString("reason", "Your IP has been blacklisted.", 1);
 			e->domain = tag->getString("domain");
+			e->timeout = tag->getDuration("timeout", 0);
 
 			if (stdalgo::string::equalsci(tag->getString("type"), "bitmask"))
 			{

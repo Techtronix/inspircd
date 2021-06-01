@@ -1,13 +1,13 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2013-2018 Attila Molnar <attilamolnar@hush.com>
+ *   Copyright (C) 2013-2016, 2018 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012-2013, 2017-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2007-2008 Robin Burchell <robin+git@viroteck.net>
  *   Copyright (C) 2007, 2009 Dennis Friis <peavey@inspircd.org>
- *   Copyright (C) 2006, 2008, 2010 Craig Edwards <brain@inspircd.org>
+ *   Copyright (C) 2003-2006, 2008, 2010 Craig Edwards <brain@inspircd.org>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -42,7 +42,7 @@ class CoreExport Channel : public Extensible
  public:
 	/** A map of Memberships on a channel keyed by User pointers
 	 */
- 	typedef std::map<User*, insp::aligned_storage<Membership> > MemberMap;
+	typedef std::map<User*, insp::aligned_storage<Membership> > MemberMap;
 
  private:
 	/** Set default modes for the channel on creation
@@ -117,23 +117,23 @@ class CoreExport Channel : public Extensible
 	void SetMode(ModeHandler* mode, bool value);
 
 	/** Returns true if a mode is set on a channel
-	  * @param mode The mode character you wish to query
-	  * @return True if the custom mode is set, false if otherwise
-	  */
+	 * @param mode The mode character you wish to query
+	 * @return True if the custom mode is set, false if otherwise
+	 */
 	bool IsModeSet(ModeHandler* mode) { return ((mode->GetId() != ModeParser::MODEID_MAX) && (modes[mode->GetId()])); }
 	bool IsModeSet(ModeHandler& mode) { return IsModeSet(&mode); }
 	bool IsModeSet(ChanModeReference& mode);
 
 	/** Returns the parameter for a custom mode on a channel.
-	  * @param mode The mode character you wish to query
-	  *
-	  * For example if "+L #foo" is set, and you pass this method
-	  * 'L', it will return '\#foo'. If the mode is not set on the
-	  * channel, or the mode has no parameters associated with it,
-	  * it will return an empty string.
-	  *
-	  * @return The parameter for this mode is returned, or an empty string
-	  */
+	 * @param mode The mode character you wish to query
+	 *
+	 * For example if "+L #foo" is set, and you pass this method
+	 * 'L', it will return '\#foo'. If the mode is not set on the
+	 * channel, or the mode has no parameters associated with it,
+	 * it will return an empty string.
+	 *
+	 * @return The parameter for this mode is returned, or an empty string
+	 */
 	std::string GetModeParameter(ModeHandler* mode);
 	std::string GetModeParameter(ChanModeReference& mode);
 	std::string GetModeParameter(ParamModeBase* pm);
@@ -165,7 +165,6 @@ class CoreExport Channel : public Extensible
 
 	/** Delete a user pointer to the internal reference list
 	 * @param user The user to delete
-	 * @return number of users left on the channel after deletion of the user
 	 */
 	void DelUser(User* user);
 

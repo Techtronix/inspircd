@@ -2,7 +2,7 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2018 linuxdaemon <linuxdaemon.irc@gmail.com>
- *   Copyright (C) 2013-2014, 2016-2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013-2014, 2016-2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013 ChrisTX <xpipe@hotmail.de>
  *   Copyright (C) 2012-2014 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
@@ -39,7 +39,10 @@ enum ParseFlags
 	FLAG_NO_INC = 4,
 
 	// &env.FOO; is disabled.
-	FLAG_NO_ENV = 8
+	FLAG_NO_ENV = 8,
+
+	// It's okay if an include doesn't exist.
+	FLAG_MISSING_OKAY = 16
 };
 
 // Represents the position within a config file.
@@ -420,10 +423,17 @@ void ParseStack::DoInclude(ConfigTag* tag, int flags)
 	{
 		if (tag->getBool("noinclude", false))
 			flags |= FLAG_NO_INC;
+
 		if (tag->getBool("noexec", false))
 			flags |= FLAG_NO_EXEC;
+
 		if (tag->getBool("noenv", false))
 			flags |= FLAG_NO_ENV;
+
+		if (tag->getBool("missingokay", false))
+			flags |= FLAG_MISSING_OKAY;
+		else
+			flags &= ~FLAG_MISSING_OKAY;
 
 		if (!ParseFile(ServerInstance->Config->Paths.PrependConfig(name), flags, mandatorytag))
 			throw CoreException("Included");
@@ -504,7 +514,12 @@ bool ParseStack::ParseFile(const std::string& path, int flags, const std::string
 
 	FileWrapper file((isexec ? popen(path.c_str(), "r") : fopen(path.c_str(), "r")), isexec);
 	if (!file)
+	{
+		if (flags & FLAG_MISSING_OKAY)
+			return true;
+
 		throw CoreException("Could not read \"" + path + "\" for include");
+	}
 
 	reading.push_back(path);
 	Parser p(*this, flags, file, path, mandatory_tag);
@@ -520,7 +535,7 @@ bool ConfigTag::readString(const std::string& key, std::string& value, bool allo
 		if(j->first != key)
 			continue;
 		value = j->second;
- 		if (!allow_lf && (value.find('\n') != std::string::npos))
+		if (!allow_lf && (value.find('\n') != std::string::npos))
 		{
 			ServerInstance->Logs->Log("CONFIG", LOG_DEFAULT, "Value of <" + tag + ":" + key + "> at " + getTagLocation() +
 				" contains a linefeed, and linefeeds in this value are not permitted -- stripped to spaces.");
@@ -628,7 +643,7 @@ namespace
 long ConfigTag::getInt(const std::string &key, long def, long min, long max)
 {
 	std::string result;
-	if(!readString(key, result))
+	if(!readString(key, result) || result.empty())
 		return def;
 
 	const char* res_cstr = result.c_str();
@@ -645,7 +660,7 @@ long ConfigTag::getInt(const std::string &key, long def, long min, long max)
 unsigned long ConfigTag::getUInt(const std::string& key, unsigned long def, unsigned long min, unsigned long max)
 {
 	std::string result;
-	if (!readString(key, result))
+	if (!readString(key, result) || result.empty())
 		return def;
 
 	const char* res_cstr = result.c_str();
@@ -662,7 +677,7 @@ unsigned long ConfigTag::getUInt(const std::string& key, unsigned long def, unsi
 unsigned long ConfigTag::getDuration(const std::string& key, unsigned long def, unsigned long min, unsigned long max)
 {
 	std::string duration;
-	if (!readString(key, duration))
+	if (!readString(key, duration) || duration.empty())
 		return def;
 
 	unsigned long ret;
@@ -691,7 +706,7 @@ double ConfigTag::getFloat(const std::string& key, double def, double min, doubl
 bool ConfigTag::getBool(const std::string &key, bool def)
 {
 	std::string result;
-	if(!readString(key, result))
+	if(!readString(key, result) || result.empty())
 		return def;
 
 	if (stdalgo::string::equalsci(result, "yes") || stdalgo::string::equalsci(result, "true") || stdalgo::string::equalsci(result, "on") || result == "1")

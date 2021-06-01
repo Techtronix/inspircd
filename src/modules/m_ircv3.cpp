@@ -2,7 +2,7 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2013, 2018-2019 Sadie Powell <sadie@witchery.services>
- *   Copyright (C) 2012, 2015, 2018 Attila Molnar <attilamolnar@hush.com>
+ *   Copyright (C) 2012-2013, 2015, 2018 Attila Molnar <attilamolnar@hush.com>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -51,10 +51,10 @@ class JoinHook : public ClientProtocol::EventHook
 	ClientProtocol::Events::Join extendedjoinmsg;
 
  public:
- 	const std::string asterisk;
+	const std::string asterisk;
 	ClientProtocol::EventProvider awayprotoev;
 	AwayMessage awaymsg;
- 	Cap::Capability extendedjoincap;
+	Cap::Capability extendedjoincap;
 	Cap::Capability awaycap;
 
 	JoinHook(Module* mod)
