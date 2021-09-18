@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2013, 2018 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2018, 2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2013, 2015-2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
@@ -62,7 +62,7 @@ class ModuleHideChans : public Module, public Whois::LineEventListener
 			return MOD_RES_PASSTHRU;
 
 		/* don't touch anything except 319 */
-		if (numeric.GetNumeric() != 319)
+		if (numeric.GetNumeric() != RPL_WHOISCHANNELS)
 			return MOD_RES_PASSTHRU;
 
 		/* don't touch if -I */

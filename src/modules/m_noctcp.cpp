@@ -3,7 +3,7 @@
  *
  *   Copyright (C) 2019 linuxdaemon <linuxdaemon.irc@gmail.com>
  *   Copyright (C) 2019 Matt Schatz <genius3000@g3k.solutions>
- *   Copyright (C) 2013, 2017-2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2012 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2009 Uli Schlachter <psychon@inspircd.org>
@@ -115,7 +115,19 @@ class ModuleNoCTCP : public Module
 				break;
 			}
 			case MessageTarget::TYPE_SERVER:
+			{
+				if (user->HasPrivPermission("users/ignore-noctcp"))
+					return MOD_RES_PASSTHRU;
+
+				const UserManager::LocalList& list = ServerInstance->Users.GetLocalUsers();
+				for (UserManager::LocalList::const_iterator iter = list.begin(); iter != list.end(); ++iter)
+				{
+					LocalUser* u = *iter;
+					if (u->IsModeSet(ncu))
+						details.exemptions.insert(u);
+				}
 				break;
+			}
 		}
 		return MOD_RES_PASSTHRU;
 	}

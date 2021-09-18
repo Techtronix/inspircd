@@ -2,7 +2,7 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2018 linuxdaemon <linuxdaemon.irc@gmail.com>
- *   Copyright (C) 2013, 2017-2018, 2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2018, 2020-2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2012, 2015-2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2010 Craig Edwards <brain@inspircd.org>
@@ -26,12 +26,6 @@
 
 #include "inspircd.h"
 #include "modules/whois.h"
-
-enum
-{
-	// From UnrealIRCd.
-	RPL_WHOISSPECIAL = 320
-};
 
 struct CustomTitle
 {
@@ -156,7 +150,7 @@ class ModuleCustomTitle : public Module, public Whois::LineEventListener
 	ModResult OnWhoisLine(Whois::Context& whois, Numeric::Numeric& numeric) CXX11_OVERRIDE
 	{
 		/* We use this and not OnWhois because this triggers for remote, too */
-		if (numeric.GetNumeric() == 312)
+		if (numeric.GetNumeric() == RPL_WHOISSERVER)
 		{
 			/* Insert our numeric before 312 */
 			const std::string* ctitle = cmd.ctitle.get(whois.GetTarget());

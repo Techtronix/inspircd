@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2013, 2017-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2019, 2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2015, 2018 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2010 Jens Voss <DukePyrolator@anope.org>
@@ -26,17 +26,21 @@
 
 #include "inspircd.h"
 #include "modules/ctctags.h"
+#include "modules/ircv3_servertime.h"
 #include "modules/names.h"
+#include "modules/who.h"
 
 class DelayJoinMode : public ModeHandler
 {
  private:
 	LocalIntExt& unjoined;
+	IRCv3::ServerTime::API servertime;
 
  public:
 	DelayJoinMode(Module* Parent, LocalIntExt& ext)
 		: ModeHandler(Parent, "delayjoin", 'D', PARAM_NONE, MODETYPE_CHANNEL)
 		, unjoined(ext)
+		, servertime(Parent)
 	{
 		ranktoset = ranktounset = OP_VALUE;
 	}
@@ -56,6 +60,7 @@ namespace
  */
 class JoinHook : public ClientProtocol::EventHook
 {
+ private:
 	const LocalIntExt& unjoined;
 
  public:
@@ -82,6 +87,7 @@ class ModuleDelayJoin
 	: public Module
 	, public CTCTags::EventListener
 	, public Names::EventListener
+	, public Who::EventListener
 {
  public:
 	LocalIntExt unjoined;
@@ -91,6 +97,7 @@ class ModuleDelayJoin
 	ModuleDelayJoin()
 		: CTCTags::EventListener(this)
 		, Names::EventListener(this)
+		, Who::EventListener(this)
 		, unjoined("delayjoin", ExtensionItem::EXT_MEMBERSHIP, this)
 		, joinhook(this, unjoined)
 		, djm(this, unjoined)
@@ -99,6 +106,7 @@ class ModuleDelayJoin
 
 	Version GetVersion() CXX11_OVERRIDE;
 	ModResult OnNamesListItem(LocalUser* issuer, Membership*, std::string& prefixes, std::string& nick) CXX11_OVERRIDE;
+	ModResult OnWhoLine(const Who::Request& request, LocalUser* source, User* user, Membership* memb, Numeric::Numeric& numeric) CXX11_OVERRIDE;
 	void OnUserJoin(Membership*, bool, bool, CUList&) CXX11_OVERRIDE;
 	void CleanUser(User* user);
 	void OnUserPart(Membership*, std::string &partmessage, CUList&) CXX11_OVERRIDE;
@@ -147,6 +155,23 @@ ModResult ModuleDelayJoin::OnNamesListItem(LocalUser* issuer, Membership* memb, 
 	return MOD_RES_PASSTHRU;
 }
 
+ModResult ModuleDelayJoin::OnWhoLine(const Who::Request& request, LocalUser* source, User* user, Membership* memb, Numeric::Numeric& numeric)
+{
+	// We don't need to do anything if they're not delayjoined.
+	if (!memb || !unjoined.get(memb))
+		return MOD_RES_PASSTHRU;
+
+	// Only show delayjoined users to others if the d flag has been specified.
+	if (source != user && !request.flags['d'])
+		return MOD_RES_DENY;
+
+	// Add the < flag to mark the user as delayjoined.
+	size_t flag_index;
+	if (request.GetFieldIndex('f', flag_index))
+		numeric.GetParams()[flag_index].push_back('<');
+	return MOD_RES_PASSTHRU;
+}
+
 static void populate(CUList& except, Membership* memb)
 {
 	const Channel::MemberMap& users = memb->chan->GetUsers();
@@ -161,7 +186,7 @@ static void populate(CUList& except, Membership* memb)
 void ModuleDelayJoin::OnUserJoin(Membership* memb, bool sync, bool created, CUList& except)
 {
 	if (memb->chan->IsModeSet(djm))
-		unjoined.set(memb, 1);
+		unjoined.set(memb, ServerInstance->Time());
 }
 
 void ModuleDelayJoin::OnUserPart(Membership* memb, std::string &partmessage, CUList& except)
@@ -209,13 +234,19 @@ void ModuleDelayJoin::OnUserMessage(User* user, const MessageTarget& target, con
 void DelayJoinMode::RevealUser(User* user, Channel* chan)
 {
 	Membership* memb = chan->GetUser(user);
-	if (!memb || !unjoined.set(memb, 0))
+	if (!memb)
+		return;
+
+	time_t jointime = unjoined.set(memb, 0);
+	if (!jointime)
 		return;
 
 	/* Display the join to everyone else (the user who joined got it earlier) */
 	CUList except_list;
 	except_list.insert(user);
 	ClientProtocol::Events::Join joinevent(memb);
+	if (servertime)
+		servertime->Set(joinevent, jointime);
 	chan->Write(joinevent, 0, except_list);
 }
 

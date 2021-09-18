@@ -217,9 +217,19 @@ namespace OpenSSL
 
 		bool SetCiphers(const std::string& ciphers)
 		{
+			// TLSv1 to TLSv1.2 ciphers.
 			ERR_clear_error();
 			return SSL_CTX_set_cipher_list(ctx, ciphers.c_str());
 		}
+
+#if OPENSSL_VERSION_NUMBER >= 0x10101000L
+		bool SetCiphersuites(const std::string& ciphers)
+		{
+			// TLSv1.3+ ciphers.
+			ERR_clear_error();
+			return SSL_CTX_set_ciphersuites(ctx, ciphers.c_str());
+		}
+#endif
 
 		bool SetCerts(const std::string& filename)
 		{
@@ -326,7 +336,7 @@ namespace OpenSSL
 		/** OpenSSL makes us have two contexts, one for servers and one for clients
 		 */
 		Context ctx;
-		Context clictx;
+		Context clientctx;
 
 		/** Digest to use when generating fingerprints
 		 */
@@ -396,11 +406,11 @@ namespace OpenSSL
 			: name(profilename)
 			, dh(ServerInstance->Config->Paths.PrependConfig(tag->getString("dhfile", "dhparams.pem", 1)))
 			, ctx(SSL_CTX_new(SSLv23_server_method()))
-			, clictx(SSL_CTX_new(SSLv23_client_method()))
+			, clientctx(SSL_CTX_new(SSLv23_client_method()))
 			, allowrenego(tag->getBool("renegotiation")) // Disallow by default
 			, outrecsize(tag->getUInt("outrecsize", 2048, 512, 16384))
 		{
-			if ((!ctx.SetDH(dh)) || (!clictx.SetDH(dh)))
+			if ((!ctx.SetDH(dh)) || (!clientctx.SetDH(dh)))
 				throw Exception("Couldn't set DH parameters");
 
 			const std::string hash = tag->getString("hash", "md5", 1);
@@ -408,14 +418,28 @@ namespace OpenSSL
 			if (digest == NULL)
 				throw Exception("Unknown hash type " + hash);
 
-			std::string ciphers = tag->getString("ciphers");
+			const std::string ciphers = tag->getString("ciphers");
 			if (!ciphers.empty())
 			{
-				if ((!ctx.SetCiphers(ciphers)) || (!clictx.SetCiphers(ciphers)))
+				if ((!ctx.SetCiphers(ciphers)) || (!clientctx.SetCiphers(ciphers)))
 				{
 					ERR_print_errors_cb(error_callback, this);
 					throw Exception("Can't set cipher list to \"" + ciphers + "\" " + lasterr);
 				}
+			}
+
+			const std::string ciphersuites = tag->getString("ciphersuites");
+			if (!ciphersuites.empty())
+			{
+#if OPENSSL_VERSION_NUMBER >= 0x10101000L
+				if ((!ctx.SetCiphersuites(ciphersuites)) || (!clientctx.SetCiphersuites(ciphersuites)))
+				{
+					ERR_print_errors_cb(error_callback, this);
+					throw Exception("Can't set ciphersuite list to \"" + ciphersuites + "\" " + lasterr);
+				}
+#else
+				ServerInstance->Logs->Log(MODNAME, LOG_DEBUG, "You have configured <sslprofile:ciphersuites> but your version of OpenSSL does not support TLSv1.3+");
+#endif
 			}
 
 #ifndef OPENSSL_NO_ECDH
@@ -425,20 +449,20 @@ namespace OpenSSL
 #endif
 
 			SetContextOptions("server", tag, ctx);
-			SetContextOptions("client", tag, clictx);
+			SetContextOptions("client", tag, clientctx);
 
 			/* Load our keys and certificates
 			 * NOTE: OpenSSL's error logging API sucks, don't blame us for this clusterfuck.
 			 */
 			std::string filename = ServerInstance->Config->Paths.PrependConfig(tag->getString("certfile", "cert.pem", 1));
-			if ((!ctx.SetCerts(filename)) || (!clictx.SetCerts(filename)))
+			if ((!ctx.SetCerts(filename)) || (!clientctx.SetCerts(filename)))
 			{
 				ERR_print_errors_cb(error_callback, this);
 				throw Exception("Can't read certificate file: " + lasterr);
 			}
 
 			filename = ServerInstance->Config->Paths.PrependConfig(tag->getString("keyfile", "key.pem", 1));
-			if ((!ctx.SetPrivateKey(filename)) || (!clictx.SetPrivateKey(filename)))
+			if ((!ctx.SetPrivateKey(filename)) || (!clientctx.SetPrivateKey(filename)))
 			{
 				ERR_print_errors_cb(error_callback, this);
 				throw Exception("Can't read key file: " + lasterr);
@@ -446,7 +470,7 @@ namespace OpenSSL
 
 			// Load the CAs we trust
 			filename = ServerInstance->Config->Paths.PrependConfig(tag->getString("cafile", "ca.pem", 1));
-			if ((!ctx.SetCA(filename)) || (!clictx.SetCA(filename)))
+			if ((!ctx.SetCA(filename)) || (!clientctx.SetCA(filename)))
 			{
 				ERR_print_errors_cb(error_callback, this);
 				ServerInstance->Logs->Log(MODNAME, LOG_DEFAULT, "Can't read CA list from %s. This is only a problem if you want to verify client certificates, otherwise it's safe to ignore this message. Error: %s", filename.c_str(), lasterr.c_str());
@@ -458,14 +482,14 @@ namespace OpenSSL
 			const std::string crlmode = tag->getString("crlmode", "chain", 1);
 			ctx.SetCRL(crlfile, crlpath, crlmode);
 
-			clictx.SetVerifyCert();
+			clientctx.SetVerifyCert();
 			if (tag->getBool("requestclientcert", true))
 				ctx.SetVerifyCert();
 		}
 
 		const std::string& GetName() const { return name; }
 		SSL* CreateServerSession() { return ctx.CreateServerSession(); }
-		SSL* CreateClientSession() { return clictx.CreateClientSession(); }
+		SSL* CreateClientSession() { return clientctx.CreateClientSession(); }
 		const EVP_MD* GetDigest() { return digest; }
 		bool AllowRenegotiation() const { return allowrenego; }
 		unsigned int GetOutgoingRecordSize() const { return outrecsize; }
@@ -1064,8 +1088,13 @@ class ModuleSSLOpenSSL : public Module
 		exdataindex = SSL_get_ex_new_index(0, exdatastr, NULL, NULL, NULL);
 		if (exdataindex < 0)
 			throw ModuleException("Failed to register application specific data");
+	}
 
-		ReadProfiles();
+	void ReadConfig(ConfigStatus& status) CXX11_OVERRIDE
+	{
+		ConfigTag* tag = ServerInstance->Config->ConfValue("openssl");
+		if (status.initial || tag->getBool("onrehash"))
+			ReadProfiles();
 	}
 
 	void OnModuleRehash(User* user, const std::string &param) CXX11_OVERRIDE

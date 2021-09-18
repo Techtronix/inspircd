@@ -1,6 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
+ *   Copyright (C) 2021 Herman <GermanAizek@yandex.ru>
  *   Copyright (C) 2013, 2018-2019 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2013, 2015, 2018 Attila Molnar <attilamolnar@hush.com>
  *
@@ -165,13 +166,8 @@ class ModuleIRCv3
 
 	void OnUserBack(User* user) CXX11_OVERRIDE
 	{
-		if (!joinhook.awaycap.IsActive())
-			return;
-
 		// Back from away: n!u@h AWAY
-		AwayMessage msg(user);
-		ClientProtocol::Event awayevent(joinhook.awayprotoev, msg);
-		IRCv3::WriteNeighborsWithCap(user, awayevent, joinhook.awaycap);
+		OnUserAway(user);
 	}
 
 	Version GetVersion() CXX11_OVERRIDE

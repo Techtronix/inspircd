@@ -4,7 +4,7 @@
  *   Copyright (C) 2019 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2018 linuxdaemon <linuxdaemon.irc@gmail.com>
  *   Copyright (C) 2018 Dylan Frank <b00mx0r@aureus.pw>
- *   Copyright (C) 2017-2018, 2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2017-2018, 2020-2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009 Uli Schlachter <psychon@inspircd.org>
@@ -47,8 +47,8 @@ class WhoisContextImpl : public Whois::Context
 	Events::ModuleEventProvider& lineevprov;
 
  public:
-	WhoisContextImpl(LocalUser* src, User* targ, Events::ModuleEventProvider& evprov)
-		: Whois::Context(src, targ)
+	WhoisContextImpl(LocalUser* sourceuser, User* targetuser, Events::ModuleEventProvider& evprov)
+		: Whois::Context(sourceuser, targetuser)
 		, lineevprov(evprov)
 	{
 	}
@@ -210,7 +210,7 @@ void CommandWhois::DoWhois(LocalUser* user, User* dest, time_t signon, unsigned 
 	WhoisContextImpl whois(user, dest, lineevprov);
 
 	whois.SendLine(RPL_WHOISUSER, dest->ident, dest->GetDisplayedHost(), '*', dest->GetRealName());
-	if (whois.IsSelfWhois() || user->HasPrivPermission("users/auspex"))
+	if (!dest->server->IsULine() && (whois.IsSelfWhois() || user->HasPrivPermission("users/auspex")))
 	{
 		whois.SendLine(RPL_WHOISHOST, InspIRCd::Format("is connecting from %s@%s %s", dest->ident.c_str(), dest->GetRealHost().c_str(), dest->GetIPString().c_str()));
 	}
@@ -234,7 +234,7 @@ void CommandWhois::DoWhois(LocalUser* user, User* dest, time_t signon, unsigned 
 	if (dest->IsOper())
 	{
 		if (genericoper)
-			whois.SendLine(RPL_WHOISOPERATOR, "is a server operator");
+			whois.SendLine(RPL_WHOISOPERATOR, dest->server->IsULine() ? "is a network service" : "is a server operator");
 		else
 			whois.SendLine(RPL_WHOISOPERATOR, InspIRCd::Format("is %s %s on %s", (strchr("AEIOUaeiou",dest->oper->name[0]) ? "an" : "a"), dest->oper->name.c_str(), ServerInstance->Config->Network.c_str()));
 	}

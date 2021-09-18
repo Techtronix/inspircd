@@ -2,7 +2,7 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2019 linuxdaemon <linuxdaemon.irc@gmail.com>
- *   Copyright (C) 2013, 2017-2018 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2018, 2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009 Uli Schlachter <psychon@inspircd.org>
  *   Copyright (C) 2009 Daniel De Graaf <danieldg@inspircd.org>
@@ -26,6 +26,7 @@
 /// $CompilerFlags: -Ivendor_directory("sha2")
 /// $CompilerFlags: require_compiler("GCC") -Wno-long-long
 
+
 #ifdef __GNUC__
 # pragma GCC diagnostic push
 #endif
@@ -37,14 +38,24 @@
 # pragma GCC diagnostic ignored "-Wlong-long"
 #endif
 
-#include "inspircd.h"
-#include "modules/hash.h"
+// Fix a collision between the Haiku uint64 typedef and the
+// one from the sha2 library.
+#ifdef __HAIKU__
+# define uint64 sha2_uint64
+#endif
 
 #include <sha2.c>
+
+#ifdef __HAIKU__
+# undef uint64
+#endif
 
 #ifdef __GNUC__
 # pragma GCC diagnostic pop
 #endif
+
+#include "inspircd.h"
+#include "modules/hash.h"
 
 class HashSHA256 : public HashProvider
 {

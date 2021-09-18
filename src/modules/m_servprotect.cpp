@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2013, 2017-2018, 2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2018, 2020-2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009 Daniel De Graaf <danieldg@inspircd.org>
@@ -27,9 +27,6 @@
 
 enum
 {
-	// From AustHex.
-	RPL_WHOISSERVICE = 310,
-
 	// From UnrealIRCd.
 	ERR_KILLDENY = 485
 };
@@ -55,13 +52,14 @@ class ServProtectMode : public ModeHandler
 	}
 };
 
-class ModuleServProtectMode : public Module, public Whois::EventListener, public Whois::LineEventListener
+class ModuleServProtectMode CXX11_FINAL
+	: public Module
+	, public Whois::LineEventListener
 {
 	ServProtectMode bm;
  public:
 	ModuleServProtectMode()
-		: Whois::EventListener(this)
-		, Whois::LineEventListener(this)
+		: Whois::LineEventListener(this)
 		, bm(this)
 	{
 	}
@@ -69,14 +67,6 @@ class ModuleServProtectMode : public Module, public Whois::EventListener, public
 	Version GetVersion() CXX11_OVERRIDE
 	{
 		return Version("Adds user mode k (servprotect) which protects services pseudoclients from being kicked, being killed, or having their channel prefix modes changed.", VF_VENDOR);
-	}
-
-	void OnWhois(Whois::Context& whois) CXX11_OVERRIDE
-	{
-		if (whois.GetTarget()->IsModeSet(bm))
-		{
-			whois.SendLine(RPL_WHOISSERVICE, "is a Network Service on " + ServerInstance->Config->Network);
-		}
 	}
 
 	ModResult OnRawMode(User* user, Channel* chan, ModeHandler* mh, const std::string& param, bool adding) CXX11_OVERRIDE
@@ -139,7 +129,7 @@ class ModuleServProtectMode : public Module, public Whois::EventListener, public
 
 	ModResult OnWhoisLine(Whois::Context& whois, Numeric::Numeric& numeric) CXX11_OVERRIDE
 	{
-		return ((numeric.GetNumeric() == 319) && whois.GetTarget()->IsModeSet(bm)) ? MOD_RES_DENY : MOD_RES_PASSTHRU;
+		return ((numeric.GetNumeric() == RPL_WHOISCHANNELS) && whois.GetTarget()->IsModeSet(bm)) ? MOD_RES_DENY : MOD_RES_PASSTHRU;
 	}
 };
 

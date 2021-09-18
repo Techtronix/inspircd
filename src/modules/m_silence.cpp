@@ -1,9 +1,9 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
+ *   Copyright (C) 2019, 2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2019 linuxdaemon <linuxdaemon.irc@gmail.com>
  *   Copyright (C) 2019 iwalkalone <iwalkalone69@gmail.com>
- *   Copyright (C) 2019 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2019 Robby <robby@chatbelgie.be>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
@@ -171,9 +171,9 @@ class SilenceEntry
 			out.push_back('P');
 		if (flags & SF_PRIVMSG_CHANNEL)
 			out.push_back('p');
-		if (flags & SF_TAGMSG_CHANNEL)
-			out.push_back('T');
 		if (flags & SF_TAGMSG_USER)
+			out.push_back('T');
+		if (flags & SF_TAGMSG_CHANNEL)
 			out.push_back('t');
 		if (flags & SF_EXEMPT)
 			out.push_back('x');

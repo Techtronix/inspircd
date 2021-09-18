@@ -1,6 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
+ *   Copyright (C) 2021 Herman <GermanAizek@yandex.ru>
  *   Copyright (C) 2019 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2013, 2017-2020 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013 Adam <Adam@anope.org>
@@ -167,7 +168,7 @@ void XLineManager::CheckELines()
 		LocalUser* u = *u2;
 		u->exempt = false;
 
-		/* This uses safe iteration to ensure that if a line expires here, it doenst trash the iterator */
+		/* This uses safe iteration to ensure that if a line expires here, it doesn't trash the iterator */
 		LookupIter safei;
 
 		for (LookupIter i = ELines.begin(); i != ELines.end(); )
@@ -493,12 +494,13 @@ void XLineManager::InvokeStats(const std::string& type, unsigned int numeric, St
 			safei = i;
 			safei++;
 
-			if (i->second->duration && current > i->second->expiry)
+			XLine* e = i->second;
+			if (e->duration && current > e->expiry)
 			{
 				ExpireLine(n, i);
 			}
 			else
-				stats.AddRow(numeric, i->second->Displayable(), i->second->set_time, i->second->duration, i->second->source, i->second->reason);
+				stats.AddRow(numeric, e->Displayable(), e->set_time, e->duration, e->source, e->reason);
 			i = safei;
 		}
 	}

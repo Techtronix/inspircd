@@ -2,7 +2,7 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2020 Matt Schatz <genius3000@g3k.solutions>
- *   Copyright (C) 2013, 2017-2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013 Shawn Smith <ShawnSmith0828@gmail.com>
  *   Copyright (C) 2012-2014 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
@@ -34,6 +34,8 @@ enum
 {
 	// From UnrealIRCd.
 	ERR_SECUREONLYCHAN = 489,
+
+	// InspIRCd-specific.
 	ERR_ALLMUSTSSL = 490
 };
 
@@ -120,27 +122,14 @@ class SSLModeUser : public ModeHandler
 
 	ModeAction OnModeChange(User* user, User* dest, Channel* channel, std::string& parameter, bool adding) CXX11_OVERRIDE
 	{
-		if (adding)
-		{
-			if (!dest->IsModeSet(this))
-			{
-				if (!API || !API->GetCertificate(user))
-					return MODEACTION_DENY;
+		if (adding == dest->IsModeSet(this))
+			return MODEACTION_DENY;
 
-				dest->SetMode(this, true);
-				return MODEACTION_ALLOW;
-			}
-		}
-		else
-		{
-			if (dest->IsModeSet(this))
-			{
-				dest->SetMode(this, false);
-				return MODEACTION_ALLOW;
-			}
-		}
+		if (adding && IS_LOCAL(user) && (!API || !API->GetCertificate(user)))
+			return MODEACTION_DENY;
 
-		return MODEACTION_DENY;
+		dest->SetMode(this, adding);
+		return MODEACTION_ALLOW;
 	}
 };
 

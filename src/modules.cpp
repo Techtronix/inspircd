@@ -15,7 +15,7 @@
  *   Copyright (C) 2007-2008 Robin Burchell <robin+git@viroteck.net>
  *   Copyright (C) 2007 Oliver Lupton <om@inspircd.org>
  *   Copyright (C) 2007 Dennis Friis <peavey@inspircd.org>
- *   Copyright (C) 2005-2010 Craig Edwards <brain@inspircd.org>
+ *   Copyright (C) 2006-2010 Craig Edwards <brain@inspircd.org>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -55,7 +55,7 @@ Version::Version(const std::string &desc, int flags, const std::string& linkdata
 {
 }
 
-// These declarations define the behavours of the base class Module (which does nothing at all)
+// These declarations define the behaviours of the base class Module (which does nothing at all)
 
 Module::Module()
 	: ModuleDLLManager(NULL)
@@ -133,6 +133,7 @@ void		Module::OnPostTopicChange(User*, Channel*, const std::string&) { DetachEve
 void		Module::OnDecodeMetaData(Extensible*, const std::string&, const std::string&) { DetachEvent(I_OnDecodeMetaData); }
 void		Module::OnChangeHost(User*, const std::string&) { DetachEvent(I_OnChangeHost); }
 void		Module::OnChangeRealHost(User*, const std::string&) { DetachEvent(I_OnChangeRealHost); }
+void		Module::OnPostChangeRealHost(User*) { DetachEvent(I_OnPostChangeRealHost); }
 void		Module::OnChangeRealName(User*, const std::string&) { DetachEvent(I_OnChangeRealName); }
 void		Module::OnChangeIdent(User*, const std::string&) { DetachEvent(I_OnChangeIdent); }
 void		Module::OnAddLine(User*, XLine*) { DetachEvent(I_OnAddLine); }
@@ -317,17 +318,17 @@ swap_now:
 		if (prioritizationState == PRIO_STATE_LAST)
 			prioritizationState = PRIO_STATE_AGAIN;
 		/* Suggestion from Phoenix, "shuffle" the modules to better retain call order */
-		int incrmnt = 1;
+		int increment = 1;
 
 		if (my_pos > swap_pos)
-			incrmnt = -1;
+			increment = -1;
 
-		for (unsigned int j = my_pos; j != swap_pos; j += incrmnt)
+		for (unsigned int j = my_pos; j != swap_pos; j += increment)
 		{
-			if ((j + incrmnt > EventHandlers[i].size() - 1) || ((incrmnt == -1) && (j == 0)))
+			if ((j + increment > EventHandlers[i].size() - 1) || ((increment == -1) && (j == 0)))
 				continue;
 
-			std::swap(EventHandlers[i][j], EventHandlers[i][j+incrmnt]);
+			std::swap(EventHandlers[i][j], EventHandlers[i][j+increment]);
 		}
 	}
 
@@ -450,7 +451,7 @@ void ModuleManager::UnloadAll()
 {
 	/* We do this more than once, so that any service providers get a
 	 * chance to be unhooked by the modules using them, but then get
-	 * a chance to be removed themsleves.
+	 * a chance to be removed themselves.
 	 *
 	 * Note: this deliberately does NOT delete the DLLManager objects
 	 */
@@ -599,9 +600,10 @@ void ModuleManager::AddService(ServiceProvider& item)
 			std::string::size_type slash = item.name.find('/');
 			if (slash != std::string::npos)
 			{
+				// Also register foo/bar as foo.
 				DataProviders.insert(std::make_pair(item.name.substr(0, slash), &item));
-				DataProviders.insert(std::make_pair(item.name.substr(slash + 1), &item));
 			}
+
 			dynamic_reference_base::reset_all();
 			break;
 		}

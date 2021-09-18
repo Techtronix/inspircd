@@ -1,6 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
+ *   Copyright (C) 2021 Herman <GermanAizek@yandex.ru>
  *   Copyright (C) 2016 Adam <Adam@anope.org>
  *   Copyright (C) 2014 Mantas Mikulėnas <grawity@gmail.com>
  *   Copyright (C) 2013-2016, 2018 Attila Molnar <attilamolnar@hush.com>
@@ -194,6 +195,7 @@ class SaslAuthenticator
 	void SendHostIP(UserCertificateAPI& sslapi)
 	{
 		std::vector<std::string> params;
+		params.reserve(3);
 		params.push_back(user->GetRealHost());
 		params.push_back(user->GetIPString());
 		params.push_back(sslapi && sslapi->GetCertificate(user) ? "S" : "P");
@@ -251,10 +253,12 @@ class SaslAuthenticator
 				ClientProtocol::Message authmsg("AUTHENTICATE");
 				authmsg.PushParamRef(msg[3]);
 
-				ClientProtocol::Event authevent(*g_protoev, authmsg);
 				LocalUser* const localuser = IS_LOCAL(user);
 				if (localuser)
+				{
+					ClientProtocol::Event authevent(*g_protoev, authmsg);
 					localuser->Send(authevent);
+				}
 			}
 			else if (msg[2] == "D")
 			{

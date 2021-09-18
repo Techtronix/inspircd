@@ -2,7 +2,7 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2017 B00mX0r <b00mx0r@aureus.pw>
- *   Copyright (C) 2013, 2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2019, 2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2015 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
@@ -258,6 +258,7 @@ void TreeSocket::SyncChannel(Channel* chan, BurstState& bs)
 	if (chan->topicset != 0)
 		this->WriteLine(CommandFTopic::Builder(chan));
 
+	Utils->SendListLimits(chan, this);
 	SendListModes(chan);
 
 	for (Extensible::ExtensibleStore::const_iterator i = chan->GetExtList().begin(); i != chan->GetExtList().end(); i++)

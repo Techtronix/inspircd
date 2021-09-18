@@ -5,7 +5,7 @@
  *   Copyright (C) 2019 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2018 linuxdaemon <linuxdaemon.irc@gmail.com>
  *   Copyright (C) 2017 B00mX0r <b00mx0r@aureus.pw>
- *   Copyright (C) 2013, 2017-2018, 2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2018, 2020-2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013 Daniel Vassdal <shutter@canternet.org>
  *   Copyright (C) 2012-2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
@@ -118,7 +118,7 @@ class CommandTban : public Command
 		}
 
 		Modes::ChangeList setban;
-		setban.push_add(ServerInstance->Modes->FindMode('b', MODETYPE_CHANNEL), mask);
+		setban.push_add(*banmode, mask);
 		// Pass the user (instead of ServerInstance->FakeClient) to ModeHandler::Process() to
 		// make it so that the user sets the mode themselves
 		ServerInstance->Modes->Process(user, channel, NULL, setban);
@@ -126,6 +126,19 @@ class CommandTban : public Command
 		{
 			user->WriteNotice("Invalid ban mask");
 			return CMD_FAILURE;
+		}
+
+		// Attempt to find the actual set ban mask.
+		const Modes::ChangeList::List& list = ServerInstance->Modes->GetLastChangeList().getlist();
+		for (Modes::ChangeList::List::const_iterator iter = list.begin(); iter != list.end(); ++iter)
+		{
+			const Modes::Change& mc = *iter;
+			if (mc.mh == *banmode)
+			{
+				// We found the actual mask.
+				mask = mc.param;
+				break;
+			}
 		}
 
 		T.mask = mask;

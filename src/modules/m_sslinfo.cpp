@@ -1,6 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
+ *   Copyright (C) 2021 Molly Miller <sysvinit@users.noreply.github.com>
  *   Copyright (C) 2020 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2019 linuxdaemon <linuxdaemon.irc@gmail.com>
  *   Copyright (C) 2013, 2017-2021 Sadie Powell <sadie@witchery.services>
@@ -30,15 +31,6 @@
 #include "modules/webirc.h"
 #include "modules/whois.h"
 #include "modules/who.h"
-
-enum
-{
-	// From oftc-hybrid.
-	RPL_WHOISCERTFP = 276,
-
-	// From UnrealIRCd.
-	RPL_WHOISSECURE = 671
-};
 
 class SSLCertExt : public ExtensionItem
 {
@@ -373,7 +365,23 @@ class ModuleSSLInfo
 		{
 			OperInfo* ifo = i->second;
 			std::string fp = ifo->oper_block->getString("fingerprint");
-			if (MatchFP(cert, fp) && ifo->oper_block->getBool("autologin"))
+			if (!MatchFP(cert, fp))
+				continue;
+
+			bool do_login = false;
+			const std::string autologin = ifo->oper_block->getString("autologin");
+			if (stdalgo::string::equalsci(autologin, "if-host-match"))
+			{
+				const std::string& userHost = localuser->MakeHost();
+				const std::string& userIP = localuser->MakeHostIP();
+				do_login = InspIRCd::MatchMask(ifo->oper_block->getString("host"), userHost, userIP);
+			}
+			else if (ifo->oper_block->getBool("autologin"))
+			{
+				do_login = true;
+			}
+
+			if (do_login)
 				user->Oper(ifo);
 		}
 	}

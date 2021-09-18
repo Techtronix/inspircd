@@ -2,10 +2,10 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2019 linuxdaemon <linuxdaemon.irc@gmail.com>
+ *   Copyright (C) 2016 Adam <Adam@anope.org>
  *   Copyright (C) 2015 Daniel Vassdal <shutter@canternet.org>
- *   Copyright (C) 2014, 2016 Adam <Adam@anope.org>
  *   Copyright (C) 2013-2014 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2013, 2016-2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2016-2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2012 ChrisTX <xpipe@hotmail.de>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
@@ -56,16 +56,16 @@
 #endif
 
 #ifdef _WIN32
-# pragma comment(lib, "libmysql.lib")
+# pragma comment(lib, "mysqlclient.lib")
 #endif
 
 /* VERSION 3 API: With nonblocking (threaded) requests */
 
 /* THE NONBLOCKING MYSQL API!
  *
- * MySQL provides no nonblocking (asyncronous) API of its own, and its developers recommend
+ * MySQL provides no nonblocking (asynchronous) API of its own, and its developers recommend
  * that instead, you should thread your program. This is what i've done here to allow for
- * asyncronous SQL requests via mysql. The way this works is as follows:
+ * asynchronous SQL requests via mysql. The way this works is as follows:
  *
  * The module spawns a thread via class Thread, and performs its mysql queries in this thread,
  * using a queue with priorities. There is a mutex on either end which prevents two threads
@@ -88,7 +88,7 @@
  * threadsafe. This module is designed to be threadsafe and is careful with its use of threads,
  * however, if we were to call a module's OnRequest even from within a thread which was not the
  * one the module was originally instantiated upon, there is a chance of all hell breaking loose
- * if a module is ever put in a re-enterant state (stack corruption could occur, crashes, data
+ * if a module is ever put in a reentrant state (stack corruption could occur, crashes, data
  * corruption, and worse, so DONT think about it until the day comes when InspIRCd is 100%
  * guaranteed threadsafe!)
  */

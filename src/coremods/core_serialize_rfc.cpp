@@ -1,6 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
+ *   Copyright (C) 2021 Herman <GermanAizek@yandex.ru>
  *   Copyright (C) 2018-2019 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2018 Attila Molnar <attilamolnar@hush.com>
  *
@@ -49,7 +50,7 @@ class RFCSerializer : public ClientProtocol::Serializer
 
 bool RFCSerializer::Parse(LocalUser* user, const std::string& line, ClientProtocol::ParseOutput& parseoutput)
 {
-	size_t start = line.find_first_not_of(" ");
+	size_t start = line.find_first_not_of(' ');
 	if (start == std::string::npos)
 	{
 		// Discourage the user from flooding the server.

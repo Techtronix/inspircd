@@ -2,9 +2,9 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2020 Matt Schatz <genius3000@g3k.solutions>
- *   Copyright (C) 2013-2015 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2013, 2017-2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013, 2016 Adam <Adam@anope.org>
+ *   Copyright (C) 2013, 2015 Attila Molnar <attilamolnar@hush.com>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -33,6 +33,9 @@ namespace
 class UserResolver : public DNS::Request
 {
  private:
+	/** The socket address that the user we are looking up is connected from. */
+	const irc::sockets::sockaddrs sa;
+
 	/** UUID we are looking up */
 	const std::string uuid;
 
@@ -57,6 +60,7 @@ class UserResolver : public DNS::Request
 	 */
 	UserResolver(DNS::Manager* mgr, Module* me, LocalUser* user, const std::string& to_resolve, DNS::QueryType qt)
 		: DNS::Request(mgr, me, to_resolve, qt)
+		, sa(user->client_sa)
 		, uuid(user->uuid)
 	{
 	}
@@ -68,11 +72,8 @@ class UserResolver : public DNS::Request
 	void OnLookupComplete(const DNS::Query* r) CXX11_OVERRIDE
 	{
 		LocalUser* bound_user = IS_LOCAL(ServerInstance->FindUUID(uuid));
-		if (!bound_user)
-		{
-			ServerInstance->Logs->Log(MODNAME, LOG_DEBUG, "Resolution finished for user '%s' who is gone", uuid.c_str());
+		if (!bound_user || bound_user->client_sa != sa)
 			return;
-		}
 
 		const DNS::ResourceRecord* ans_record = r->FindAnswerOfType(this->question.type);
 		if (ans_record == NULL)
@@ -88,17 +89,8 @@ class UserResolver : public DNS::Request
 
 		if (this->question.type == DNS::QUERY_PTR)
 		{
-			UserResolver* res_forward;
-			if (bound_user->client_sa.family() == AF_INET6)
-			{
-				/* IPV6 forward lookup */
-				res_forward = new UserResolver(this->manager, this->creator, bound_user, ans_record->rdata, DNS::QUERY_AAAA);
-			}
-			else
-			{
-				/* IPV4 lookup */
-				res_forward = new UserResolver(this->manager, this->creator, bound_user, ans_record->rdata, DNS::QUERY_A);
-			}
+			const DNS::QueryType qt = bound_user->client_sa.family() == AF_INET6 ? DNS::QUERY_AAAA : DNS::QUERY_A;
+			UserResolver* res_forward = new UserResolver(this->manager, this->creator, bound_user, ans_record->rdata, qt);
 			try
 			{
 				this->manager->Process(res_forward);
@@ -154,7 +146,7 @@ class UserResolver : public DNS::Request
 	void OnError(const DNS::Query* query) CXX11_OVERRIDE
 	{
 		LocalUser* bound_user = IS_LOCAL(ServerInstance->FindUUID(uuid));
-		if (bound_user)
+		if (bound_user && bound_user->client_sa == sa)
 			HandleError(bound_user, "Could not resolve your hostname: " + this->manager->GetErrorStr(query->error));
 	}
 };

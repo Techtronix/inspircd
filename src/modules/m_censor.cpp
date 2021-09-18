@@ -55,19 +55,19 @@ class ModuleCensor : public Module
 		{
 			case MessageTarget::TYPE_USER:
 			{
-				User* targuser = target.Get<User>();
-				if (!targuser->IsModeSet(cu))
+				User* targetuser = target.Get<User>();
+				if (!targetuser->IsModeSet(cu))
 					return MOD_RES_PASSTHRU;
 				break;
 			}
 
 			case MessageTarget::TYPE_CHANNEL:
 			{
-				Channel* targchan = target.Get<Channel>();
-				if (!targchan->IsModeSet(cc))
+				Channel* targetchan = target.Get<Channel>();
+				if (!targetchan->IsModeSet(cc))
 					return MOD_RES_PASSTHRU;
 
-				ModResult result = CheckExemption::Call(exemptionprov, user, targchan, "censor");
+				ModResult result = CheckExemption::Call(exemptionprov, user, targetchan, "censor");
 				if (result == MOD_RES_ALLOW)
 					return MOD_RES_PASSTHRU;
 				break;

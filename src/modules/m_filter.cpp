@@ -1,6 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
+ *   Copyright (C) 2021 Herman <GermanAizek@yandex.ru>
  *   Copyright (C) 2019 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2019 Filippo Cortigiani <simos@simosnap.org>
  *   Copyright (C) 2018-2019 linuxdaemon <linuxdaemon.irc@gmail.com>
@@ -552,7 +553,7 @@ ModResult ModuleFilter::OnPreCommand(std::string& command, CommandBase::Params& 
 		parameters[parting ? 1 : 0] = "Reason filtered";
 
 		/* We're warning or blocking, OR they're quitting and its a KILL action
-		 * (we cant kill someone whos already quitting, so filter them anyway)
+		 * (we cant kill someone who's already quitting, so filter them anyway)
 		 */
 		if ((f->action == FA_WARN) || (f->action == FA_BLOCK) || (((!parting) && (f->action == FA_KILL))) || (f->action == FA_SILENT))
 		{
@@ -882,19 +883,19 @@ void ModuleFilter::ReadFilters()
 	ConfigTagList tags = ServerInstance->Config->ConfTags("keyword");
 	for (ConfigIter i = tags.first; i != tags.second; ++i)
 	{
-		std::string pattern = i->second->getString("pattern");
-		std::string reason = i->second->getString("reason");
-		std::string action = i->second->getString("action");
-		std::string flgs = i->second->getString("flags");
-		unsigned long duration = i->second->getDuration("duration", 10*60, 1);
-		if (flgs.empty())
-			flgs = "*";
+		ConfigTag* tag = i->second;
+		std::string pattern = tag->getString("pattern");
+		std::string reason = tag->getString("reason");
+		std::string action = tag->getString("action");
+		std::string flgs = tag->getString("flags", "*", 1);
+		bool generated = tag->getBool("generated");
+		unsigned long duration = tag->getDuration("duration", 10*60, 1);
 
 		FilterAction fa;
 		if (!StringToFilterAction(action, fa))
 			fa = FA_NONE;
 
-		std::pair<bool, std::string> result = static_cast<ModuleFilter*>(this)->AddFilter(pattern, fa, reason, duration, flgs, !i->second->getBool("generated"));
+		std::pair<bool, std::string> result = static_cast<ModuleFilter*>(this)->AddFilter(pattern, fa, reason, duration, flgs, !generated);
 		if (result.first)
 			removedfilters.erase(pattern);
 		else

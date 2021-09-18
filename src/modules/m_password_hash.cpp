@@ -2,7 +2,7 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2014 Daniel Vassdal <shutter@canternet.org>
- *   Copyright (C) 2013, 2017-2018, 2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2018, 2020-2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2012, 2014-2015 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
@@ -71,9 +71,17 @@ class CommandMkpasswd : public Command
 			return CMD_FAILURE;
 		}
 
-		std::string hexsum = hp->Generate(parameters[1]);
-		user->WriteNotice(parameters[0] + " hashed password for " + parameters[1] + " is " + hexsum);
-		return CMD_SUCCESS;
+		try
+		{
+			std::string hexsum = hp->Generate(parameters[1]);
+			user->WriteNotice(parameters[0] + " hashed password for " + parameters[1] + " is " + hexsum);
+			return CMD_SUCCESS;
+		}
+		catch (const ModuleException& error)
+		{
+			user->WriteNotice("*** " + name + ": " + error.GetReason());
+			return CMD_FAILURE;
+		}
 	}
 };
 
@@ -86,6 +94,12 @@ class ModulePasswordHash : public Module
 	ModulePasswordHash()
 		: cmd(this)
 	{
+	}
+
+	void ReadConfig(ConfigStatus& status) CXX11_OVERRIDE
+	{
+		ConfigTag* tag = ServerInstance->Config->ConfValue("mkpasswd");
+		cmd.flags_needed = tag->getBool("operonly") ? 'o' : 0;
 	}
 
 	ModResult OnPassCompare(Extensible* ex, const std::string &data, const std::string &input, const std::string &hashtype) CXX11_OVERRIDE

@@ -1,6 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
+ *   Copyright (C) 2021 Herman <GermanAizek@yandex.ru>
  *   Copyright (C) 2020 satmd <satmd@users.noreply.github.com>
  *   Copyright (C) 2017 B00mX0r <b00mx0r@aureus.pw>
  *   Copyright (C) 2017 Adam <Adam@anope.org>
@@ -121,7 +122,7 @@ class ModuleOverride : public Module
 
 		std::string tokenlist = source->oper->getConfig("override");
 		// its defined or * is set, return its value as a boolean for if the token is set
-		return ((tokenlist.find(token, 0) != std::string::npos) || (tokenlist.find("*", 0) != std::string::npos));
+		return ((tokenlist.find(token, 0) != std::string::npos) || (tokenlist.find('*', 0) != std::string::npos));
 	}
 
 

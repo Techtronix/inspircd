@@ -2,7 +2,7 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2013-2014 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2013, 2017-2018, 2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2018, 2020-2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013 Daniel Vassdal <shutter@canternet.org>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2010 Craig Edwards <brain@inspircd.org>
@@ -82,7 +82,7 @@ void LogManager::OpenFileLogs()
 	for(ConfigIter i = tags.first; i != tags.second; ++i)
 	{
 		ConfigTag* tag = i->second;
-		std::string method = tag->getString("method");
+		const std::string method = tag->getString("method", "file", 1);
 		if (!stdalgo::string::equalsci(method, "file"))
 		{
 			continue;
@@ -102,10 +102,6 @@ void LogManager::OpenFileLogs()
 		else if (stdalgo::string::equalsci(level, "verbose"))
 		{
 			loglevel = LOG_VERBOSE;
-		}
-		else if (stdalgo::string::equalsci(level, "default"))
-		{
-			loglevel = LOG_DEFAULT;
 		}
 		else if (stdalgo::string::equalsci(level, "sparse"))
 		{

@@ -1,15 +1,16 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
+ *   Copyright (C) 2021 Herman <GermanAizek@yandex.ru>
  *   Copyright (C) 2020 Matt Schatz <genius3000@g3k.solutions>
- *   Copyright (C) 2013-2016 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2013, 2017-2021 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013-2014, 2016 Attila Molnar <attilamolnar@hush.com>
+ *   Copyright (C) 2013, 2018-2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2010 Craig Edwards <brain@inspircd.org>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2009 Uli Schlachter <psychon@inspircd.org>
  *   Copyright (C) 2007 Dennis Friis <peavey@inspircd.org>
- *   Copyright (C) 2006-2008 Robin Burchell <robin+git@viroteck.net>
+ *   Copyright (C) 2006-2007 Robin Burchell <robin+git@viroteck.net>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -169,11 +170,11 @@ class CommandCheck : public Command
 		if (parameters.size() > 1 && !irc::equals(parameters[1], ServerInstance->Config->ServerName))
 			return CMD_SUCCESS;
 
-		User *targuser;
-		Channel *targchan;
+		User *targetuser;
+		Channel *targetchan;
 
-		targuser = ServerInstance->FindNick(parameters[0]);
-		targchan = ServerInstance->FindChan(parameters[0]);
+		targetuser = ServerInstance->FindNick(parameters[0]);
+		targetchan = ServerInstance->FindChan(parameters[0]);
 
 		/*
 		 * Syntax of a /check reply:
@@ -185,60 +186,60 @@ class CommandCheck : public Command
 		// Constructor sends START, destructor sends END
 		CheckContext context(user, parameters[0]);
 
-		if (targuser)
+		if (targetuser)
 		{
-			LocalUser* loctarg = IS_LOCAL(targuser);
+			LocalUser* localtarget = IS_LOCAL(targetuser);
 			/* /check on a user */
-			context.Write("nuh", targuser->GetFullHost());
-			context.Write("realnuh", targuser->GetFullRealHost());
-			context.Write("realname", targuser->GetRealName());
-			context.Write("modes", targuser->GetModeLetters());
-			context.Write("snomasks", GetSnomasks(targuser));
-			context.Write("server", targuser->server->GetName());
-			context.Write("uid", targuser->uuid);
-			context.Write("signon", targuser->signon);
-			context.Write("nickts", targuser->age);
-			if (loctarg)
-				context.Write("lastmsg", loctarg->idle_lastmsg);
+			context.Write("nuh", targetuser->GetFullHost());
+			context.Write("realnuh", targetuser->GetFullRealHost());
+			context.Write("realname", targetuser->GetRealName());
+			context.Write("modes", targetuser->GetModeLetters());
+			context.Write("snomasks", GetSnomasks(targetuser));
+			context.Write("server", targetuser->server->GetName());
+			context.Write("uid", targetuser->uuid);
+			context.Write("signon", targetuser->signon);
+			context.Write("nickts", targetuser->age);
+			if (localtarget)
+				context.Write("lastmsg", localtarget->idle_lastmsg);
 
-			if (targuser->IsAway())
+			if (targetuser->IsAway())
 			{
 				/* user is away */
-				context.Write("awaytime", targuser->awaytime);
-				context.Write("awaymsg", targuser->awaymsg);
+				context.Write("awaytime", targetuser->awaytime);
+				context.Write("awaymsg", targetuser->awaymsg);
 			}
 
-			if (targuser->IsOper())
+			if (targetuser->IsOper())
 			{
-				OperInfo* oper = targuser->oper;
+				OperInfo* oper = targetuser->oper;
 				/* user is an oper of type ____ */
 				context.Write("opertype", oper->name);
-				if (loctarg)
+				if (localtarget)
 				{
-					context.Write("chanmodeperms", GetAllowedOperOnlyModes(loctarg, MODETYPE_CHANNEL));
-					context.Write("usermodeperms", GetAllowedOperOnlyModes(loctarg, MODETYPE_USER));
-					context.Write("snomaskperms", GetAllowedOperOnlySnomasks(loctarg));
+					context.Write("chanmodeperms", GetAllowedOperOnlyModes(localtarget, MODETYPE_CHANNEL));
+					context.Write("usermodeperms", GetAllowedOperOnlyModes(localtarget, MODETYPE_USER));
+					context.Write("snomaskperms", GetAllowedOperOnlySnomasks(localtarget));
 					context.Write("commandperms", oper->AllowedOperCommands.ToString());
 					context.Write("permissions", oper->AllowedPrivs.ToString());
 				}
 			}
 
-			if (loctarg)
+			if (localtarget)
 			{
-				context.Write("clientaddr", loctarg->client_sa.str());
-				context.Write("serveraddr", loctarg->server_sa.str());
+				context.Write("clientaddr", localtarget->client_sa.str());
+				context.Write("serveraddr", localtarget->server_sa.str());
 
-				std::string classname = loctarg->GetClass()->name;
+				std::string classname = localtarget->GetClass()->name;
 				if (!classname.empty())
 					context.Write("connectclass", classname);
 
-				context.Write("exempt", loctarg->exempt ? "yes" : "no");
+				context.Write("exempt", localtarget->exempt ? "yes" : "no");
 			}
 			else
-				context.Write("onip", targuser->GetIPString());
+				context.Write("onip", targetuser->GetIPString());
 
 			CheckContext::List chanlist(context, "onchans");
-			for (User::ChanList::iterator i = targuser->chans.begin(); i != targuser->chans.end(); i++)
+			for (User::ChanList::iterator i = targetuser->chans.begin(); i != targetuser->chans.end(); i++)
 			{
 				Membership* memb = *i;
 				chanlist.Add(memb->GetAllPrefixChars() + memb->chan->name);
@@ -246,27 +247,27 @@ class CommandCheck : public Command
 
 			chanlist.Flush();
 
-			context.DumpExt(targuser);
+			context.DumpExt(targetuser);
 		}
-		else if (targchan)
+		else if (targetchan)
 		{
 			/* /check on a channel */
-			context.Write("createdat", targchan->age);
+			context.Write("createdat", targetchan->age);
 
-			if (!targchan->topic.empty())
+			if (!targetchan->topic.empty())
 			{
 				/* there is a topic, assume topic related information exists */
-				context.Write("topic", targchan->topic);
-				context.Write("topic_setby", targchan->setby);
-				context.Write("topic_setat", targchan->topicset);
+				context.Write("topic", targetchan->topic);
+				context.Write("topic_setby", targetchan->setby);
+				context.Write("topic_setat", targetchan->topicset);
 			}
 
-			context.Write("modes", targchan->ChanModes(true));
-			context.Write("membercount", ConvToStr(targchan->GetUserCounter()));
+			context.Write("modes", targetchan->ChanModes(true));
+			context.Write("membercount", ConvToStr(targetchan->GetUserCounter()));
 
 			/* now the ugly bit, spool current members of a channel. :| */
 
-			const Channel::MemberMap& ulist = targchan->GetUsers();
+			const Channel::MemberMap& ulist = targetchan->GetUsers();
 
 			/* note that unlike /names, we do NOT check +i vs in the channel */
 			for (Channel::MemberMap::const_iterator i = ulist.begin(); i != ulist.end(); ++i)
@@ -282,9 +283,9 @@ class CommandCheck : public Command
 
 			const ModeParser::ListModeList& listmodes = ServerInstance->Modes->GetListModes();
 			for (ModeParser::ListModeList::const_iterator i = listmodes.begin(); i != listmodes.end(); ++i)
-				context.DumpListMode(*i, targchan);
+				context.DumpListMode(*i, targetchan);
 
-			context.DumpExt(targchan);
+			context.DumpExt(targetchan);
 		}
 		else
 		{
@@ -295,16 +296,17 @@ class CommandCheck : public Command
 			const user_hash& users = ServerInstance->Users->GetUsers();
 			for (user_hash::const_iterator a = users.begin(); a != users.end(); ++a)
 			{
-				if (InspIRCd::Match(a->second->GetRealHost(), parameters[0], ascii_case_insensitive_map) || InspIRCd::Match(a->second->GetDisplayedHost(), parameters[0], ascii_case_insensitive_map))
+				User* ituser = a->second;
+				if (InspIRCd::Match(ituser->GetRealHost(), parameters[0], ascii_case_insensitive_map) || InspIRCd::Match(ituser->GetDisplayedHost(), parameters[0], ascii_case_insensitive_map))
 				{
 					/* host or vhost matches mask */
-					context.Write("match", ConvToStr(++x) + " " + a->second->GetFullRealHost() + " " + a->second->GetIPString() + " " + a->second->GetRealName());
+					context.Write("match", ConvToStr(++x) + " " + ituser->GetFullRealHost() + " " + ituser->GetIPString() + " " + ituser->GetRealName());
 				}
 				/* IP address */
-				else if (InspIRCd::MatchCIDR(a->second->GetIPString(), parameters[0]))
+				else if (InspIRCd::MatchCIDR(ituser->GetIPString(), parameters[0]))
 				{
 					/* same IP. */
-					context.Write("match", ConvToStr(++x) + " " + a->second->GetFullRealHost() + " " + a->second->GetIPString() + " " + a->second->GetRealName());
+					context.Write("match", ConvToStr(++x) + " " + ituser->GetFullRealHost() + " " + ituser->GetIPString() + " " + ituser->GetRealName());
 				}
 			}
 

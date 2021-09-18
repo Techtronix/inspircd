@@ -2,7 +2,7 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2012-2016 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2012-2013, 2017-2018, 2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2012-2013, 2017-2018, 2020-2021 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2007-2008 Robin Burchell <robin+git@viroteck.net>
@@ -27,14 +27,6 @@
 #include "inspircd.h"
 #include "modules/whois.h"
 
-enum
-{
-	// From UnrealIRCd.
-	RPL_WHOISSPECIAL = 320
-};
-
-/** Handle /SWHOIS
- */
 class CommandSwhois : public Command
 {
  public:
@@ -93,32 +85,38 @@ class CommandSwhois : public Command
 
 };
 
-class ModuleSWhois : public Module, public Whois::LineEventListener
+class ModuleSWhois CXX11_FINAL
+	: public Module
+	, public Whois::LineEventListener
 {
+private:
 	CommandSwhois cmd;
+	UserModeReference hideopermode;
 
  public:
 	ModuleSWhois()
 		: Whois::LineEventListener(this)
 		, cmd(this)
+		, hideopermode(this, "hideoper")
 	{
 	}
 
 	// :kenny.chatspike.net 320 Brain Azhrarn :is getting paid to play games.
 	ModResult OnWhoisLine(Whois::Context& whois, Numeric::Numeric& numeric) CXX11_OVERRIDE
 	{
-		/* We use this and not OnWhois because this triggers for remote, too */
-		if (numeric.GetNumeric() == 312)
-		{
-			/* Insert our numeric before 312 */
-			std::string* swhois = cmd.swhois.get(whois.GetTarget());
-			if (swhois)
-			{
-				whois.SendLine(RPL_WHOISSPECIAL, *swhois);
-			}
-		}
+		// We use this and not OnWhois because this triggers for remote users too.
+		if (numeric.GetNumeric() != RPL_WHOISSERVER)
+			return MOD_RES_PASSTHRU;
 
-		/* Dont block anything */
+		// Don't send soper swhois if hideoper is set.
+		if (cmd.operblock.get(whois.GetTarget()) && whois.GetTarget()->IsModeSet(hideopermode))
+			return MOD_RES_PASSTHRU;
+
+		// Insert our numeric before RPL_WHOISSERVER.
+		const std::string* swhois = cmd.swhois.get(whois.GetTarget());
+		if (swhois && !swhois->empty())
+			whois.SendLine(RPL_WHOISSPECIAL, *swhois);
+
 		return MOD_RES_PASSTHRU;
 	}
 
