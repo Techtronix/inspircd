@@ -363,12 +363,15 @@ class RepeatMode : public ParamMode<RepeatMode, SimpleExtItem<ChannelSettings> >
 
 class RepeatModule : public Module
 {
+ private:
+	ChanModeReference banmode;
 	CheckExemption::EventProvider exemptionprov;
 	RepeatMode rm;
 
  public:
 	RepeatModule()
-		: exemptionprov(this)
+		: banmode(this, "ban")
+		, exemptionprov(this)
 		, rm(this)
 	{
 	}
@@ -396,6 +399,9 @@ class RepeatModule : public Module
 		if (res == MOD_RES_ALLOW)
 			return MOD_RES_PASSTHRU;
 
+		if (user->HasPrivPermission("channels/ignore-repeat"))
+			return MOD_RES_PASSTHRU;
+
 		if (rm.MatchLine(memb, settings, details.text))
 		{
 			if (settings->Action == ChannelSettings::ACT_BLOCK)
@@ -407,7 +413,7 @@ class RepeatModule : public Module
 			if (settings->Action == ChannelSettings::ACT_BAN)
 			{
 				Modes::ChangeList changelist;
-				changelist.push_add(ServerInstance->Modes->FindMode('b', MODETYPE_CHANNEL), "*!*@" + user->GetDisplayedHost());
+				changelist.push_add(*banmode, "*!" + user->GetBanIdent() + "@" + user->GetDisplayedHost());
 				ServerInstance->Modes->Process(ServerInstance->FakeClient, chan, NULL, changelist);
 			}
 

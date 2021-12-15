@@ -384,6 +384,11 @@ class HAProxyHook : public IOHookMiddle
 		sock->AddIOHook(this);
 	}
 
+	bool IsHookReady() const CXX11_OVERRIDE
+	{
+		return state == HPS_CONNECTED;
+	}
+
 	int OnStreamSocketWrite(StreamSocket* sock, StreamSocket::SendQueue& uppersendq) CXX11_OVERRIDE
 	{
 		// We don't need to implement this.

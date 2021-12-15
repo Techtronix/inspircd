@@ -56,7 +56,9 @@
 // to support. Support for it was removed in the master branch at the same time that
 // support for OpenSSL pre-1.1 was.
 #if defined __GNUC__ && defined LIBRESSL_VERSION_NUMBER
-# warning LibreSSL support will be discontinued in the future. Consider using the ssl_gnutls or ssl_mbedtls modules instead.
+# undef OPENSSL_VERSION_NUMBER
+# define OPENSSL_VERSION_NUMBER 0x10000000L
+# warning LibreSSL support will be removed in v4. Consider using the ssl_gnutls or ssl_mbedtls modules instead if you can not use OpenSSL.
 #endif
 
 // Fix warnings about the use of `long long` on C++03.
@@ -80,7 +82,7 @@
 #endif
 
 // Compatibility layer to allow OpenSSL 1.0 to use the 1.1 API.
-#if ((defined LIBRESSL_VERSION_NUMBER) || (OPENSSL_VERSION_NUMBER < 0x10100000L))
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
 
 // BIO is opaque in OpenSSL 1.1 but the access API does not exist in 1.0.
 # define BIO_get_data(BIO) BIO->ptr
@@ -101,8 +103,6 @@
 #else
 # define INSPIRCD_OPENSSL_OPAQUE_BIO
 #endif
-
-enum issl_status { ISSL_NONE, ISSL_HANDSHAKING, ISSL_OPEN };
 
 static bool SelfSigned = false;
 static int exdataindex;
@@ -574,7 +574,6 @@ class OpenSSLIOHook : public SSLIOHook
 {
  private:
 	SSL* sess;
-	issl_status status;
 	bool data_to_write;
 
 	// Returns 1 if handshake succeeded, 0 if it is still in progress, -1 if it failed
@@ -589,13 +588,13 @@ class OpenSSLIOHook : public SSLIOHook
 			if (err == SSL_ERROR_WANT_READ)
 			{
 				SocketEngine::ChangeEventMask(user, FD_WANT_POLL_READ | FD_WANT_NO_WRITE);
-				this->status = ISSL_HANDSHAKING;
+				this->status = STATUS_HANDSHAKING;
 				return 0;
 			}
 			else if (err == SSL_ERROR_WANT_WRITE)
 			{
 				SocketEngine::ChangeEventMask(user, FD_WANT_NO_READ | FD_WANT_SINGLE_WRITE);
-				this->status = ISSL_HANDSHAKING;
+				this->status = STATUS_HANDSHAKING;
 				return 0;
 			}
 			else
@@ -609,7 +608,7 @@ class OpenSSLIOHook : public SSLIOHook
 			// Handshake complete.
 			VerifyCertificate();
 
-			status = ISSL_OPEN;
+			status = STATUS_OPEN;
 
 			SocketEngine::ChangeEventMask(user, FD_WANT_POLL_READ | FD_WANT_NO_WRITE | FD_ADD_TRIAL_WRITE);
 
@@ -631,7 +630,7 @@ class OpenSSLIOHook : public SSLIOHook
 		}
 		sess = NULL;
 		certificate = NULL;
-		status = ISSL_NONE;
+		status = STATUS_NONE;
 	}
 
 	void VerifyCertificate()
@@ -663,17 +662,8 @@ class OpenSSLIOHook : public SSLIOHook
 			certinfo->trusted = false;
 		}
 
-		char buf[512];
-		X509_NAME_oneline(X509_get_subject_name(cert), buf, sizeof(buf));
-		certinfo->dn = buf;
-		// Make sure there are no chars in the string that we consider invalid
-		if (certinfo->dn.find_first_of("\r\n") != std::string::npos)
-			certinfo->dn.clear();
-
-		X509_NAME_oneline(X509_get_issuer_name(cert), buf, sizeof(buf));
-		certinfo->issuer = buf;
-		if (certinfo->issuer.find_first_of("\r\n") != std::string::npos)
-			certinfo->issuer.clear();
+		GetDNString(X509_get_subject_name(cert), certinfo->dn);
+		GetDNString(X509_get_issuer_name(cert), certinfo->issuer);
 
 		if (!X509_digest(cert, GetProfile().GetDigest(), md, &n))
 		{
@@ -692,16 +682,26 @@ class OpenSSLIOHook : public SSLIOHook
 		X509_free(cert);
 	}
 
+	static void GetDNString(const X509_NAME* x509name, std::string& out)
+	{
+		char buf[512];
+		X509_NAME_oneline(x509name, buf, sizeof(buf));
+
+		out.assign(buf);
+		for (size_t pos = 0; ((pos = out.find_first_of("\r\n", pos)) != std::string::npos); )
+			out[pos] = ' ';
+	}
+
 	void SSLInfoCallback(int where, int rc)
 	{
-		if ((where & SSL_CB_HANDSHAKE_START) && (status == ISSL_OPEN))
+		if ((where & SSL_CB_HANDSHAKE_START) && (status == STATUS_OPEN))
 		{
 			if (GetProfile().AllowRenegotiation())
 				return;
 
 			// The other side is trying to renegotiate, kill the connection and change status
-			// to ISSL_NONE so CheckRenego() closes the session
-			status = ISSL_NONE;
+			// to STATUS_NONE so CheckRenego() closes the session
+			status = STATUS_NONE;
 			BIO* bio = SSL_get_rbio(sess);
 			EventHandler* eh = static_cast<StreamSocket*>(BIO_get_data(bio));
 			SocketEngine::Shutdown(eh, 2);
@@ -710,7 +710,7 @@ class OpenSSLIOHook : public SSLIOHook
 
 	bool CheckRenego(StreamSocket* sock)
 	{
-		if (status != ISSL_NONE)
+		if (status != STATUS_NONE)
 			return true;
 
 		ServerInstance->Logs->Log(MODNAME, LOG_DEBUG, "Session %p killed, attempted to renegotiate", (void*)sess);
@@ -722,9 +722,9 @@ class OpenSSLIOHook : public SSLIOHook
 	// Returns 1 if application I/O should proceed, 0 if it must wait for the underlying protocol to progress, -1 on fatal error
 	int PrepareIO(StreamSocket* sock)
 	{
-		if (status == ISSL_OPEN)
+		if (status == STATUS_OPEN)
 			return 1;
-		else if (status == ISSL_HANDSHAKING)
+		else if (status == STATUS_HANDSHAKING)
 		{
 			// The handshake isn't finished, try to finish it
 			return Handshake(sock);
@@ -741,7 +741,6 @@ class OpenSSLIOHook : public SSLIOHook
 	OpenSSLIOHook(IOHookProvider* hookprov, StreamSocket* sock, SSL* session)
 		: SSLIOHook(hookprov)
 		, sess(session)
-		, status(ISSL_NONE)
 		, data_to_write(false)
 	{
 		// Create BIO instance and store a pointer to the socket in it which will be used by the read and write functions
@@ -770,7 +769,7 @@ class OpenSSLIOHook : public SSLIOHook
 		if (prepret <= 0)
 			return prepret;
 
-		// If we resumed the handshake then this->status will be ISSL_OPEN
+		// If we resumed the handshake then this->status will be STATUS_OPEN
 		{
 			ERR_clear_error();
 			char* buffer = ServerInstance->GetReadBuffer();
@@ -888,7 +887,7 @@ class OpenSSLIOHook : public SSLIOHook
 
 	void GetCiphersuite(std::string& out) const CXX11_OVERRIDE
 	{
-		if (!IsHandshakeDone())
+		if (!IsHookReady())
 			return;
 		out.append(SSL_get_version(sess)).push_back('-');
 		out.append(SSL_get_cipher(sess));
@@ -904,7 +903,6 @@ class OpenSSLIOHook : public SSLIOHook
 		return true;
 	}
 
-	bool IsHandshakeDone() const { return (status == ISSL_OPEN); }
 	OpenSSL::Profile& GetProfile();
 };
 
@@ -1109,7 +1107,7 @@ class ModuleSSLOpenSSL : public Module
 		}
 		catch (ModuleException& ex)
 		{
-			ServerInstance->Logs->Log(MODNAME, LOG_DEFAULT, ex.GetReason() + " Not applying settings.");
+			ServerInstance->SNO->WriteToSnoMask('a', "Failed to reload the OpenSSL TLS (SSL) profiles. " + ex.GetReason());
 		}
 	}
 
@@ -1131,7 +1129,7 @@ class ModuleSSLOpenSSL : public Module
 	ModResult OnCheckReady(LocalUser* user) CXX11_OVERRIDE
 	{
 		const OpenSSLIOHook* const iohook = static_cast<OpenSSLIOHook*>(user->eh.GetModHook(this));
-		if ((iohook) && (!iohook->IsHandshakeDone()))
+		if ((iohook) && (!iohook->IsHookReady()))
 			return MOD_RES_DENY;
 		return MOD_RES_PASSTHRU;
 	}

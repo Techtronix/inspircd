@@ -294,6 +294,7 @@ void ServerConfig::CrossCheckConnectBlocks(ServerConfig* current)
 			me->maxconnwarn = tag->getBool("maxconnwarn", me->maxconnwarn);
 			me->limit = tag->getUInt("limit", me->limit);
 			me->resolvehostnames = tag->getBool("resolvehostnames", me->resolvehostnames);
+			me->uniqueusername = tag->getBool("uniqueusername", me->uniqueusername);
 			me->password = tag->getString("password", me->password);
 
 			me->passwordhash = tag->getString("hash", me->passwordhash);
@@ -333,7 +334,7 @@ static std::string GetServerHost()
 	{
 		std::string name(hostname);
 		if (name.find('.') == std::string::npos)
-			name.push_back('.');
+			name.append(".local");
 
 		if (name.length() <= ServerInstance->Config->Limits.MaxHost && InspIRCd::IsHost(name))
 			return name;

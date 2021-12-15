@@ -73,7 +73,7 @@ class CommandShun : public Command
 
 		User *find = ServerInstance->FindNick(target);
 		if ((find) && (find->registered == REG_ALL))
-			target = std::string("*!*@") + find->GetIPString();
+			target = "*!" + find->GetBanIdent() + "@" + find->GetIPString();
 
 		if (parameters.size() == 1)
 		{
@@ -255,22 +255,22 @@ class ModuleShun : public Module, public Stats::EventListener
 			}
 		}
 
-		if (cleanedcommands.count(command))
+		if (!cleanedcommands.count(command))
+			return MOD_RES_PASSTHRU;
+
+		switch (parameters.size())
 		{
-			if (command == "AWAY" && !parameters.empty())
+			case 0:
 			{
-				// Allow away but only for unsetting.
-				parameters.clear();
+				if (command == "AWAY" || command == "QUIT")
+					parameters.clear();
+				break;
 			}
-			else if (command == "PART" && parameters.size() > 1)
+			case 1:
 			{
-				// Allow part but strip the message.
-				parameters.pop_back();
-			}
-			else if (command == "QUIT" && !parameters.empty())
-			{
-				// Allow quit but strip the message.
-				parameters.clear();
+				if (command == "CYCLE" || command == "KNOCK" || command == "PART")
+					parameters.resize(1);
+				break;
 			}
 		}
 
