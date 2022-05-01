@@ -3,7 +3,7 @@
  *
  *   Copyright (C) 2019 linuxdaemon <linuxdaemon.irc@gmail.com>
  *   Copyright (C) 2018 Adam <Adam@anope.org>
- *   Copyright (C) 2017-2019, 2021 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2017-2019, 2021-2022 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013-2014, 2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
@@ -119,6 +119,34 @@ class CommandWho : public SplitCommand
 	UserModeReference hidechansmode;
 	UserModeReference invisiblemode;
 	Events::ModuleEventProvider whoevprov;
+	Events::ModuleEventProvider whomatchevprov;
+
+	void BuildOpLevels()
+	{
+		// Build a map of prefixes ordered descending by their rank.
+		std::multimap<unsigned int, const PrefixMode*, std::greater<unsigned int> > ranks;
+		const ModeParser::PrefixModeList& modes = ServerInstance->Modes.GetPrefixModes();
+		for (ModeParser::PrefixModeList::const_iterator iter = modes.begin(); iter != modes.end(); ++iter)
+		{
+			const PrefixMode* pm = *iter;
+			ranks.insert(std::make_pair(pm->GetPrefixRank(), pm));
+		}
+
+		// Now we have the ranks ordered we can assign them levels.
+		unsigned int lastrank;
+		unsigned int oplevel = 0;
+		for (std::multimap<unsigned int, const PrefixMode*>::const_iterator iter = ranks.begin(); iter != ranks.end(); ++iter)
+		{
+			const PrefixMode* pm = iter->second;
+			if (iter != ranks.begin() && pm->GetPrefixRank() != lastrank)
+				oplevel++; // Keep the same op level for modes with the same prefix rank.
+
+			lastrank = pm->GetPrefixRank();
+			oplevels[pm->GetModeChar()] = ConvToStr(oplevel);
+			ServerInstance->Logs->Log(MODNAME, LOG_DEBUG, "Assigned oplevel %u to the %c (%s) prefix mode.",
+				oplevel, pm->GetModeChar(), pm->name.c_str());
+		}
+	}
 
 	/** Determines whether a user can view the users of a channel. */
 	bool CanView(Channel* chan, User* user)
@@ -154,7 +182,7 @@ class CommandWho : public SplitCommand
 	bool MatchChannel(LocalUser* source, Membership* memb, WhoData& data);
 
 	/** Determines whether WHO flags match a specific user. */
-	static bool MatchUser(LocalUser* source, User* target, WhoData& data);
+	bool MatchUser(LocalUser* source, User* target, WhoData& data);
 
 	/** Performs a WHO request on a channel. */
 	void WhoChannel(LocalUser* source, const std::vector<std::string>& parameters, Channel* c, WhoData& data);
@@ -168,6 +196,8 @@ class CommandWho : public SplitCommand
 	void WhoUsers(LocalUser* source, const std::vector<std::string>& parameters, const T& users, WhoData& data);
 
  public:
+	insp::flat_map<char, std::string> oplevels;
+
 	CommandWho(Module* parent)
 		: SplitCommand(parent, "WHO", 1, 3)
 		, secretmode(parent, "secret")
@@ -175,6 +205,7 @@ class CommandWho : public SplitCommand
 		, hidechansmode(parent, "hidechans")
 		, invisiblemode(parent, "invisible")
 		, whoevprov(parent, "event/who")
+		, whomatchevprov(parent, "event/who-match")
 	{
 		allow_empty_last_param = false;
 		syntax = "<server>|<nick>|<channel>|<realname>|<host>|0 [[Aafhilmnoprstux][%acdfhilnorstu] <server>|<nick>|<channel>|<realname>|<host>|0]";
@@ -237,6 +268,15 @@ bool CommandWho::MatchUser(LocalUser* source, User* user, WhoData& data)
 	//   (2) The source is local to the current server.
 	if (data.flags['l'] && source_can_see_server && !lu)
 		return false;
+
+	// Let a module handle this first if it wants to.
+	ModResult res;
+	FIRST_MOD_RESULT_CUSTOM(whomatchevprov, Who::MatchEventListener, OnWhoMatch, res, (data, source, user));
+	if (res == MOD_RES_ALLOW)
+		return true; // Module explicitly matched.
+
+	else if (res == MOD_RES_DENY)
+		return false; // Module explicitly rejected.
 
 	// The source wants to match against users' away messages.
 	bool match = false;
@@ -496,7 +536,14 @@ void CommandWho::SendWhoLine(LocalUser* source, const std::vector<std::string>& 
 
 		// Include the user's operator rank level.
 		if (data.whox_fields['o'])
-			wholine.push(memb ? ConvToStr(memb->getRank()) : "0");
+		{
+			// If we haven't built a table to convert from InspIRCd member
+			// ranks to WHOX oplevels yet we need to do that here.
+			if (oplevels.empty())
+				BuildOpLevels();
+
+			wholine.push(memb && !memb->modes.empty() ? oplevels[memb->modes[0]] : "n/a");
+		}
 
 		// Include the user's real name.
 		if (data.whox_fields['r'])
@@ -596,6 +643,18 @@ class CoreModWho : public Module
 	void On005Numeric(std::map<std::string, std::string>& tokens) CXX11_OVERRIDE
 	{
 		tokens["WHOX"];
+	}
+
+	void OnServiceAdd(ServiceProvider& provider) CXX11_OVERRIDE
+	{
+		// If the service is a prefix mode we need to rebuild the oplevel map.
+		if (provider.service == SERVICE_MODE && static_cast<ModeHandler&>(provider).IsPrefixMode())
+			cmd.oplevels.clear();
+	}
+
+	void OnServiceDel(ServiceProvider& provider) CXX11_OVERRIDE
+	{
+		this->OnServiceAdd(provider);
 	}
 
 	Version GetVersion() CXX11_OVERRIDE

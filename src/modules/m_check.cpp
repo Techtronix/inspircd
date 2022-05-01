@@ -4,7 +4,7 @@
  *   Copyright (C) 2021 Herman <GermanAizek@yandex.ru>
  *   Copyright (C) 2020 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2013-2014, 2016 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2013, 2018-2021 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2018-2022 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2010 Craig Edwards <brain@inspircd.org>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
@@ -276,7 +276,7 @@ class CommandCheck : public Command
 				 * Unlike Asuka, I define a clone as coming from the same host. --w00t
 				 */
 				const UserManager::CloneCounts& clonecount = ServerInstance->Users->GetCloneCounts(i->first);
-				context.Write("member", InspIRCd::Format("%u %s%s (%s)", clonecount.global,
+				context.Write("member", InspIRCd::Format("%u %s%s (%s\x0F)", clonecount.global,
 					i->second->GetAllPrefixChars().c_str(), i->first->GetFullHost().c_str(),
 					i->first->GetRealName().c_str()));
 			}

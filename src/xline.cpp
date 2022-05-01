@@ -3,7 +3,7 @@
  *
  *   Copyright (C) 2021 Herman <GermanAizek@yandex.ru>
  *   Copyright (C) 2019 Matt Schatz <genius3000@g3k.solutions>
- *   Copyright (C) 2013, 2017-2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2020, 2022 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013 Adam <Adam@anope.org>
  *   Copyright (C) 2012-2014, 2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
@@ -741,7 +741,7 @@ void ELine::OnAdd()
 void XLine::DisplayExpiry()
 {
 	bool onechar = (type.length() == 1);
-	ServerInstance->SNO->WriteToSnoMask('x', "Removing expired %s%s %s (set by %s %s ago): %s",
+	ServerInstance->SNO->WriteToSnoMask('x', "Removing an expired %s%s on %s (set by %s %s ago): %s",
 		type.c_str(), (onechar ? "-line" : ""), Displayable().c_str(), source.c_str(), InspIRCd::DurationString(ServerInstance->Time() - set_time).c_str(), reason.c_str());
 }
 

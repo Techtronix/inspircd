@@ -3,7 +3,7 @@
  *
  *   Copyright (C) 2020 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2019 linuxdaemon <linuxdaemon.irc@gmail.com>
- *   Copyright (C) 2013-2014, 2016-2021 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013-2014, 2016-2022 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013 Daniel Vassdal <shutter@canternet.org>
  *   Copyright (C) 2012-2017 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012-2013, 2016 Adam <Adam@anope.org>
@@ -92,6 +92,10 @@
 # define GNUTLS_HAS_RND
 #else
 # include <gcrypt.h>
+#endif
+
+#if INSPIRCD_GNUTLS_HAS_VERSION(3, 6, 0)
+# define GNUTLS_AUTO_DH
 #endif
 
 #ifdef _WIN32
@@ -220,6 +224,7 @@ namespace GnuTLS
 		gnutls_digest_algorithm_t get() const { return hash; }
 	};
 
+#ifndef GNUTLS_AUTO_DH
 	class DHParams
 	{
 		gnutls_dh_params_t dh_params;
@@ -246,6 +251,7 @@ namespace GnuTLS
 
 		const gnutls_dh_params_t& get() const { return dh_params; }
 	};
+#endif
 
 	class X509Key
 	{
@@ -443,9 +449,11 @@ namespace GnuTLS
 
 	class CertCredentials
 	{
+#ifndef GNUTLS_AUTO_DH
 		/** DH parameters associated with these credentials
 		 */
 		SMART_PTR<DHParams> dh;
+#endif
 
 	 protected:
 		gnutls_certificate_credentials_t cred;
@@ -468,6 +476,7 @@ namespace GnuTLS
 			gnutls_credentials_set(sess, GNUTLS_CRD_CERTIFICATE, cred);
 		}
 
+#ifndef GNUTLS_AUTO_DH
 		/** Set the given DH parameters to be used with these credentials
 		 */
 		void SetDH(SMART_PTR<DHParams>& DH)
@@ -475,6 +484,7 @@ namespace GnuTLS
 			dh = DH;
 			gnutls_certificate_set_dh_params(cred, dh->get());
 		}
+#endif
 	};
 
 	class X509Credentials : public CertCredentials
@@ -655,8 +665,10 @@ namespace GnuTLS
 
 			std::string certstr;
 			std::string keystr;
-			SMART_PTR<DHParams> dh;
 
+#ifndef GNUTLS_AUTO_DH
+			SMART_PTR<DHParams> dh;
+#endif
 			std::string priostr;
 			unsigned int mindh;
 			std::string hashstr;
@@ -668,7 +680,9 @@ namespace GnuTLS
 				: name(profilename)
 				, certstr(ReadFile(tag->getString("certfile", "cert.pem", 1)))
 				, keystr(ReadFile(tag->getString("keyfile", "key.pem", 1)))
+#ifndef GNUTLS_AUTO_DH
 				, dh(DHParams::Import(ReadFile(tag->getString("dhfile", "dhparams.pem", 1))))
+#endif
 				, priostr(GetPrioStr(profilename, tag))
 				, mindh(tag->getUInt("mindhbits", 1024))
 				, hashstr(tag->getString("hash", "md5", 1))
@@ -703,7 +717,9 @@ namespace GnuTLS
 			, outrecsize(config.outrecsize)
 			, requestclientcert(config.requestclientcert)
 		{
+#ifndef GNUTLS_AUTO_DH
 			x509cred.SetDH(config.dh);
+#endif
 			x509cred.SetCA(config.ca, config.crl);
 		}
 		/** Set up the given session with the settings in this profile

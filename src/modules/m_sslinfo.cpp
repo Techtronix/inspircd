@@ -4,7 +4,7 @@
  *   Copyright (C) 2021 Molly Miller
  *   Copyright (C) 2020 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2019 linuxdaemon <linuxdaemon.irc@gmail.com>
- *   Copyright (C) 2013, 2017-2021 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2022 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2010 Adam <Adam@anope.org>
@@ -201,7 +201,7 @@ class CommandSSLInfo : public SplitCommand
 
 		if (!source->IsOper() && chan->GetPrefixValue(source) < OP_VALUE)
 		{
-			source->WriteNumeric(ERR_CHANOPRIVSNEEDED, chan->name, "You must be a channel operator.");
+			source->WriteNumeric(Numerics::ChannelPrivilegesNeeded(chan, OP_VALUE, "view TLS (SSL) client certificate information"));
 			return CMD_FAILURE;
 		}
 

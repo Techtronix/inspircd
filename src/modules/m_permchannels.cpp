@@ -2,7 +2,7 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2014 Justin Crawford <Justasic@Gmail.com>
- *   Copyright (C) 2013-2014, 2017-2021 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013-2014, 2017-2022 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013-2014, 2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2012, 2014 Adam <Adam@anope.org>
@@ -51,6 +51,11 @@ class PermChannel : public ModeHandler
 			channel->CheckDestroy();
 
 		return MODEACTION_ALLOW;
+	}
+
+	void SetOperOnly(bool value)
+	{
+		oper = value;
 	}
 };
 
@@ -190,6 +195,7 @@ public:
 		ConfigTag* tag = ServerInstance->Config->ConfValue("permchanneldb");
 		permchannelsconf = tag->getString("filename");
 		save_listmodes = tag->getBool("listmodes", true);
+		p.SetOperOnly(tag->getBool("operonly", true));
 		SetInterval(tag->getDuration("saveperiod", 5));
 
 		if (!permchannelsconf.empty())

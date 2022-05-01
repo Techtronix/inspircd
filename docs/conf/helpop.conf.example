@@ -298,6 +298,8 @@ The following flags use <pattern> to match against the specified user data:
 
  A     Show users who have an away message matching <pattern>.
  a     Show users who have an account name matching <pattern>.
+ G     Show users who are connecting from a country code matching <pattern>.
+       Requires the geoban module.
  h     Show users who have a hostname matching <pattern>. If the 'x' modifier
        is specified then this will match against the real hostname instead of
        the display hostname.
@@ -419,9 +421,11 @@ server.
 You should not use it during an established connection.
 ">
 
-<helpop key="whowas" title="/WHOWAS <nick>" value="
+<helpop key="whowas" title="/WHOWAS <nick> [<count>]" value="
 Returns a list of times the user was seen recently on IRC along with
 the time they were last seen and their server.
+
+If <count> is given, only return the <count> most recent entries.
 ">
 
 <helpop key="links" title="/LINKS" value="

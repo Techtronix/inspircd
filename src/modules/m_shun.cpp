@@ -4,7 +4,7 @@
  *   Copyright (C) 2019 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2018 linuxdaemon <linuxdaemon.irc@gmail.com>
  *   Copyright (C) 2017 B00mX0r <b00mx0r@aureus.pw>
- *   Copyright (C) 2013, 2017-2018, 2020-2021 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2018, 2020-2022 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2013, 2015-2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2012 Jens Voss <DukePyrolator@anope.org>
@@ -119,12 +119,12 @@ class CommandShun : public Command
 			{
 				if (!duration)
 				{
-					ServerInstance->SNO->WriteToSnoMask('x', "%s added permanent SHUN for %s: %s",
+					ServerInstance->SNO->WriteToSnoMask('x', "%s added a permanent SHUN on %s: %s",
 						user->nick.c_str(), target.c_str(), expr.c_str());
 				}
 				else
 				{
-					ServerInstance->SNO->WriteToSnoMask('x', "%s added timed SHUN for %s, expires in %s (on %s): %s",
+					ServerInstance->SNO->WriteToSnoMask('x', "%s added a timed SHUN on %s, expires in %s (on %s): %s",
 						user->nick.c_str(), target.c_str(), InspIRCd::DurationString(duration).c_str(),
 						InspIRCd::TimeString(ServerInstance->Time() + duration).c_str(), expr.c_str());
 				}

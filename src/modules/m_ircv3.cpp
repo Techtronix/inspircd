@@ -2,7 +2,7 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2021 Herman <GermanAizek@yandex.ru>
- *   Copyright (C) 2013, 2018-2019 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2018-2019, 2022 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2013, 2015, 2018 Attila Molnar <attilamolnar@hush.com>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
@@ -150,7 +150,7 @@ class ModuleIRCv3
 		const std::string& param = (newaccount.empty() ? joinhook.asterisk : newaccount);
 		msg.PushParamRef(param);
 		ClientProtocol::Event accountevent(accountprotoev, msg);
-		IRCv3::WriteNeighborsWithCap(user, accountevent, cap_accountnotify);
+		IRCv3::WriteNeighborsWithCap(user, accountevent, cap_accountnotify, true);
 	}
 
 	void OnUserAway(User* user) CXX11_OVERRIDE

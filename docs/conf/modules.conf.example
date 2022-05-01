@@ -632,6 +632,10 @@
 # that users must share a common channel with you to PRIVMSG or NOTICE
 # you.
 #<module name="commonchans">
+#
+# You can also require a common channel for inviting to another channel
+# by uncommenting this:
+# <commonchans invite="yes">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # Auto join on connect module: Allows you to force users to join one
@@ -688,13 +692,13 @@
 #<module name="connectban">
 #
 # threshold - The number of connections which are allowed before a user
-#             is connectbnaned. Defaults to 10.
+#             is connectbanned. Defaults to 10.
 #
 # banmessage - The message to give users when Z-lining them for connecting
 #              too much.
 #
-# duration - The time period to ban users who connect to much for. Defaults
-#            to 10 minutes.
+# banduration - The time period to ban users who connect to much for. Defaults
+#               to 10 minutes.
 #
 # ipv4cidr - The IPv4 CIDR mask (1-32) to treat connecting users as coming
 #            from the same host. Defaults to 32.
@@ -710,7 +714,7 @@
 #
 #<connectban threshold="10"
 #            banmessage="Your IP range has been attempting to connect too many times in too short a duration. Wait a while, and you will be able to connect."
-#            duration="10m"
+#            banduration="6h"
 #            ipv4cidr="32"
 #            ipv6cidr="128"
 #            bootwait="2m"
@@ -1684,9 +1688,16 @@
 # requirekey    - If enabled, overriding on join requires a channel   #
 #                 key of "override" to be specified.                  #
 #                                                                     #
+# timeout:        The time period after which to automatically remove #
+#                 the override user mode. If not set then it will not #
+#                 be removed automatically.                           #
+#                                                                     #
 # enableumode   - If enabled, user mode +O is required for override.  #
 #                                                                     #
-#<override noisy="yes" requirekey="no" enableumode="yes">
+#<override noisy="yes"
+#          requirekey="no"
+#          timeout="30m"
+#          enableumode="yes">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # Oper levels module: Gives each oper a level and prevents actions
@@ -1787,9 +1798,14 @@
 #
 # 'saveperiod' determines how often to check if the database needs to be
 # saved to disk. Defaults to every five seconds.
+#
+# 'operonly' determines whether a server operator or services server is
+# needed to enable the permchannels mode. You should generally keep this
+# set to yes unless you know what you are doing.
 #<permchanneldb filename="permchannels.conf"
 #               listmodes="yes"
-#               saveperiod="5s">
+#               saveperiod="5s"
+#               operonly="yes">
 #<include file="permchannels.conf" missingokay="yes">
 #
 # You may also create channels on startup by using the <permchannels> block.
