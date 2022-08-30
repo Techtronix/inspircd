@@ -531,6 +531,8 @@ ParseStack::ParseStack(ServerConfig* conf)
 	vars["irc.bold"]          = "\x02";
 	vars["irc.color"]         = "\x03";
 	vars["irc.colour"]        = "\x03";
+	vars["irc.hexcolor"]      = "\x04";
+	vars["irc.hexcolour"]     = "\x04";
 	vars["irc.italic"]        = "\x1D";
 	vars["irc.monospace"]     = "\x11";
 	vars["irc.reset"]         = "\x0F";
@@ -607,7 +609,7 @@ std::string ConfigTag::getString(const std::string& key, const std::string& def,
 	if (res.length() < minlen || res.length() > maxlen)
 	{
 		ServerInstance->Logs->Log("CONFIG", LOG_DEFAULT, "WARNING: The length of <%s:%s> is not between %ld and %ld; value set to %s.",
-			tag.c_str(), key.c_str(), minlen, maxlen, def.c_str());
+			tag.c_str(), key.c_str(), (unsigned long)minlen, (unsigned long)maxlen, def.c_str());
 		return def;
 	}
 	return res;

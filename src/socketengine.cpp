@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2017-2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2017-2020, 2022 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013-2014 Adam <Adam@anope.org>
  *   Copyright (C) 2012, 2014-2015 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
@@ -77,7 +77,7 @@ void EventHandler::OnEventHandlerError(int errornum)
 void SocketEngine::InitError()
 {
 	std::cerr << con_red << "FATAL ERROR!" << con_reset << " Socket engine initialization failed. " << strerror(errno) << '.' << std::endl;
-	exit(EXIT_STATUS_SOCKETENGINE);
+	InspIRCd::QuickExit(EXIT_STATUS_SOCKETENGINE);
 }
 
 void SocketEngine::LookupMaxFds()
