@@ -10,7 +10,7 @@
  *   Copyright (C) 2009 John Brooks <special@inspircd.org>
  *   Copyright (C) 2008 Robin Burchell <robin+git@viroteck.net>
  *   Copyright (C) 2007 Dennis Friis <peavey@inspircd.org>
- *   Copyright (C) 2006-2008, 2010 Craig Edwards <brain@inspircd.org>
+ *   Copyright (C) 2006-2008 Craig Edwards <brain@inspircd.org>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -116,10 +116,10 @@ class CommandWho : public SplitCommand
  private:
 	ChanModeReference secretmode;
 	ChanModeReference privatemode;
-	UserModeReference hidechansmode;
 	UserModeReference invisiblemode;
 	Events::ModuleEventProvider whoevprov;
 	Events::ModuleEventProvider whomatchevprov;
+	Events::ModuleEventProvider whovisibleevprov;
 
 	void BuildOpLevels()
 	{
@@ -165,15 +165,26 @@ class CommandWho : public SplitCommand
 	}
 
 	/** Gets the first channel which is visible between the source and the target users. */
-	Membership* GetFirstVisibleChannel(LocalUser* source, User* user)
+	Membership* GetFirstVisibleChannel(const WhoData& data, LocalUser* source, User* user)
 	{
 		for (User::ChanList::iterator iter = user->chans.begin(); iter != user->chans.end(); ++iter)
 		{
 			Membership* memb = *iter;
 
-			// TODO: move the +I check into m_hidechans.
-			bool has_modes = memb->chan->IsModeSet(secretmode) || memb->chan->IsModeSet(privatemode) || user->IsModeSet(hidechansmode);
-			if (source == user || !has_modes || memb->chan->HasUser(source))
+			// Let a module handle this first if it wants to.
+			ModResult res;
+			FIRST_MOD_RESULT_CUSTOM(whovisibleevprov, Who::VisibleEventListener, OnWhoVisible, res, (data, source, memb));
+			if (res == MOD_RES_ALLOW)
+				return memb; // Module explicitly picked this chan.
+
+			if (res == MOD_RES_DENY)
+				continue; // Module explicitly rejected this chan.
+
+			// A module didn't specify either way so use the default behaviour:
+			// 1. The requesting user is getting a WHO response for themself.
+			// 2. The +s (secret) and +p (private) channel modes are not set.
+			// 3. The requesting user is a member of the channel.
+			if (source == user || (!memb->chan->IsModeSet(secretmode) && !memb->chan->IsModeSet(privatemode)) || memb->chan->HasUser(source))
 				return memb;
 		}
 		return NULL;
@@ -203,10 +214,10 @@ class CommandWho : public SplitCommand
 		: SplitCommand(parent, "WHO", 1, 3)
 		, secretmode(parent, "secret")
 		, privatemode(parent, "private")
-		, hidechansmode(parent, "hidechans")
 		, invisiblemode(parent, "invisible")
 		, whoevprov(parent, "event/who")
 		, whomatchevprov(parent, "event/who-match")
+		, whovisibleevprov(parent, "event/who-visible")
 	{
 		allow_empty_last_param = false;
 		syntax = "<server>|<nick>|<channel>|<realname>|<host>|0 [[Aafhilmnoprstux][%acdfhilnorstu] <server>|<nick>|<channel>|<realname>|<host>|0]";
@@ -453,7 +464,7 @@ void CommandWho::WhoUsers(LocalUser* source, const std::vector<std::string>& par
 void CommandWho::SendWhoLine(LocalUser* source, const std::vector<std::string>& parameters, Membership* memb, User* user, WhoData& data)
 {
 	if (!memb)
-		memb = GetFirstVisibleChannel(source, user);
+		memb = GetFirstVisibleChannel(data, source, user);
 
 	bool source_can_see_target = source == user || source->HasPrivPermission("users/auspex");
 	Numeric::Numeric wholine(data.whox ? RPL_WHOSPCRPL : RPL_WHOREPLY);
@@ -608,9 +619,9 @@ CmdResult CommandWho::HandleLocal(LocalUser* user, const Params& parameters)
 	WhoData data(parameters);
 
 	// Is the source running a WHO on a channel?
-	Channel* chan = ServerInstance->FindChan(data.matchtext);
-	if (chan)
-		WhoChannel(user, parameters, chan, data);
+	data.matchchan = ServerInstance->FindChan(data.matchtext);
+	if (data.matchchan)
+		WhoChannel(user, parameters, data.matchchan, data);
 
 	// If we only want to match against opers we only have to iterate the oper list.
 	else if (data.flags['o'])

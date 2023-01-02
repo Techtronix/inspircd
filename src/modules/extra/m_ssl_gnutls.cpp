@@ -10,10 +10,9 @@
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2012 ChrisTX <xpipe@hotmail.de>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
- *   Copyright (C) 2009 Uli Schlachter <psychon@inspircd.org>
  *   Copyright (C) 2008 Robin Burchell <robin+git@viroteck.net>
  *   Copyright (C) 2008 John Brooks <special@inspircd.org>
- *   Copyright (C) 2007-2008, 2010 Craig Edwards <brain@inspircd.org>
+ *   Copyright (C) 2007-2008 Craig Edwards <brain@inspircd.org>
  *   Copyright (C) 2007 Dennis Friis <peavey@inspircd.org>
  *   Copyright (C) 2006 Oliver Lupton <om@inspircd.org>
  *
@@ -198,9 +197,12 @@ namespace GnuTLS
 		{
 			// As older versions of gnutls can't do this, let's disable it where needed.
 #ifdef GNUTLS_HAS_MAC_GET_ID
+# if INSPIRCD_GNUTLS_HAS_VERSION(3, 2, 2)
+			hash = gnutls_digest_get_id(hashname.c_str());
+# else
 			// As gnutls_digest_algorithm_t and gnutls_mac_algorithm_t are mapped 1:1, we can do this
-			// There is no gnutls_dig_get_id() at the moment, but it may come later
 			hash = (gnutls_digest_algorithm_t)gnutls_mac_get_id(hashname.c_str());
+# endif
 			if (hash == GNUTLS_DIG_UNKNOWN)
 				throw Exception("Unknown hash type " + hashname);
 
@@ -1200,7 +1202,7 @@ info_done_dealloc:
 
 	bool GetServerName(std::string& out) const CXX11_OVERRIDE
 	{
-		std::vector<char> nameBuffer;
+		std::vector<char> nameBuffer(1);
 		size_t nameLength = 0;
 		unsigned int nameType = GNUTLS_NAME_DNS;
 

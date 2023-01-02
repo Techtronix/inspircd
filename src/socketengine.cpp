@@ -10,7 +10,7 @@
  *   Copyright (C) 2008, 2017 Robin Burchell <robin+git@viroteck.net>
  *   Copyright (C) 2007 burlex
  *   Copyright (C) 2007 Dennis Friis <peavey@inspircd.org>
- *   Copyright (C) 2006-2008, 2010 Craig Edwards <brain@inspircd.org>
+ *   Copyright (C) 2006-2008 Craig Edwards <brain@inspircd.org>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -366,17 +366,10 @@ std::string SocketEngine::LastError()
 #ifndef _WIN32
 	return strerror(errno);
 #else
-	char szErrorString[500];
-	DWORD dwErrorCode = WSAGetLastError();
-	if (FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, dwErrorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)szErrorString, _countof(szErrorString), NULL) == 0)
-		sprintf_s(szErrorString, _countof(szErrorString), "Error code: %u", dwErrorCode);
-
-	std::string::size_type p;
-	std::string ret = szErrorString;
-	while ((p = ret.find_last_of("\r\n")) != std::string::npos)
-		ret.erase(p, 1);
-
-	return ret;
+	std::string err = GetErrorMessage(WSAGetLastError());
+	for (size_t pos = 0; ((pos = err.find_first_of("\r\n", pos)) != std::string::npos); )
+		err[pos] = ' ';
+	return err;
 #endif
 }
 

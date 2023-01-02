@@ -10,7 +10,7 @@
  *   Copyright (C) 2009 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2007-2008 Robin Burchell <robin+git@viroteck.net>
  *   Copyright (C) 2007 Dennis Friis <peavey@inspircd.org>
- *   Copyright (C) 2006-2008, 2010 Craig Edwards <brain@inspircd.org>
+ *   Copyright (C) 2006-2008 Craig Edwards <brain@inspircd.org>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -34,15 +34,17 @@ CommandKline::CommandKline(Module* parent)
 	: Command(parent, "KLINE", 1, 3)
 {
 	flags_needed = 'o';
-	syntax = "<user@host> [<duration> :<reason>]";
+	syntax = "<user@host>[,<user@host>]+ [<duration> :<reason>]";
 }
 
 /** Handle /KLINE
  */
 CmdResult CommandKline::Handle(User* user, const Params& parameters)
 {
-	std::string target = parameters[0];
+	if (CommandParser::LoopCall(user, this, parameters, 0))
+		return CMD_SUCCESS;
 
+	std::string target = parameters[0];
 	if (parameters.size() >= 3)
 	{
 		IdentHostPair ih;
@@ -63,7 +65,7 @@ CmdResult CommandKline::Handle(User* user, const Params& parameters)
 		}
 
 		InsaneBan::IPHostMatcher matcher;
-		if (InsaneBan::MatchesEveryone(ih.first+"@"+ih.second, matcher, user, "K", "hostmasks"))
+		if (InsaneBan::MatchesEveryone(ih.first + "@" + ih.second, matcher, user, 'K', "hostmasks"))
 			return CMD_FAILURE;
 
 		if (target.find('!') != std::string::npos)
@@ -78,7 +80,7 @@ CmdResult CommandKline::Handle(User* user, const Params& parameters)
 			user->WriteNotice("*** Invalid duration for K-line.");
 			return CMD_FAILURE;
 		}
-		KLine* kl = new KLine(ServerInstance->Time(), duration, user->nick.c_str(), parameters[2].c_str(), ih.first.c_str(), ih.second.c_str());
+		KLine* kl = new KLine(ServerInstance->Time(), duration, user->nick, parameters[2], ih.first, ih.second);
 		if (ServerInstance->XLines->AddLine(kl,user))
 		{
 			if (!duration)

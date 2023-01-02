@@ -7,7 +7,6 @@
  *   Copyright (C) 2012-2013, 2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
- *   Copyright (C) 2009 Uli Schlachter <psychon@inspircd.org>
  *   Copyright (C) 2008-2009 Robin Burchell <robin+git@viroteck.net>
  *   Copyright (C) 2008 Thomas Stagner <aquanight@inspircd.org>
  *   Copyright (C) 2008 Craig Edwards <brain@inspircd.org>
@@ -72,7 +71,7 @@ class RLine : public XLine
 	{
 		if (ZlineOnMatch)
 		{
-			ZLine* zl = new ZLine(ServerInstance->Time(), duration ? expiry - ServerInstance->Time() : 0, MODNAME "@" + ServerInstance->Config->ServerName, reason.c_str(), u->GetIPString());
+			ZLine* zl = new ZLine(ServerInstance->Time(), duration ? expiry - ServerInstance->Time() : 0, MODNAME "@" + ServerInstance->Config->ServerName, reason, u->GetIPString());
 			if (ServerInstance->XLines->AddLine(zl, NULL))
 			{
 				if (!duration)
@@ -160,7 +159,7 @@ class CommandRLine : public Command
 
 			try
 			{
-				r = factory.Generate(ServerInstance->Time(), duration, user->nick.c_str(), parameters[2].c_str(), parameters[0].c_str());
+				r = factory.Generate(ServerInstance->Time(), duration, user->nick, parameters[2], parameters[0]);
 			}
 			catch (ModuleException &e)
 			{

@@ -6,8 +6,8 @@
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2007-2008 Dennis Friis <peavey@inspircd.org>
- *   Copyright (C) 2006, 2010 Craig Edwards <brain@inspircd.org>
  *   Copyright (C) 2006 Oliver Lupton <om@inspircd.org>
+ *   Copyright (C) 2006 Craig Edwards <brain@inspircd.org>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -91,6 +91,9 @@ class ModuleBlockAmsg : public Module
 
 		if ((validated) && (parameters.size() >= 2) && ((command == "PRIVMSG") || (command == "NOTICE")))
 		{
+			if (user->HasPrivPermission("servers/ignore-blockamsg"))
+				return MOD_RES_PASSTHRU;
+
 			// parameters[0] is the target list, count how many channels are there
 			unsigned int targets = 0;
 			// Is the first target a channel?

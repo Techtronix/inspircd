@@ -9,7 +9,7 @@
  *   Copyright (C) 2009 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2008 Robin Burchell <robin+git@viroteck.net>
  *   Copyright (C) 2007 Dennis Friis <peavey@inspircd.org>
- *   Copyright (C) 2006-2008, 2010 Craig Edwards <brain@inspircd.org>
+ *   Copyright (C) 2006-2008 Craig Edwards <brain@inspircd.org>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -33,15 +33,17 @@ CommandEline::CommandEline(Module* parent)
 	: Command(parent, "ELINE", 1, 3)
 {
 	flags_needed = 'o';
-	syntax = "<user@host> [<duration> :<reason>]";
+	syntax = "<user@host>[,<user@host>]+ [<duration> :<reason>]";
 }
 
 /** Handle /ELINE
  */
 CmdResult CommandEline::Handle(User* user, const Params& parameters)
 {
-	std::string target = parameters[0];
+	if (CommandParser::LoopCall(user, this, parameters, 0))
+		return CMD_SUCCESS;
 
+	std::string target = parameters[0];
 	if (parameters.size() >= 3)
 	{
 		IdentHostPair ih;
@@ -62,7 +64,7 @@ CmdResult CommandEline::Handle(User* user, const Params& parameters)
 		}
 
 		InsaneBan::IPHostMatcher matcher;
-		if (InsaneBan::MatchesEveryone(ih.first+"@"+ih.second, matcher, user, "E", "hostmasks"))
+		if (InsaneBan::MatchesEveryone(ih.first + "@" + ih.second, matcher, user, 'E', "hostmasks"))
 			return CMD_FAILURE;
 
 		unsigned long duration;
@@ -71,7 +73,7 @@ CmdResult CommandEline::Handle(User* user, const Params& parameters)
 			user->WriteNotice("*** Invalid duration for E-line.");
 			return CMD_FAILURE;
 		}
-		ELine* el = new ELine(ServerInstance->Time(), duration, user->nick.c_str(), parameters[2].c_str(), ih.first.c_str(), ih.second.c_str());
+		ELine* el = new ELine(ServerInstance->Time(), duration, user->nick, parameters[2], ih.first, ih.second);
 		if (ServerInstance->XLines->AddLine(el, user))
 		{
 			if (!duration)

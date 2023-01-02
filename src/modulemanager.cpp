@@ -6,7 +6,6 @@
  *   Copyright (C) 2012-2013, 2015 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2012 ChrisTX <xpipe@hotmail.de>
- *   Copyright (C) 2010 Craig Edwards <brain@inspircd.org>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
@@ -54,7 +53,7 @@ bool ModuleManager::Load(const std::string& modname, bool defer)
 	}
 
 	Module* newmod = NULL;
-	DLLManager* newhandle = new DLLManager(moduleFile.c_str());
+	DLLManager* newhandle = new DLLManager(moduleFile);
 	ServiceList newservices;
 	if (!defer)
 		this->NewServices = &newservices;
@@ -133,7 +132,12 @@ void ModuleManager::LoadCoreModules(std::map<std::string, ServiceList>& servicem
 	std::vector<std::string> files;
 	if (!FileSystem::GetFileList(ServerInstance->Config->Paths.Module, files, "core_*.so"))
 	{
-		std::cout << "failed!" << std::endl;
+#ifdef _WIN32
+		const std::string errmsg = GetErrorMessage(GetLastError());
+#else
+		const char* errmsg = strerror(errno);
+#endif
+		std::cout << "failed: " << errmsg << "!" << std::endl;
 		ServerInstance->Exit(EXIT_STATUS_MODULE);
 	}
 

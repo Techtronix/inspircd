@@ -9,8 +9,8 @@
  *   Copyright (C) 2009 Uli Schlachter <psychon@inspircd.org>
  *   Copyright (C) 2009 Matt Smith <dz@inspircd.org>
  *   Copyright (C) 2009 Daniel De Graaf <danieldg@inspircd.org>
- *   Copyright (C) 2007-2008, 2010 Craig Edwards <brain@inspircd.org>
  *   Copyright (C) 2007-2008 Robin Burchell <robin+git@viroteck.net>
+ *   Copyright (C) 2007-2008 Craig Edwards <brain@inspircd.org>
  *   Copyright (C) 2007 Dennis Friis <peavey@inspircd.org>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
@@ -35,13 +35,15 @@ CommandZline::CommandZline(Module* parent)
 	: Command(parent, "ZLINE", 1, 3)
 {
 	flags_needed = 'o';
-	syntax = "<ipmask> [<duration> :<reason>]";
+	syntax = "<ipmask>[,<ipmask>]+ [<duration> :<reason>]";
 }
 
 CmdResult CommandZline::Handle(User* user, const Params& parameters)
 {
-	std::string target = parameters[0];
+	if (CommandParser::LoopCall(user, this, parameters, 0))
+		return CMD_SUCCESS;
 
+	std::string target = parameters[0];
 	if (parameters.size() >= 3)
 	{
 		if (target.find('!') != std::string::npos)
@@ -67,7 +69,7 @@ CmdResult CommandZline::Handle(User* user, const Params& parameters)
 		}
 
 		IPMatcher matcher;
-		if (InsaneBan::MatchesEveryone(ipaddr, matcher, user, "Z", "ipmasks"))
+		if (InsaneBan::MatchesEveryone(ipaddr, matcher, user, 'Z', "ipmasks"))
 			return CMD_FAILURE;
 
 		unsigned long duration;
@@ -76,7 +78,7 @@ CmdResult CommandZline::Handle(User* user, const Params& parameters)
 			user->WriteNotice("*** Invalid duration for Z-line.");
 			return CMD_FAILURE;
 		}
-		ZLine* zl = new ZLine(ServerInstance->Time(), duration, user->nick.c_str(), parameters[2].c_str(), ipaddr);
+		ZLine* zl = new ZLine(ServerInstance->Time(), duration, user->nick, parameters[2], ipaddr);
 		if (ServerInstance->XLines->AddLine(zl,user))
 		{
 			if (!duration)

@@ -1,6 +1,12 @@
-# m_regex_stdlib is supported by every version of Visual Studio we support,
-# so copy the file out of extra/
-file(COPY "${INSPIRCD_BASE}/src/modules/extra/m_regex_stdlib.cpp" DESTINATION "${INSPIRCD_BASE}/src/modules/")
+# These modules can always be built on all platforms.
+file(GLOB INSPIRCD_MODULES
+	"${INSPIRCD_BASE}/src/coremods/core_*"
+	"${INSPIRCD_BASE}/src/modules/m_*")
+
+# These modules have their dependencies provided by Windows.
+list(APPEND INSPIRCD_MODULES
+	"${INSPIRCD_BASE}/src/modules/extra/m_ldap.cpp"
+	"${INSPIRCD_BASE}/src/modules/extra/m_regex_stdlib.cpp")
 
 if(EXISTS "${CMAKE_BINARY_DIR}/conanbuildinfo.cmake")
 	include("${CMAKE_BINARY_DIR}/conanbuildinfo.cmake")
@@ -8,7 +14,8 @@ if(EXISTS "${CMAKE_BINARY_DIR}/conanbuildinfo.cmake")
 	function(enable_extra NAME PACKAGE)
 		if(DEFINED "CONAN_${PACKAGE}_ROOT")
 			message("Enabling the ${NAME} module")
-			file(COPY "${INSPIRCD_BASE}/src/modules/extra/m_${NAME}.cpp" DESTINATION "${INSPIRCD_BASE}/src/modules/")
+			list(APPEND INSPIRCD_MODULES "${INSPIRCD_BASE}/src/modules/extra/m_${NAME}.cpp")
+			set(INSPIRCD_MODULES ${INSPIRCD_MODULES} PARENT_SCOPE)
 		else()
 			message("Unable to enable the ${NAME} module (missing library)")
 		endif()
@@ -19,6 +26,8 @@ if(EXISTS "${CMAKE_BINARY_DIR}/conanbuildinfo.cmake")
 	enable_extra("mysql" "LIBMYSQLCLIENT")
 	enable_extra("pgsql" "LIBPQ")
 	enable_extra("regex_pcre" "PCRE")
+	enable_extra("regex_pcre2" "PCRE2")
+	enable_extra("regex_posix" "PCRE2")
 	enable_extra("regex_re2" "RE2")
 	enable_extra("ssl_mbedtls" "MBEDTLS")
 	enable_extra("ssl_openssl" "OPENSSL")
@@ -33,8 +42,6 @@ else()
 	message("Unable to build extras: conanbuildinfo.cmake does not exist in the build directory!")
 endif()
 
-
-file(GLOB INSPIRCD_MODULES "${INSPIRCD_BASE}/src/coremods/core_*" "${INSPIRCD_BASE}/src/modules/m_*")
 list(SORT INSPIRCD_MODULES)
 
 add_definitions("-DDLL_BUILD")
@@ -74,5 +81,5 @@ foreach(MODULE_NAME ${INSPIRCD_MODULES})
 	)
 
 	# Set the module to be installed to the module directory
-	install(TARGETS ${SO_NAME} DESTINATION ${MODULE_DIR})
+	install(TARGETS ${SO_NAME} DESTINATION ${MODULE_DIR} LIBRARY)
 endforeach()

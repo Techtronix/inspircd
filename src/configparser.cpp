@@ -6,7 +6,6 @@
  *   Copyright (C) 2013 ChrisTX <xpipe@hotmail.de>
  *   Copyright (C) 2012-2014 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
- *   Copyright (C) 2010 Craig Edwards <brain@inspircd.org>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
@@ -60,7 +59,13 @@ struct FilePosition
 	FilePosition(const std::string& Name)
 		: name(Name)
 		, line(1)
-		, column(1)
+		, column(0)
+	{
+	}
+
+	FilePosition()
+		: line(0)
+		, column(0)
 	{
 	}
 
@@ -119,7 +124,7 @@ struct Parser
 	std::string mandatory_tag;
 
 	Parser(ParseStack& me, int myflags, FILE* conf, const std::string& name, const std::string& mandatorytag)
-		: stack(me), flags(myflags), file(conf), current(name), last_tag(name), ungot(-1), mandatory_tag(mandatorytag)
+		: stack(me), flags(myflags), file(conf), current(name), ungot(-1), mandatory_tag(mandatorytag)
 	{ }
 
 	int next(bool eof_ok = false)
@@ -402,9 +407,10 @@ struct Parser
 		{
 			stack.errstr << err.GetReason() << " at " << current.str();
 			if (tag)
-				stack.errstr << " (inside tag " << tag->tag << " at line " << tag->src_line << ")\n";
-			else
-				stack.errstr << " (last tag was on line " << last_tag.line << ")\n";
+				stack.errstr << " (inside <" << tag->tag << "> tag on line " << tag->src_line << ")";
+			else if (!last_tag.name.empty())
+				stack.errstr << " (last tag was on line " << last_tag.line << ")";
+			stack.errstr << " \n";
 		}
 		return false;
 	}
@@ -476,6 +482,30 @@ void ParseStack::DoInclude(ConfigTag* tag, int flags)
 	}
 }
 
+namespace
+{
+	void CheckOwnership(const std::string& path)
+	{
+#ifndef _WIN32
+		struct stat pathinfo;
+		if (stat(path.c_str(), &pathinfo))
+			return; // Will be handled when fopen fails.
+
+		if (getegid() != pathinfo.st_gid)
+		{
+			ServerInstance->Logs->Log("CONFIG", LOG_DEFAULT, "Possible configuration error: %s is owned by group %u but the server is running as group %u.",
+				path.c_str(), pathinfo.st_gid, getegid());
+		}
+
+		if (geteuid() != pathinfo.st_uid)
+		{
+			ServerInstance->Logs->Log("CONFIG", LOG_DEFAULT, "Possible configuration error: %s is owned by user %u but the server is running as user %u.",
+				path.c_str(), pathinfo.st_uid, geteuid());
+		}
+#endif
+	}
+}
+
 void ParseStack::DoReadFile(const std::string& key, const std::string& name, int flags, bool exec)
 {
 	if (flags & FLAG_NO_INC)
@@ -483,7 +513,10 @@ void ParseStack::DoReadFile(const std::string& key, const std::string& name, int
 	if (exec && (flags & FLAG_NO_EXEC))
 		throw CoreException("Invalid <execfiles> tag in file included with noexec=\"yes\"");
 
-	std::string path = ServerInstance->Config->Paths.PrependConfig(name);
+	const std::string path = ServerInstance->Config->Paths.PrependConfig(name);
+	if (!exec)
+		CheckOwnership(path);
+
 	FileWrapper file(exec ? popen(name.c_str(), "r") : fopen(path.c_str(), "r"), exec);
 	if (!file)
 		throw CoreException("Could not read \"" + path + "\" for \"" + key + "\" file");
@@ -547,8 +580,10 @@ bool ParseStack::ParseFile(const std::string& path, int flags, const std::string
 	if (stdalgo::isin(reading, path))
 		throw CoreException((isexec ? "Executable " : "File ") + path + " is included recursively (looped inclusion)");
 
-	/* It's not already included, add it to the list of files we've loaded */
+	if (!isexec)
+		CheckOwnership(path);
 
+	/* It's not already included, add it to the list of files we've loaded */
 	FileWrapper file((isexec ? popen(path.c_str(), "r") : fopen(path.c_str(), "r")), isexec);
 	if (!file)
 	{

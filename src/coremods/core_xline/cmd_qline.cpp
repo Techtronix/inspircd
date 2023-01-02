@@ -6,12 +6,11 @@
  *   Copyright (C) 2018 linuxdaemon <linuxdaemon.irc@gmail.com>
  *   Copyright (C) 2014 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
- *   Copyright (C) 2009 Uli Schlachter <psychon@inspircd.org>
  *   Copyright (C) 2009 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2008 Thomas Stagner <aquanight@inspircd.org>
  *   Copyright (C) 2007 Robin Burchell <robin+git@viroteck.net>
  *   Copyright (C) 2007 Dennis Friis <peavey@inspircd.org>
- *   Copyright (C) 2006-2008, 2010 Craig Edwards <brain@inspircd.org>
+ *   Copyright (C) 2006-2008 Craig Edwards <brain@inspircd.org>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -35,15 +34,18 @@ CommandQline::CommandQline(Module* parent)
 	: Command(parent, "QLINE", 1, 3)
 {
 	flags_needed = 'o';
-	syntax = "<nickmask> [<duration> :<reason>]";
+	syntax = "<nickmask>[,<nickmask>]+ [<duration> :<reason>]";
 }
 
 CmdResult CommandQline::Handle(User* user, const Params& parameters)
 {
+	if (CommandParser::LoopCall(user, this, parameters, 0))
+		return CMD_SUCCESS;
+
 	if (parameters.size() >= 3)
 	{
 		NickMatcher matcher;
-		if (InsaneBan::MatchesEveryone(parameters[0], matcher, user, "Q", "nickmasks"))
+		if (InsaneBan::MatchesEveryone(parameters[0], matcher, user, 'Q', "nickmasks"))
 			return CMD_FAILURE;
 
 		if (parameters[0].find('@') != std::string::npos || parameters[0].find('!') != std::string::npos || parameters[0].find('.') != std::string::npos)
@@ -58,7 +60,7 @@ CmdResult CommandQline::Handle(User* user, const Params& parameters)
 			user->WriteNotice("*** Invalid duration for Q-line.");
 			return CMD_FAILURE;
 		}
-		QLine* ql = new QLine(ServerInstance->Time(), duration, user->nick.c_str(), parameters[2].c_str(), parameters[0].c_str());
+		QLine* ql = new QLine(ServerInstance->Time(), duration, user->nick, parameters[2], parameters[0]);
 		if (ServerInstance->XLines->AddLine(ql,user))
 		{
 			if (!duration)

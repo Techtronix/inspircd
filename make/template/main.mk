@@ -3,7 +3,7 @@
 # InspIRCd -- Internet Relay Chat Daemon
 #
 #   Copyright (C) 2018 Puck Meerburg <puck@puckipedia.com>
-#   Copyright (C) 2012-2021 Sadie Powell <sadie@witchery.services>
+#   Copyright (C) 2012-2022 Sadie Powell <sadie@witchery.services>
 #   Copyright (C) 2012, 2015-2016 Attila Molnar <attilamolnar@hush.com>
 #   Copyright (C) 2012 Robby <robby@chatbelgie.be>
 #   Copyright (C) 2012 Christoph Egger <christoph@debian.org>
@@ -45,7 +45,7 @@ SYSTEM = @SYSTEM_NAME@
 SOURCEPATH = @SOURCE_DIR@
 BUILDPATH ?= $(SOURCEPATH)/build/@COMPILER_NAME@-@COMPILER_VERSION@
 SOCKETENGINE = @SOCKETENGINE@
-CORECXXFLAGS = -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -pipe -Iinclude -Wall -Wextra -Wfatal-errors -Wno-unused-parameter -Wshadow
+CORECXXFLAGS = -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -pipe -Iinclude -Wall -Wextra -Wfatal-errors -Wno-unused-parameter
 LDLIBS = -lstdc++
 CORELDFLAGS = -rdynamic -L.
 PICLDFLAGS = -fPIC -shared -rdynamic

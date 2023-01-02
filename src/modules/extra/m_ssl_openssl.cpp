@@ -13,7 +13,7 @@
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2008 Robin Burchell <robin+git@viroteck.net>
  *   Copyright (C) 2007 Dennis Friis <peavey@inspircd.org>
- *   Copyright (C) 2006-2008, 2010 Craig Edwards <brain@inspircd.org>
+ *   Copyright (C) 2006-2008 Craig Edwards <brain@inspircd.org>
  *   Copyright (C) 2006 Oliver Lupton <om@inspircd.org>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
@@ -406,6 +406,12 @@ namespace OpenSSL
 			// Enable TLSv1.2 by default.
 			if (!tag->getBool("tlsv12", true))
 				setoptions |= SSL_OP_NO_TLSv1_2;
+#endif
+
+#ifdef SSL_OP_NO_TLSv1_3
+			// Enable TLSv1.3 by default.
+			if (!tag->getBool("tlsv13", true))
+				setoptions |= SSL_OP_NO_TLSv1_3;
 #endif
 
 			if (!setoptions && !clearoptions)

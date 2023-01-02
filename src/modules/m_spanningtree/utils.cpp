@@ -7,7 +7,7 @@
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2008-2009 Robin Burchell <robin+git@viroteck.net>
- *   Copyright (C) 2007-2008, 2010 Craig Edwards <brain@inspircd.org>
+ *   Copyright (C) 2007-2008 Craig Edwards <brain@inspircd.org>
  *   Copyright (C) 2007 Dennis Friis <peavey@inspircd.org>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
@@ -272,7 +272,7 @@ void SpanningTreeUtilities::ReadConfiguration()
 		if (path.empty())
 		{
 			L->IPAddr = tag->getString("ipaddr");
-			L->Port = tag->getUInt("port", 0);
+			L->Port = tag->getUInt("port", 0, 1, 65535);
 		}
 		else
 		{

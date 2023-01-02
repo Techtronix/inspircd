@@ -7,11 +7,10 @@
  *   Copyright (C) 2013 Adam <Adam@anope.org>
  *   Copyright (C) 2012-2014, 2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
- *   Copyright (C) 2009 Uli Schlachter <psychon@inspircd.org>
  *   Copyright (C) 2009 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2007-2009 Robin Burchell <robin+git@viroteck.net>
  *   Copyright (C) 2007 Dennis Friis <peavey@inspircd.org>
- *   Copyright (C) 2004, 2006-2008, 2010 Craig Edwards <brain@inspircd.org>
+ *   Copyright (C) 2004, 2006-2008 Craig Edwards <brain@inspircd.org>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -430,6 +429,7 @@ XLine* XLineManager::MatchesLine(const std::string &type, const std::string &pat
 // removes lines that have expired
 void XLineManager::ExpireLine(ContainerIter container, LookupIter item, bool silent)
 {
+	ServerInstance->BanCache.RemoveEntries(item->second->type, true);
 	FOREACH_MOD(OnExpireLine, (item->second));
 
 	if (!silent)
@@ -718,7 +718,7 @@ bool ELine::Matches(const std::string &str)
 
 bool KLine::Matches(const std::string &str)
 {
-	return (InspIRCd::MatchCIDR(str.c_str(), matchtext));
+	return (InspIRCd::MatchCIDR(str, matchtext));
 }
 
 bool GLine::Matches(const std::string &str)

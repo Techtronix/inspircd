@@ -10,7 +10,7 @@
  *   Copyright (C) 2009 John Brooks <special@inspircd.org>
  *   Copyright (C) 2009 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2007-2008 Dennis Friis <peavey@inspircd.org>
- *   Copyright (C) 2006, 2010 Craig Edwards <brain@inspircd.org>
+ *   Copyright (C) 2006 Craig Edwards <brain@inspircd.org>
  *   Copyright (C) 2005, 2008 Robin Burchell <robin+git@viroteck.net>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
@@ -135,7 +135,7 @@ class CommandCBan : public Command
 				return CMD_FAILURE;
 			}
 			const char *reason = (parameters.size() > 2) ? parameters[2].c_str() : "No reason supplied";
-			CBan* r = new CBan(ServerInstance->Time(), duration, user->nick.c_str(), reason, parameters[0].c_str());
+			CBan* r = new CBan(ServerInstance->Time(), duration, user->nick, reason, parameters[0]);
 
 			if (ServerInstance->XLines->AddLine(r, user))
 			{

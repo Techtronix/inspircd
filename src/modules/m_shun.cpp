@@ -8,11 +8,10 @@
  *   Copyright (C) 2012-2013, 2015-2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2012 Jens Voss <DukePyrolator@anope.org>
- *   Copyright (C) 2009 Uli Schlachter <psychon@inspircd.org>
  *   Copyright (C) 2009 John Brooks <special@inspircd.org>
  *   Copyright (C) 2009 Dennis Friis <peavey@inspircd.org>
  *   Copyright (C) 2009 Daniel De Graaf <danieldg@inspircd.org>
- *   Copyright (C) 2008-2010 Craig Edwards <brain@inspircd.org>
+ *   Copyright (C) 2008-2009 Craig Edwards <brain@inspircd.org>
  *   Copyright (C) 2008 Thomas Stagner <aquanight@inspircd.org>
  *   Copyright (C) 2008 Robin Burchell <robin+git@viroteck.net>
  *
@@ -62,16 +61,17 @@ class CommandShun : public Command
 	CommandShun(Module* Creator) : Command(Creator, "SHUN", 1, 3)
 	{
 		flags_needed = 'o';
-		syntax = "<nick!user@host> [<duration> :<reason>]";
+		syntax = "<nick!user@host>[,<nick!user@host>]+ [<duration> :<reason>]";
 	}
 
 	CmdResult Handle(User* user, const Params& parameters) CXX11_OVERRIDE
 	{
 		/* syntax: SHUN nick!user@host time :reason goes here */
 		/* 'time' is a human-readable timestring, like 2d3h2s. */
+		if (CommandParser::LoopCall(user, this, parameters, 0))
+			return CMD_SUCCESS;
 
 		std::string target = parameters[0];
-
 		User *find = ServerInstance->FindNick(target);
 		if ((find) && (find->registered == REG_ALL))
 			target = "*!" + find->GetBanIdent() + "@" + find->GetIPString();
@@ -114,7 +114,7 @@ class CommandShun : public Command
 				expr = parameters[1];
 			}
 
-			Shun* r = new Shun(ServerInstance->Time(), duration, user->nick.c_str(), expr.c_str(), target.c_str());
+			Shun* r = new Shun(ServerInstance->Time(), duration, user->nick, expr, target);
 			if (ServerInstance->XLines->AddLine(r, user))
 			{
 				if (!duration)

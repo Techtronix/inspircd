@@ -5,13 +5,13 @@
  *   Copyright (C) 2016 Adam <Adam@anope.org>
  *   Copyright (C) 2015 Daniel Vassdal <shutter@canternet.org>
  *   Copyright (C) 2013-2014 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2013, 2016-2021 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2016-2022 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2012 ChrisTX <xpipe@hotmail.de>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2009 Uli Schlachter <psychon@inspircd.org>
  *   Copyright (C) 2007, 2009 Dennis Friis <peavey@inspircd.org>
- *   Copyright (C) 2005, 2008-2010 Craig Edwards <brain@inspircd.org>
+ *   Copyright (C) 2005, 2008-2009 Craig Edwards <brain@inspircd.org>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -340,6 +340,12 @@ class SQLConnection : public SQL::Provider
 		// Set the connection timeout.
 		unsigned int timeout = config->getDuration("timeout", 5, 1, 30);
 		mysql_options(connection, MYSQL_OPT_CONNECT_TIMEOUT, &timeout);
+
+		// Enable SSL if requested.
+#if defined LIBMYSQL_VERSION_ID && LIBMYSQL_VERSION_ID > 80000
+		unsigned int ssl = config->getBool("ssl") ? SSL_MODE_REQUIRED : SSL_MODE_PREFERRED;
+		mysql_options(connection, MYSQL_OPT_SSL_MODE, &ssl);
+#endif
 
 		// Attempt to connect to the database.
 		const std::string host = config->getString("host");

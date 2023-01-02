@@ -13,7 +13,6 @@
  *   Copyright (C) 2012 DjSlash <djslash@djslash.org>
  *   Copyright (C) 2011 jackmcbarn <jackmcbarn@inspircd.org>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
- *   Copyright (C) 2009 Uli Schlachter <psychon@inspircd.org>
  *   Copyright (C) 2008 Thomas Stagner <aquanight@inspircd.org>
  *   Copyright (C) 2008 John Brooks <special@inspircd.org>
  *   Copyright (C) 2007, 2009 Dennis Friis <peavey@inspircd.org>
@@ -399,7 +398,7 @@ void User::Oper(OperInfo* info)
 	this->oper = info;
 
 	LocalUser* localuser = IS_LOCAL(this);
-	if (localuser)
+	if (localuser && opermh)
 	{
 		Modes::ChangeList changelist;
 		changelist.push_add(opermh);

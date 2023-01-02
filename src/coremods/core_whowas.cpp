@@ -2,10 +2,9 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2022 Val Lorentz <progval+git@progval.net>
- *   Copyright (C) 2013, 2017-2018, 2020-2021 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2018, 2020-2022 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
- *   Copyright (C) 2010 Craig Edwards <brain@inspircd.org>
  *   Copyright (C) 2009 Uli Schlachter <psychon@inspircd.org>
  *   Copyright (C) 2009 Daniel De Graaf <danieldg@inspircd.org>
  *   Copyright (C) 2007-2008 Robin Burchell <robin+git@viroteck.net>
@@ -198,6 +197,12 @@ CmdResult CommandWhowas::Handle(User* user, const Params& parameters)
 	if (!manager.IsEnabled())
 	{
 		user->WriteNumeric(ERR_UNKNOWNCOMMAND, name, "This command has been disabled.");
+		return CMD_FAILURE;
+	}
+
+	if (parameters[0].empty())
+	{
+		user->WriteNumeric(ERR_NONICKNAMEGIVEN, "No nickname given");
 		return CMD_FAILURE;
 	}
 
