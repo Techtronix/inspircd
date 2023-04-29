@@ -5,7 +5,7 @@
  *   Copyright (C) 2018 linuxdaemon <linuxdaemon.irc@gmail.com>
  *   Copyright (C) 2013 Daniel Vassdal <shutter@canternet.org>
  *   Copyright (C) 2012-2016, 2018 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2012-2014, 2017-2019, 2022 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2012-2014, 2017-2019, 2022-2023 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012, 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2012 ChrisTX <xpipe@hotmail.de>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
@@ -390,9 +390,16 @@ class CoreExport InspIRCd
 
 	/** Determines whether a hostname is valid according to RFC 5891 rules.
 	 * @param host The hostname to validate.
+	 * @param allowsimple Whether to allow simple hostnames (e.g. localhost).
 	 * @return True if the hostname is valid; otherwise, false.
 	 */
-	static bool IsHost(const std::string& host);
+	static bool IsHost2(const std::string& host, bool allowsimple);
+
+	/** Determines whether a hostname is valid according to RFC 5891 rules.
+	 * @param host The hostname to validate.
+	 * @return True if the hostname is valid; otherwise, false.
+	 */
+	inline static bool IsHost(const std::string& host) { return IsHost2(host, false); }
 
 	/** Return true if str looks like a server ID
 	 * @param sid string to check against

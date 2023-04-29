@@ -3,7 +3,7 @@
  *
  *   Copyright (C) 2020 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2019 linuxdaemon <linuxdaemon.irc@gmail.com>
- *   Copyright (C) 2013-2014, 2016-2022 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013-2014, 2016-2023 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013 Daniel Vassdal <shutter@canternet.org>
  *   Copyright (C) 2012-2017 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012-2013, 2016 Adam <Adam@anope.org>
@@ -39,6 +39,7 @@
 /// $PackageInfo: require_system("centos") gnutls-devel pkgconfig
 /// $PackageInfo: require_system("darwin") gnutls pkg-config
 /// $PackageInfo: require_system("debian") gnutls-bin libgnutls28-dev pkg-config
+/// $PackageInfo: require_system("rocky") gnutls-devel pkgconfig
 /// $PackageInfo: require_system("ubuntu") gnutls-bin libgnutls28-dev pkg-config
 
 #include "inspircd.h"
@@ -877,11 +878,26 @@ class GnuTLSIOHook : public SSLIOHook
 			certinfo->fingerprint = BinToHex(buffer, buffer_size);
 		}
 
-		/* Beware here we do not check for errors.
-		 */
-		if ((gnutls_x509_crt_get_expiration_time(cert) < ServerInstance->Time()) || (gnutls_x509_crt_get_activation_time(cert) > ServerInstance->Time()))
+		certinfo->activation = gnutls_x509_crt_get_activation_time(cert);
+		if (certinfo->activation == -1)
 		{
-			certinfo->error = "Not activated, or expired certificate";
+			certinfo->activation = 0;
+			certinfo->error = "Unable to check certificate activation time";
+		}
+		else if (certinfo->activation >= ServerInstance->Time())
+		{
+			certinfo->error = "Certificate not activated";
+		}
+
+		certinfo->expiration = gnutls_x509_crt_get_expiration_time(cert);
+		if (certinfo->expiration == -1)
+		{
+			certinfo->expiration = 0;
+			certinfo->error = "Unable to check certificate expiration time";
+		}
+		else if (certinfo->expiration <= ServerInstance->Time())
+		{
+			certinfo->error = "Certificate has expired";
 		}
 
 info_done_dealloc:

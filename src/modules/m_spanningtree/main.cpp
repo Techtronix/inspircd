@@ -4,7 +4,7 @@
  *   Copyright (C) 2021 Herman <GermanAizek@yandex.ru>
  *   Copyright (C) 2020 Matt Schatz <genius3000@g3k.solutions>
  *   Copyright (C) 2019 linuxdaemon <linuxdaemon.irc@gmail.com>
- *   Copyright (C) 2013, 2017-2022 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2023 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013, 2016 Adam <Adam@anope.org>
  *   Copyright (C) 2012-2016, 2018 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
@@ -485,6 +485,12 @@ void ModuleSpanningTree::OnUserConnect(LocalUser* user)
 
 	if (user->IsOper())
 		CommandOpertype::Builder(user).Broadcast();
+
+	if (user->IsAway())
+		CommandAway::Builder(user).Broadcast();
+
+	if (user->uniqueusername) // TODO: convert this to BooleanExtItem in v4.
+		CommandMetadata::Builder(user, "uniqueusername", "1").Broadcast();
 
 	for(Extensible::ExtensibleStore::const_iterator i = user->GetExtList().begin(); i != user->GetExtList().end(); i++)
 	{

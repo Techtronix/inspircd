@@ -1225,7 +1225,10 @@
 # The following block can be used to control which extensions are
 # enabled. Note that extended-join can be incompatible with delayjoin
 # and host cycling.
-#<ircv3 accountnotify="yes" awaynotify="yes" extendedjoin="yes">
+#<ircv3 accountnotify="yes"
+#       awaynotify="yes"
+#       extendedjoin="yes"
+#       standardreplies="yes">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # IRCv3 account-tag module. Adds the 'account' tag which contains the
@@ -2315,9 +2318,11 @@
 # If you want to prevent users from viewing TLS (SSL) certificate information
 # and fingerprints of other users, set operonly to yes. You can also set hash
 # to an IANA Hash Function Textual Name to use the SSL fingerprint sent by a
-# WebIRC gateway (requires the cgiirc module).
+# WebIRC gateway (requires the cgiirc module) and warnexpiring to warn users
+# when their client certificate is about to expire.
 #<sslinfo operonly="no"
-#         hash="sha-256">
+#         hash="sha-256"
+#         warnexpiring="1w">
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # mbedTLS TLS (SSL) module: Adds support for TLS (SSL) connections using mbedTLS.

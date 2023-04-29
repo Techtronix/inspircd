@@ -2,10 +2,9 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2019 linuxdaemon <linuxdaemon.irc@gmail.com>
- *   Copyright (C) 2016 Adam <Adam@anope.org>
  *   Copyright (C) 2015 Daniel Vassdal <shutter@canternet.org>
  *   Copyright (C) 2013-2014 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2013, 2016-2022 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2016-2023 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2012 ChrisTX <xpipe@hotmail.de>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
@@ -30,10 +29,10 @@
 /// $LinkerFlags: execute("mysql_config --libs_r" "MYSQL_LDFLAGS" "-lmysqlclient")
 
 /// $PackageInfo: require_system("arch") mariadb-libs
-/// $PackageInfo: require_system("centos" "6.0" "6.99") mysql-devel
-/// $PackageInfo: require_system("centos" "7.0") mariadb-devel
-/// $PackageInfo: require_system("darwin") mysql-connector-c
+/// $PackageInfo: require_system("centos") mysql-devel
+/// $PackageInfo: require_system("darwin") mysql-client
 /// $PackageInfo: require_system("debian") libmysqlclient-dev
+/// $PackageInfo: require_system("rocky") mysql-devel
 /// $PackageInfo: require_system("ubuntu") libmysqlclient-dev
 
 #ifdef __GNUC__

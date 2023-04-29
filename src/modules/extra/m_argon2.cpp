@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2022 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2022-2023 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2020 Elizabeth Myers <elizabeth@interlinked.me>
  *   Copyright (C) 2020 Daniel Vassdal <shutter@canternet.org>
  *
@@ -54,8 +54,11 @@ class ProviderConfig
 		// match better.
 		switch (version)
 		{
+			case ARGON2_VERSION_10:
 			case 10:
 				return ARGON2_VERSION_10;
+
+			case ARGON2_VERSION_13:
 			case 13:
 				return ARGON2_VERSION_13;
 		}

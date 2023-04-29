@@ -3,7 +3,7 @@
  *
  *   Copyright (C) 2016 Adam <Adam@anope.org>
  *   Copyright (C) 2015 Daniel Vassdal <shutter@canternet.org>
- *   Copyright (C) 2013, 2016-2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2016-2020, 2023 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2015 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
@@ -31,8 +31,9 @@
 
 /// $PackageInfo: require_system("arch") postgresql-libs
 /// $PackageInfo: require_system("centos") postgresql-devel
-/// $PackageInfo: require_system("darwin") postgresql
+/// $PackageInfo: require_system("darwin") libpq
 /// $PackageInfo: require_system("debian") libpq-dev
+/// $PackageInfo: require_system("rocky") postgresql-devel
 /// $PackageInfo: require_system("ubuntu") libpq-dev
 
 
@@ -239,25 +240,52 @@ class SQLConn : public SQL::Provider, public EventHandler
 		DelayReconnect();
 	}
 
+	std::string EscapeDSN(const std::string& str)
+	{
+		std::string out;
+		out.reserve(str.size());
+
+		for (std::string::const_iterator it = str.begin(); it != str.end(); ++it)
+		{
+			char chr = *it;
+			switch (chr)
+			{
+				case '\\':
+					out.append("\\\\");
+					break;
+
+				case '\'':
+					out.append("\\'");
+					break;
+
+				default:
+					out.push_back(chr);
+					break;
+			}
+		}
+
+		return out;
+	}
+
 	std::string GetDSN()
 	{
 		std::ostringstream conninfo("connect_timeout = '5'");
 		std::string item;
 
 		if (conf->readString("host", item))
-			conninfo << " host = '" << item << "'";
+			conninfo << " host = '" << EscapeDSN(item) << "'";
 
 		if (conf->readString("port", item))
-			conninfo << " port = '" << item << "'";
+			conninfo << " port = '" << EscapeDSN(item) << "'";
 
 		if (conf->readString("name", item))
-			conninfo << " dbname = '" << item << "'";
+			conninfo << " dbname = '" << EscapeDSN(item) << "'";
 
 		if (conf->readString("user", item))
-			conninfo << " user = '" << item << "'";
+			conninfo << " user = '" << EscapeDSN(item) << "'";
 
 		if (conf->readString("pass", item))
-			conninfo << " password = '" << item << "'";
+			conninfo << " password = '" << EscapeDSN(item) << "'";
 
 		if (conf->getBool("ssl"))
 			conninfo << " sslmode = 'require'";

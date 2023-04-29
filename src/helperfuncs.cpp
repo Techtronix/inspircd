@@ -6,7 +6,7 @@
  *   Copyright (C) 2013 Daniel Vassdal <shutter@canternet.org>
  *   Copyright (C) 2013 Adam <Adam@anope.org>
  *   Copyright (C) 2012-2015 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2012-2014, 2017-2018, 2020, 2022 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2012-2014, 2017-2018, 2020, 2022-2023 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012, 2018 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2012 ChrisTX <xpipe@hotmail.de>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
@@ -273,7 +273,7 @@ bool InspIRCd::DefaultIsIdent(const std::string& n)
 	return true;
 }
 
-bool InspIRCd::IsHost(const std::string& host)
+bool InspIRCd::IsHost2(const std::string& host, bool allowsimple)
 {
 	// Hostnames must be non-empty and shorter than the maximum hostname length.
 	if (host.empty() || host.length() > ServerInstance->Config->Limits.MaxHost)
@@ -329,7 +329,7 @@ bool InspIRCd::IsHost(const std::string& host)
 	// Whilst simple hostnames (e.g. localhost) are valid we do not allow the server to use
 	// them to prevent issues with clients that differentiate between short client and server
 	// prefixes by checking whether the nickname contains a dot.
-	return numdots;
+	return numdots || allowsimple;
 }
 
 bool InspIRCd::IsSID(const std::string &str)

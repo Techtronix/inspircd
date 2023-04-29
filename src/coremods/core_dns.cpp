@@ -2,7 +2,7 @@
  * InspIRCd -- Internet Relay Chat Daemon
  *
  *   Copyright (C) 2019 Robby <robby@chatbelgie.be>
- *   Copyright (C) 2015, 2017-2022 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2015, 2017-2023 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013-2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2013, 2015-2016, 2021 Adam <Adam@anope.org>
  *
@@ -192,7 +192,7 @@ class Packet : public Query
 			case QUERY_PTR:
 			{
 				record.rdata = this->UnpackName(input, input_size, pos);
-				if (!InspIRCd::IsHost(record.rdata))
+				if (!InspIRCd::IsHost2(record.rdata, true))
 					throw Exception("Invalid name"); // XXX: Causes the request to time out
 
 				break;

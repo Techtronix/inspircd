@@ -3,7 +3,7 @@
  *
  *   Copyright (C) 2019 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2013-2014, 2016 Attila Molnar <attilamolnar@hush.com>
- *   Copyright (C) 2013, 2017-2018, 2022 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2017-2018, 2022-2023 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2013 Daniel Vassdal <shutter@canternet.org>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
@@ -47,7 +47,7 @@ class CommandRMode : public Command
 		ModeHandler* mh = ServerInstance->Modes->FindMode(modeletter, MODETYPE_CHANNEL);
 		if (mh == NULL || parameters[1].size() > 1)
 		{
-			user->WriteNumeric(ERR_UNKNOWNMODE, parameters[0], "is not a recognised channel mode.");
+			user->WriteNumeric(ERR_UNKNOWNMODE, parameters[1], "is not a recognised channel mode.");
 			return CMD_FAILURE;
 		}
 
