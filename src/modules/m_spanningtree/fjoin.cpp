@@ -1,7 +1,7 @@
 /*
  * InspIRCd -- Internet Relay Chat Daemon
  *
- *   Copyright (C) 2015, 2018-2020 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2015, 2018-2020, 2023 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2016 Attila Molnar <attilamolnar@hush.com>
  *   Copyright (C) 2012 Robby <robby@chatbelgie.be>
  *   Copyright (C) 2009-2010 Daniel De Graaf <danieldg@inspircd.org>
@@ -128,6 +128,9 @@ CmdResult CommandFJoin::Handle(User* srcuser, Params& params)
 
 	if (!chan)
 	{
+		if (channel[0] != '#')
+			throw ProtocolException("Malformed channel name in FJOIN: " + channel);
+
 		chan = new Channel(channel, TS);
 	}
 	else

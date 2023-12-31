@@ -3,7 +3,7 @@
 # InspIRCd -- Internet Relay Chat Daemon
 #
 #   Copyright (C) 2018 Puck Meerburg <puck@puckipedia.com>
-#   Copyright (C) 2012-2022 Sadie Powell <sadie@witchery.services>
+#   Copyright (C) 2012-2023 Sadie Powell <sadie@witchery.services>
 #   Copyright (C) 2012, 2015-2016 Attila Molnar <attilamolnar@hush.com>
 #   Copyright (C) 2012 Robby <robby@chatbelgie.be>
 #   Copyright (C) 2012 Christoph Egger <christoph@debian.org>
@@ -93,6 +93,9 @@ ifeq ($(SYSTEM), gnukfreebsd)
 endif
 ifeq ($(SYSTEM), gnu)
   LDLIBS += -ldl -lrt
+endif
+ifeq ($(SYSTEM), haiku)
+	CORECXXFLAGS += -D_BSD_SOURCE
 endif
 ifeq ($(SYSTEM), solaris)
   LDLIBS += -lsocket -lnsl -lrt -lresolv
@@ -231,6 +234,7 @@ install: target
 	@-$(INSTALL) -d $(INSTFLAGS) -m $(INSTMODE_DIR) $(SCRPATH)
 	-$(INSTALL) $(INSTFLAGS) -m $(INSTMODE_BIN) "$(BUILDPATH)/bin/inspircd" $(BINPATH)
 	-$(INSTALL) $(INSTFLAGS) -m $(INSTMODE_BIN) "$(BUILDPATH)/modules/"*.so $(MODPATH)
+	-$(INSTALL) $(INSTFLAGS) -m $(INSTMODE_BIN) @CONFIGURE_DIRECTORY@/deploy-ssl.sh $(SCRPATH) 2>/dev/null
 	-$(INSTALL) $(INSTFLAGS) -m $(INSTMODE_BIN) @CONFIGURE_DIRECTORY@/inspircd $(SCRPATH) 2>/dev/null
 	-$(INSTALL) $(INSTFLAGS) -m $(INSTMODE_TXT) @CONFIGURE_DIRECTORY@/apparmor $(SCRPATH) 2>/dev/null
 	-$(INSTALL) $(INSTFLAGS) -m $(INSTMODE_TXT) @CONFIGURE_DIRECTORY@/logrotate $(SCRPATH) 2>/dev/null

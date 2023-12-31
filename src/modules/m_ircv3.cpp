@@ -3,7 +3,7 @@
  *
  *   Copyright (C) 2022 delthas
  *   Copyright (C) 2021 Herman <GermanAizek@yandex.ru>
- *   Copyright (C) 2013, 2018-2019, 2022 Sadie Powell <sadie@witchery.services>
+ *   Copyright (C) 2013, 2018-2019, 2022-2023 Sadie Powell <sadie@witchery.services>
  *   Copyright (C) 2012-2013, 2015, 2018 Attila Molnar <attilamolnar@hush.com>
  *
  * This file is part of InspIRCd.  InspIRCd is free software: you can
@@ -181,7 +181,7 @@ class ModuleIRCv3
 
 	Version GetVersion() CXX11_OVERRIDE
 	{
-		return Version("Provides the IRCv3 account-notify, away-notify, and extended-join client capabilities.", VF_VENDOR);
+		return Version("Provides the IRCv3 account-notify, away-notify, extended-join, and standard-replies client capabilities.", VF_VENDOR);
 	}
 };
 
